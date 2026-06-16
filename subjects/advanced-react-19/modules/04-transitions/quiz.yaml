@@ -1,0 +1,119 @@
+- id: "4.1"
+  question: "Which state update should be wrapped in startTransition?"
+  options:
+    A: "Setting input value on keystroke"
+    B: "Toggling a dropdown menu"
+    C: "Setting filtered search results based on query"
+    D: "Calling preventDefault in a form handler"
+  answer: C
+  explanation: "Filtered results are derived data — non-urgent. The input value (keystroke) is urgent. Dropdown toggle is urgent (user expects instant response). Filtering is a transition."
+  difficulty: 1
+  tags: [application]
+
+- id: "4.2"
+  question: "What does useTransition return?"
+  options:
+    A: "A boolean for pending state"
+    B: "A function to start a transition"
+    C: "A tuple of [isPending, startTransition]"
+    D: "A tuple of [startTransition, isPending]"
+  answer: C
+  explanation: "useTransition returns [isPending, startTransition]. isPending is boolean, startTransition is a function that marks state updates as non-urgent."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "4.3"
+  question: "When a transition-triggered state update causes a Suspense boundary to show a fallback, what does React do?"
+  options:
+    A: "Shows the fallback immediately"
+    B: "Suppresses the fallback — keeps old UI visible until new content resolves"
+    C: "Throws an error — transitions cannot trigger Suspense"
+    D: "Shows both old UI and fallback simultaneously"
+  answer: B
+  explanation: "Transitions suppress Suspense fallback to avoid flash. Old content stays visible during navigation. When new content resolves, React swaps it in. This only applies during transitions, not initial load."
+  difficulty: 2
+  tags: [concept]
+
+- id: "4.4"
+  question: "How does React 19 batching differ from React 18?"
+  options:
+    A: "React 19 batches updates inside async functions and promises; React 18 did not"
+    B: "React 19 does not batch at all"
+    C: "React 19 batches only inside event handlers, same as React 18"
+    D: "React 19 requires explicit batch() calls"
+  answer: A
+  explanation: "React 18 batched inside event handlers and effects only. React 19 extends batching to async functions, promises, timeouts, and native events — reducing renders in async flows."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "4.5"
+  question: "A user types 'react' in a search box. How many filter executions occur with useDeferredValue?"
+  options:
+    A: "5 — one per character"
+    B: "1 — only the final deferred value triggers filter"
+    C: "3 — React batches some keystrokes"
+    D: "Depends — React may interrupt intermediate deferred renders"
+  answer: D
+  explanation: "React starts filtering on the first deferred value, but can interrupt when newer keystroke arrives. With fast typing, intermediate deferred renders are discarded. Likely 1-2 executions, not 5."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "4.6"
+  question: "What is the key difference between useDeferredValue and startTransition?"
+  options:
+    A: "useDeferredValue defers a value, startTransition defers an update"
+    B: "They are identical — just different syntax"
+    C: "useDeferredValue works only with Server Components"
+    D: "startTransition defers a value, useDeferredValue defers an update"
+  answer: A
+  explanation: "Use startTransition when you control the state update. Use useDeferredValue when you receive the value from a parent and cannot wrap the setter. Both achieve the same deferral but apply at different control points."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "4.7"
+  question: "What happens if a new startTransition is called while a previous transition is still in flight?"
+  options:
+    A: "Both run in parallel"
+    B: "New transition interrupts and discards the previous one"
+    C: "New transition is queued after the previous completes"
+    D: "React throws a warning"
+  answer: B
+  explanation: "Only one transition active at a time. A new startTransition interrupts the previous in-flight transition. The old transition's pending render output is discarded. DOM only commits the latest transition."
+  difficulty: 3
+  tags: [concept]
+
+- id: "4.8"
+  question: "In React 19, how many re-renders occur from this code? fetch('/data').then(() => { setA(1); setB(2); })"
+  options:
+    A: "2 — one per setState"
+    B: "1 — both are batched"
+    C: "0 — fetch does not trigger re-render"
+    D: "Depends on the component"
+  answer: B
+  explanation: "React 19 batches all setState calls, including inside async promise callbacks. Both setA and setB trigger a single render. In React 18, this would be 2 renders (no batching outside event handlers)."
+  difficulty: 2
+  tags: [concept]
+
+- id: "4.9"
+  question: "Which tool prevents the 'Suspense fallback flash' on tab navigation?"
+  options:
+    A: "useDeferredValue"
+    B: "startTransition wrapping the tab setState"
+    C: "React.memo on the tab panel"
+    D: "useMemo on the tab content"
+  answer: B
+  explanation: "Wrapping tab setState in startTransition tells React this is navigation, not initial load. React keeps old UI visible and suppresses the Suspense fallback until new content resolves — no flash."
+  difficulty: 2
+  tags: [application]
+
+- id: "4.10"
+  question: "Your component receives a large list and a filter query from parent. Filter is expensive. Which optimization?"
+  options:
+    A: "Wrap filter in startTransition"
+    B: "Use useDeferredValue on the query prop and useMemo on filter"
+    C: "Use useMemo on the query prop"
+    D: "Throttle the filter with setTimeout"
+  answer: B
+  explanation: "You do not control the query setter (parent does). useDeferredValue defers the query value. useMemo skips expensive recalc until deferred query changes. This is the declarative pattern for deferred computation."
+  difficulty: 3
+  tags: [application]

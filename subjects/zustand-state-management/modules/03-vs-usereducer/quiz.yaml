@@ -1,0 +1,119 @@
+- id: "3.1"
+  question: "What touch points are needed to add one new action to a useReducer?"
+  options:
+    A: "Add case to reducer switch"
+    B: "Add union member to Action type + case to reducer switch + update dispatch call sites"
+    C: "Create new Context provider"
+    D: "Modify the component's render method only"
+  answer: B
+  explanation: "Each action requires: type definition (union member), reducer logic (case in switch), and any dispatch call sites. Minimum 2 files (types + reducer, possibly more if action constants separate). Zustand: add one method to store, update call sites."
+  difficulty: 1
+  tags: [concept]
+
+- id: "3.2"
+  question: "In Zustand, what replaces the useReducer dispatch({ type: 'INCREMENT', payload: 1 }) pattern?"
+  options:
+    A: "A switch statement inside the store"
+    B: "A method on the store that calls set() directly"
+    C: "An action type constant exported from the store file"
+    D: "A reducer function passed to create()"
+  answer: B
+  explanation: "Zustand stores expose methods that mutate state via set(). `store.increment(1)` replaces `dispatch({ type: 'INCREMENT', payload: 1 })`. No action types, no switch, no reducer."
+  difficulty: 1
+  tags: [concept, comparison]
+
+- id: "3.3"
+  question: "A useReducer handles nested state: `state.user.settings.theme`. The equivalent Zustand store without Immer middleware requires what pattern to update the theme?"
+  options:
+    A: "state.user.settings.theme = 'dark'"
+    B: "set((state) => ({ user: { ...state.user, settings: { ...state.user.settings, theme: 'dark' } } }))"
+    C: "set({ 'user.settings.theme': 'dark' })"
+    D: "dispatch({ type: 'SET_THEME', payload: 'dark' })"
+  answer: B
+  explanation: "Zustand requires immutable style updates. Without Immer, nested level-3 update needs triple spread. Option A would mutate state directly (invalid). Option C uses dot-path syntax (not supported by default). Option D is useReducer pattern."
+  difficulty: 2
+  tags: [concept, application]
+
+- id: "3.4"
+  question: "A checkout wizard has 4 steps with complex state used only during checkout. What is the correct tool?"
+  options:
+    A: "Zustand — all state belongs in a global store"
+    B: "useReducer inside the checkout component — state is local and ephemeral"
+    C: "useReducer + Context — to allow any component to read checkout state"
+    D: "localStorage — to survive page refreshes"
+  answer: B
+  explanation: "Checkout state is local to one component/page and should reset on unmount. useReducer inside the checkout component is correct. Zustand would persist state globally across navigations, risking stale data. Context adds unnecessary provider nesting for single-page state."
+  difficulty: 2
+  tags: [scenario, application]
+
+- id: "3.5"
+  question: "A dashboard uses useReducer + Context for auth state. The Avatar component reads `user.avatarUrl`, the ProfilePanel reads `user.bio`. When avatarUrl changes via dispatch, how many consumer components re-render?"
+  options:
+    A: "Only Avatar — React tracks which fields each consumer reads"
+    B: "All consumers of the Context provider — Context does not track field-level subscriptions"
+    C: "No components — Context batches re-renders"
+    D: "Only ProfilePanel — because Context depth affects re-render scope"
+  answer: B
+  explanation: "Context re-renders all consumers when value reference changes, regardless of which fields they read. Zustand with selectors would re-render Avatar only when avatarUrl changes, and ProfilePanel only when bio changes. This is the primary performance advantage of Zustand over Context."
+  difficulty: 2
+  tags: [concept, performance]
+
+- id: "3.6"
+  question: "When migrating a useReducer to Zustand, what is the correct first step?"
+  options:
+    A: "Delete the reducer function"
+    B: "Create the Zustand store with equivalent initial state and methods"
+    C: "Remove the Context provider"
+    D: "Rewrite all dispatch calls to method calls in components"
+  answer: B
+  explanation: "Create the store first — no breaking changes. Then update leaf components one by one to use store selectors instead of dispatch calls. Then remove Context provider and reducer. Incremental migration allows partial adoption without breaking the app at any step."
+  difficulty: 1
+  tags: [application]
+
+- id: "3.7"
+  question: "A component subscribes to Zustand store via `const count = useStore((s) => s.count)`. When a store property other than count changes, does this component re-render?"
+  options:
+    A: "Yes — every store update re-renders all subscribers"
+    B: "No — Zustand selector uses Object.is comparison; only re-renders when selector output changes"
+    C: "Yes — because the selector creates a new reference each call"
+    D: "No — Zustand uses deep equality by default"
+  answer: B
+  explanation: "Zustand compares selector return value using Object.is. If s.count returned same value as previous call, component skips re-render. Only components whose selector output changed re-render. This is the key performance feature — subscribe to minimum state slice."
+  difficulty: 2
+  tags: [concept]
+
+- id: "3.8"
+  question: "A team has useReducer + Context with Redux DevTools. They want equivalent debugging for Zustand. What is needed?"
+  options:
+    A: "Install @redux-devtools/extension and wrap useReducer"
+    B: "Wrap Zustand store with devtools middleware — no additional packages"
+    C: "Use console.log in every store method"
+    D: "Zustand cannot integrate with Redux DevTools"
+  answer: B
+  explanation: "Zustand includes devtools middleware. Import from `zustand/middleware`, wrap store creator. Third argument to set() provides action name. No additional packages or store enhancer setup required. Same DevTools interface as useReducer + extension."
+  difficulty: 1
+  tags: [concept, comparison]
+
+- id: "3.9"
+  question: "A text editor has 30+ actions for formatting, history, selection, and cursor position. State is purely local to the editor component. What is the strongest argument for keeping useReducer over Zustand?"
+  options:
+    A: "useReducer is easier to test than Zustand stores"
+    B: "State is local and ephemeral — useReducer correctly scopes to component lifecycle; Zustand adds global store where none needed"
+    C: "useReducer handles 30+ actions faster than Zustand"
+    D: "Zustand cannot handle complex nested state"
+  answer: B
+  explanation: "The state should reset when editor unmounts and is not shared elsewhere. useReducer correctly scopes to component lifecycle. Zustand stores are global — state persists across component mounts and would require manual cleanup. Testing argument is neutral (both testable). Performance diff is negligible. Zustand handles complex state fine."
+  difficulty: 3
+  tags: [scenario, comparison]
+
+- id: "3.10"
+  question: "A notification state is consumed by NavBar, Sidebar, and a floating widget — all at different tree levels. NavBar only reads notification count, Sidebar reads count + list. Using useReducer + Context, what optimization pattern matches Zustand's selector granularity?"
+  options:
+    A: "Wrap each consumer in React.memo with custom comparator"
+    B: "Split into two Context providers: NotificationCountContext and NotificationListContext"
+    C: "Use useMemo on every context consumer"
+    D: "Pass individual state values as props from the provider to skip Context"
+  answer: B
+  explanation: "Splitting Context by concern approximates Zustand selectors. NavBar subscribes to CountContext, Sidebar subscribes to ListContext. This limits re-render scope but increases provider count. Zustand achieves same with a single store and granular selectors, without multiple providers."
+  difficulty: 3
+  tags: [scenario, comparison, application]

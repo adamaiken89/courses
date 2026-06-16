@@ -1,0 +1,119 @@
+- id: "14.1"
+  question: "What is the primary benefit of atomic stores over a monolithic store?"
+  options:
+    A: "Smaller bundle size — each atomic store is independently tree-shakeable"
+    B: "Components subscribe only to their domain's store — unrelated updates never trigger selector evaluation"
+    C: "Atomic stores automatically deduplicate state across domains"
+    D: "Atomic stores eliminate the need for selectors entirely"
+  answer: B
+  explanation: "Atomic stores each have their own subscriber list. A change in store A never evaluates subscribers of store B. Monolithic store evaluates all selectors on every update — even those reading unrelated domains. Tree-shaking (A) is secondary; the primary win is subscription isolation."
+  difficulty: 2
+  tags: [concept, comparison]
+
+- id: "14.2"
+  question: "A monolithic store has 50 properties across 6 domains and 40 subscribers. After decomposition into 6 atomic stores, how many subscriber selectors evaluate when a UI theme toggle fires?"
+  options:
+    A: "All 40 — selectors still evaluate per update"
+    B: "Approximately 6-8 — only subscribers of the UI atomic store"
+    C: "0 — theme toggles are local state, not store"
+    D: "40 divided by 6, so ~7"
+  answer: B
+  explanation: "Only the UI atomic store's subscribers evaluate on theme toggle. Other stores (auth, cart, products, orders, notifications) have independent subscriber lists — their selectors never run. This is the core performance win of atomic stores."
+  difficulty: 2
+  tags: [scenario, calculation]
+
+- id: "14.3"
+  question: "What does the `createSelectors` utility do?"
+  options:
+    A: "Creates a new Zustand store with pre-configured middleware"
+    B: "Auto-generates stable selector functions for every top-level state property"
+    C: "Validates that all selectors return primitive values"
+    D: "Wraps the store with devtools and logger middleware"
+  answer: B
+  explanation: "createSelectors generates a `useStore.use.propertyName()` for each top-level key in the store's state. Each selector extracts a single property by key, returning a stable reference. This eliminates inline object creation and unstable selectors without manual selector writing."
+  difficulty: 2
+  tags: [concept, terminology]
+
+- id: "14.4"
+  question: "A component uses `useAuthStore((s) => ({ name: s.user?.name, role: s.user?.role }))` without shallow. Auth store updates `token`. What happens?"
+  options:
+    A: "Component skips re-render — name and role did not change"
+    B: "Component re-renders — selector returns new object reference every call, Object.is says different"
+    C: "Component throws because selector returns object without shallow"
+    D: "Component re-renders only if name changed — Object.is compares string values"
+  answer: B
+  explanation: "The selector creates a new `{ name, role }` object every call. Object.is compares references, not values. Token update → selector re-runs → new object → Object.is: false → re-render. Fix: use `useShallow` or extract scalar values individually."
+  difficulty: 2
+  tags: [concept, scenario]
+
+- id: "14.5"
+  question: "Which scenario best fits `useShallow` instead of scalar selectors?"
+  options:
+    A: "Component reads a single primitive value (count, boolean flag)"
+    B: "Component reads 2-3 related fields from the same store with infrequent updates"
+    C: "Component reads deeply nested data with 5+ levels"
+    D: "Component reads data from 3 different atomic stores"
+  answer: B
+  explanation: "useShallow is ideal for 2-3 related fields from the same store when updates are infrequent. For a single primitive, scalar selector is simpler. For deeply nested data (C), useShallow's shallow comparison is insufficient — need custom equality or deep compare. For multi-store data (D), each store gets its own selector call."
+  difficulty: 2
+  tags: [application, scenario]
+
+- id: "14.6"
+  question: "A component needs only `s.items.length` from a cart store. Selector: `useCartStore((s) => s.items)`. What is wrong?"
+  options:
+    A: "Nothing — reading the array and accessing .length is correct"
+    B: "Component subscribes to entire items array — re-renders on any item mutation even if length unchanged"
+    C: "Cannot call .length on store state — must use getState()"
+    D: "Zustand does not allow array selectors"
+  answer: B
+  explanation: "Extracting the entire `items` array subscribes to array reference changes. Adding, removing, or reordering items creates a new array reference → re-render. If component only needs length, use `useCartStore((s) => s.items.length)` — primitive number, no reference instability."
+  difficulty: 1
+  tags: [concept, anti-pattern]
+
+- id: "14.7"
+  question: "When combining atomic stores with the slices pattern, which approach is correct for loosely coupled domains?"
+  options:
+    A: "Always use slices — one store with all domains, strict selector discipline"
+    B: "Atomic stores for independent domains, slices for tightly coupled domains"
+    C: "Never combine — pick one pattern and stick to it app-wide"
+    D: "Use atomic stores for read-heavy domains, slices for write-heavy domains"
+  answer: B
+  explanation: "Hybrid approach: atomic stores for loosely related domains (auth, notifications, UI) — they share no state and need no cross-calls. Slices for tightly coupled domains (cart + checkout + orders) — they share order state and sequential workflows. This combines isolation benefits with coordination simplicity where needed."
+  difficulty: 3
+  tags: [comparison, architecture]
+
+- id: "14.8"
+  question: "A store factory creates multiple entity stores (products, categories, tags) with identical shape. Add a `bulkDelete` action only to products store. Best approach?"
+  options:
+    A: "Edit the factory to include bulkDelete — all entity stores should be identical"
+    B: "After factory call, use `useProductsStore.setState` to inject bulkDelete as a new action"
+    C: "Create products store manually without factory — factories should not have exceptions"
+    D: "Use a separate utility function outside the store, not an action"
+  answer: B
+  explanation: "Factory returns base store. Use `useProductsStore.setState` or extend the factory to accept an `extensions` callback parameter to inject domain-specific actions. Best: factory accepts `(set, get) => ({ ...base, ...extensions })`. This keeps factory reusable while allowing per-store customization."
+  difficulty: 3
+  tags: [application, architecture]
+
+- id: "14.9"
+  question: "During atomic store migration, a component previously subscribed to `useStore((s) => s)` in the monolithic store. After migration, it subscribes to `useAuthStore`. What is the effect?"
+  options:
+    A: "Component re-renders on any store change — both approaches are equivalent"
+    B: "Component re-renders only on auth store changes — cart, products, UI, and orders updates skip evaluation"
+    C: "Component stops receiving updates — must use subscribe instead of selector"
+    D: "Component re-renders on auth and cart changes — atomic stores share a subscriber list by default"
+  answer: B
+  explanation: "Migrating from `useStore()` (no selector — subscribes to entire monolithic store) to `useAuthStore` (subscribes only to auth domain) eliminates re-evaluations from non-auth updates. The component now evaluates its selector only when auth store's state changes. Cart, products, UI, and orders updates are invisible."
+  difficulty: 1
+  tags: [scenario, migration]
+
+- id: "14.10"
+  question: "A subscriber pattern clears cart on logout: `useAuthStore.subscribe((s, prev) => { if (s.user === null && prev.user !== null) useCartStore.getState().clearCart() })`. What is a potential issue?"
+  options:
+    A: "Subscribers cause infinite loops — clearCart triggers auth re-evaluation which triggers subscriber again"
+    B: "Subscribers cannot call getState() on other stores — only the store they subscribe to"
+    C: "If cart store has not loaded yet, clearCart throws. Also: subscriber runs on every state change, not just logout"
+    D: "This pattern is correct — no issues"
+  answer: C
+  explanation: "Two issues: (1) if cart store is lazy-loaded and not yet initialized when logout fires, `clearCart` may not exist. (2) Subscriber runs on every auth store change (token update, user profile change), not just on logout. The guard condition `s.user === null && prev.user !== null` narrows it, but still runs selector on every auth update. Fix: check `useCartStore.getState().clearCart !== undefined` before calling, or use a dedicated event emitter."
+  difficulty: 3
+  tags: [scenario, anti-pattern]

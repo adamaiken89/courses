@@ -1,0 +1,124 @@
+- id: "5.1"
+  question: "Where should business logic for adding an item to a cart be defined in a well-architected Zustand store?"
+  options:
+    A: "Inside the component's event handler"
+    B: "In a useEffect hook"
+    C: "Inside the create() store as an action method"
+    D: "In a separate utility function called from the component"
+  answer: C
+  explanation: "Actions should be defined inside create() so the store owns its mutation logic. Components only call actions — they should not contain dedup, quantity rules, or data transformation."
+  difficulty: 1
+  tags: [concept]
+
+- id: "5.2"
+  question: "What problem does the useBoundStore pattern solve?"
+  options:
+    A: "It eliminates the need for TypeScript types"
+    B: "It centralizes selectors so components cannot accidentally subscribe to the entire store"
+    C: "It replaces Zustand's create() function"
+    D: "It automatically persists state to localStorage"
+  answer: B
+  explanation: "useBoundStore creates pre-configured selector hooks (useUser, useTheme, etc.). Components import these instead of raw useStore() — preventing accidental full-store subscriptions that cause unnecessary re-renders."
+  difficulty: 1
+  tags: [concept]
+
+- id: "5.3"
+  question: "A Zustand store has private timer state (`_intervalId`, `_startTime`). What is the idiomatic way to prevent components from accessing these private fields?"
+  options:
+    A: "Use JavaScript private class fields (#)"
+    B: "Prefix with underscore (_) by convention and use barrel exports to expose only public selector hooks"
+    C: "Store private state outside Zustand in a module-level variable"
+    D: "Store private state in a separate JavaScript file"
+  answer: B
+  explanation: "Zustand has no built-in encapsulation. Convention is `_` prefix for private fields + barrel exports (index.ts) that re-export only public selector hooks. Components import from barrel, never from raw store file."
+  difficulty: 2
+  tags: [concept, pattern]
+
+- id: "5.4"
+  question: "You have 8 small Zustand stores. Store A needs to read Store B's token for an API call during checkout. How should Store A access Store B's state?"
+  options:
+    A: "Import Store B's hook inside Store A's create() callback"
+    B: "Merge both stores into one monolithic store"
+    C: "Use useStoreB.getState().token inside Store A's action method"
+    D: "Pass the token as a prop from the parent component"
+  answer: C
+  explanation: "Use .getState() for occasional cross-store reads inside actions. This avoids circular dependencies and keeps stores independent. Merging stores loses domain boundaries. Importing hooks inside create() risks circular deps."
+  difficulty: 2
+  tags: [application]
+
+- id: "5.5"
+  question: "A store file exceeds 200 lines with 15 actions and complex async logic. What code organization pattern should you adopt?"
+  options:
+    A: "Keep everything inline — one file is simpler"
+    B: "Split into types.ts, store.ts, actions.ts, and selectors.ts files"
+    C: "Move all actions into a separate npm package"
+    D: "Convert all actions to React custom hooks"
+  answer: B
+  explanation: "At ~150+ lines, split by type: types.ts (interfaces), store.ts (create() call + middleware), actions.ts (standalone action creators), selectors.ts (bound selector hooks). Each file stays focused and testable."
+  difficulty: 1
+  tags: [concept]
+
+- id: "5.6"
+  question: "A `useMetricsSummary` selector computes `{ total, avgChange, upCount, downCount }` from store state. Every store change re-renders the component even when computed values are identical. What is the fix?"
+  options:
+    A: "Move the selector into the component"
+    B: "Use Zustand's `shallow` equality comparator or split into individual primitive selectors"
+    C: "Add a dependency array to the selector"
+    D: "Wrap the component in React.memo"
+  answer: B
+  explanation: "The selector returns a new object reference each call, causing re-render. Fix: use `useStore(selector, shallow)` to compare values, or split into individual selectors (useUpCount, useDownCount) that return stable primitives."
+  difficulty: 2
+  tags: [application, performance]
+
+- id: "5.7"
+  question: "Why does Zustand use `create<T>()()` (double parentheses) instead of `create<T>()`?"
+  options:
+    A: "It is a syntax error — single call is correct"
+    B: "The double call enables proper TypeScript inference when middleware transforms the store shape"
+    C: "It creates two instances of the store"
+    D: "It is required for the persist middleware only"
+  answer: B
+  explanation: "The double-call `create<T>()(middleware(...))` allows the type parameter T to propagate through middleware types. Single-call loses type information when middleware transforms the store shape. It is a TypeScript design pattern, not a runtime behavior."
+  difficulty: 3
+  tags: [concept, typescript]
+
+- id: "5.8"
+  question: "A WebSocket handler needs to update a Zustand store when new data arrives. The handler runs outside React. How should it call store actions?"
+  options:
+    A: "Wrap the handler in a React component"
+    B: "Call useStore.getState().actionName() directly from the handler"
+    C: "Dispatch a custom DOM event that a React listener handles"
+    D: "Create a second copy of the store for non-React code"
+  answer: B
+  explanation: "Zustand's vanilla store works outside React via getState() and setState(). Import the store module and call getState() from any JS context — WebSocket handlers, timers, Node scripts, workers."
+  difficulty: 1
+  tags: [application]
+
+- id: "5.9"
+  question: "What is the correct type structure for splitting a Zustand store into reusable TypeScript interfaces?"
+  options:
+    A: "One monolithic interface for the entire store"
+    B: "Separate interfaces for state, actions, and computed values, combined with intersection types"
+    C: "Use `any` to avoid complex typing"
+    D: "Define actions in the component props only"
+  answer: B
+  explanation: "Split into State, Actions, and optionally Computed interfaces. Combine with intersection types (type Store = State & Actions & Computed). This allows reusing action types in tests, generating docs from types, and maintaining clear separation."
+  difficulty: 2
+  tags: [typescript, concept]
+
+- id: "5.10"
+  question: "A dashboard has a toggle button for sidebar visibility. Only the sidebar component and its toggle button care about this state. Where should `sidebarOpen` live?"
+  options:
+    A: "In the global Zustand store alongside auth and cart state"
+    B: "In the component's local useState, promoted to Zustand only if another unrelated component needs it"
+    C: "In a Context provider"
+    D: "In a Redux store"
+  answer: B
+  explanation: "UI-only state (toggle open/close, selected tab, tooltip) should stay local with useState. Only promote to Zustand when two or more unrelated components share the state. Putting every toggle in global store creates unnecessary re-renders and file bloat."
+  difficulty: 2
+  tags: [application, scenario]
+
+# Difficulty: 1=recall, 2=comprehension, 3=application
+# Tags: concept, application, scenario, typescript, performance, pattern
+# 40% difficulty 1 (ids 5.1, 5.2, 5.5, 5.8), 40% diff 2 (ids 5.3, 5.4, 5.9, 5.10), 20% diff 3 (ids 5.6, 5.7)
+# At least 1 question per learning objective

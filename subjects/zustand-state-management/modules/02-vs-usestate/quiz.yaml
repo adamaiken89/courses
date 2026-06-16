@@ -1,0 +1,119 @@
+- id: "2.1"
+  question: "Three sibling components need read access to the same counter value. One component increments it. What problem does useState create here?"
+  options:
+    A: "Each sibling has its own copy of counter — values will diverge"
+    B: "Counter must be lifted to common ancestor, causing all siblings to re-render on change"
+    C: "useState cannot store numbers, only strings"
+    D: "Siblings cannot read state created in another sibling via hooks"
+  answer: B
+  explanation: "Lifting state to common ancestor works but forces all siblings to re-render on every change, even siblings that only read, never write. Lösung: Zustand store — each sibling subscribes independently."
+  difficulty: 1
+  tags: [concept, comparison]
+
+- id: "2.2"
+  question: "Which of the following is a valid use case for useState?"
+  options:
+    A: "Current authenticated user profile"
+    B: "Shopping cart items shared across routes"
+    C: "Modal open/close state inside a single component"
+    D: "Application theme persisted to localStorage"
+  answer: C
+  explanation: "Modal open/close is local UI state — only the modal component cares. A, B, D are all cross-cutting or persistent, better suited to Zustand."
+  difficulty: 1
+  tags: [concept, decision]
+
+- id: "2.3"
+  question: "In prop drilling, an intermediate component receives cart prop only to pass it deeper. When cart changes, what happens to the intermediate component?"
+  options:
+    A: "It does not re-render because it does not use the prop value"
+    B: "It re-renders because its props reference changed"
+    C: "React skips the intermediate component optimizing via bailout"
+    D: "It re-renders only if it also uses useState"
+  answer: B
+  explanation: "React re-renders every component in the parent chain when state changes, regardless of whether the intermediate component uses the prop. Zustand's selective subscriptions avoid this — only subscribed consumers re-render."
+  difficulty: 1
+  tags: [concept, performance]
+
+- id: "2.4"
+  question: "A component calls `useCartStore()` without a selector argument. What is the consequence?"
+  options:
+    A: "TypeScript error — selector is required"
+    B: "Component subscribes to entire store, re-renders on any state change"
+    C: "Component subscribes to nothing — returns undefined"
+    D: "Zustand automatically memoizes and prevents unnecessary re-renders"
+  answer: B
+  explanation: "`useCartStore()` with no selector returns the entire store state. Any change to any property re-renders the component. Always pass a selector: `useCartStore(s => s.items)`."
+  difficulty: 2
+  tags: [performance, pattern]
+
+- id: "2.5"
+  question: "A search form stores input value in useState. A separate SearchAnalytics component needs to read the search term. What should you do?"
+  options:
+    A: "Keep input in useState, pass searchTerm via prop to SearchAnalytics"
+    B: "Move searchTerm to Zustand store on every keystroke"
+    C: "Keep input in useState, write validated searchTerm to Zustand store on submit"
+    D: "Remove useState entirely — put everything in Zustand"
+  answer: C
+  explanation: "Input value on every keystroke is local — useState. Sharing the submitted search term with SearchAnalytics is cross-cutting — Zustand. Writing on submit avoids re-render storm in SearchAnalytics on every keystroke."
+  difficulty: 2
+  tags: [scenario, decision]
+
+- id: "2.6"
+  question: "During a useState-to-Zustand refactor, which approach is safest?"
+  options:
+    A: "Rewrite all components in one branch, deploy together"
+    B: "Move one state slice at a time, leave unaffected components unchanged"
+    C: "Create one giant store mirroring the old state shape, then split later"
+    D: "Delete all useState calls first, then add Zustand equivalents"
+  answer: B
+  explanation: "Incremental refactor minimizes risk. Move one piece of shared state → test → deploy. Unaffected components keep working. Giant store creates coupling; deleting first breaks everything simultaneously."
+  difficulty: 2
+  tags: [scenario, pattern]
+
+- id: "2.7"
+  question: "A Zustand store has `notifications` and `chat.messages`. Component A subscribes to `s => s.notifications.length`. Component B subscribes to `s => s.chat.messages`. A new chat message arrives. Does Component A re-render?"
+  options:
+    A: "Yes — the store state changed, all subscribers re-render"
+    B: "No — Component A selected `notifications.length`, which did not change"
+    C: "Yes — chat.messages.length changed, notifications.length is derived from same root"
+    D: "No but Component A's parent re-renders, forcing A to re-render anyway"
+  answer: B
+  explanation: "Zustand uses referential equality (Object.is) on selected value. `notifications.length` unchanged → Component A skips re-render. Selective subscriptions prevent cascade."
+  difficulty: 2
+  tags: [performance, concept]
+
+- id: "2.8"
+  question: "Which test approach is faster and more isolated for testing cart logic (addItem, removeItem, applyCoupon)?"
+  options:
+    A: "Render full App component, simulate button clicks, assert DOM output"
+    B: "Call `useCartStore.getState().addItem()` directly, assert `useCartStore.getState().items`"
+    C: "Test via React Testing Library with individual component mount"
+    D: "Test via Cypress E2E — true user flow"
+  answer: B
+  explanation: "Direct store calls are pure function tests — milliseconds, no DOM, catch logic bugs immediately. Component tests add setup overhead. E2E is slowest. Reserve A/C/D for integration, B for state logic."
+  difficulty: 1
+  tags: [testing, comparison]
+
+- id: "2.9"
+  question: "A user navigates from Products page to Cart page then back to Products. The cart items persist. The products filter (selected category) resets. Which state tool for which?"
+  options:
+    A: "Both in useState"
+    B: "Cart in Zustand, filter in useState"
+    C: "Cart in useState, filter in Zustand"
+    D: "Both in Zustand"
+  answer: B
+  explanation: "Cart is cross-cutting and persists across navigation → Zustand. Filter is page-local and should reset on remount → useState. Using decision tree: isolated + ephemeral = useState, shared + persistent = Zustand."
+  difficulty: 3
+  tags: [scenario, decision]
+
+- id: "2.10"
+  question: "When should you choose Zustand over lifted useState?"
+  options:
+    A: "When state is read by exactly one component"
+    B: "When state is read by multiple siblings and lifting causes unnecessary re-renders in siblings that do not use the state"
+    C: "When you want to avoid importing React"
+    D: "When the state is a string"
+  answer: B
+  explanation: "Lifted useState re-renders all children on any change. Zustand selective subscriptions let each child subscribe independently — siblings that do not select the changed slice do not re-render. This is the core advantage of Zustand over lifted state."
+  difficulty: 2
+  tags: [comparison, decision]

@@ -1,0 +1,119 @@
+- id: "15.1"
+  question: "What lane does React assign to a state update wrapped in startTransition?"
+  options:
+    A: "SyncLane"
+    B: "InputContinuousLane"
+    C: "TransitionLane"
+    D: "IdleLane"
+  answer: C
+  explanation: "startTransition marks all setState calls inside its callback as TransitionLane (green in DevTools). TransitionLane is interruptible by higher-priority lanes (SyncLane, InputContinuousLane). IdleLane is used by useDeferredValue, not startTransition."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "15.2"
+  question: "A user types into a search field. The filter computation takes 150ms. What happens in concurrent mode vs legacy mode?"
+  options:
+    A: "Both modes block typing for 150ms"
+    B: "Concurrent mode yields between fiber chunks, allowing typing during filter; legacy mode blocks"
+    C: "Legacy mode yields; concurrent mode blocks"
+    D: "Neither mode blocks — both use requestAnimationFrame"
+  answer: B
+  explanation: "Concurrent mode splits render into ~5ms chunks via time slicing. Browser processes input between chunks. Legacy mode renders synchronously — browser cannot process input until render completes."
+  difficulty: 1
+  tags: [comparison]
+
+- id: "15.3"
+  question: "Which statement about lane priority is correct?"
+  options:
+    A: "Lanes are numeric priorities (1-31) that React sorts inline"
+    B: "Lanes are bitmasks that React aggregates and tests via bitwise operations"
+    C: "Lanes are string labels compared alphabetically"
+    D: "Lanes are only used in development mode"
+  answer: B
+  explanation: "Lanes are binary bitmasks (31 fit in a 32-bit integer). React aggregates pending lanes with bitwise OR, tests intersection with bitwise AND, and picks highest priority via bitScan operations. Numeric sorting would be slower and cannot represent batched lane combinations."
+  difficulty: 2
+  tags: [concept]
+
+- id: "15.4"
+  question: "When React is rendering a transition and a SyncLane update arrives, what happens?"
+  options:
+    A: "React finishes the transition render, then processes SyncLane update"
+    B: "React throws away the transition work and restarts with SyncLane"
+    C: "React merges both updates into one render"
+    D: "React blocks the SyncLane update until transition completes"
+  answer: B
+  explanation: "React throws a special error from the work loop, discarding all partial transition work. It then restarts with the higher-priority SyncLane. This ensures urgent updates (SyncLane) are never blocked by lower-priority work."
+  difficulty: 2
+  tags: [concept]
+
+- id: "15.5"
+  question: "A filter list uses useDeferredValue for the query. What happens if the user types continuously for 2 seconds?"
+  options:
+    A: "The deferred value updates mid-typing every 5ms"
+    B: "The deferred value stays at the initial value until typing pauses, then catches up"
+    C: "The deferred value always updates synchronously"
+    D: "The deferred value only updates when startTransition is called"
+  answer: B
+  explanation: "useDeferredValue uses IdleLane. React skips re-rendering the deferred subtree if urgent work (keystroke handling) keeps arriving. Once user pauses and idle frames are available, deferred value catches up to the final value. Intermediate keystroke values may be skipped."
+  difficulty: 2
+  tags: [application]
+
+- id: "15.6"
+  question: "A component calls startTransition(() => { setTab('analytics') }). The analytics tab suspends while loading data. What does the user see?"
+  options:
+    A: "Immediate Suspense fallback (spinner)"
+    B: "Previous tab content until data loads"
+    C: "Blank screen until data loads"
+    D: "Error boundary because transitions cannot suspend"
+  answer: B
+  explanation: "Concurrent mode suppresses Suspense fallbacks during transitions. React keeps committing stale UI (previous tab) instead of showing a fallback. isPending becomes true to indicate background loading. This prevents spinner flash during navigation."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "15.7"
+  question: "What mechanism does React use to yield control to the browser between fiber units?"
+  options:
+    A: "setTimeout(fn, 0)"
+    B: "Web Workers for parallel rendering"
+    C: "MessageChannel with postMessage"
+    D: "process.nextTick"
+  answer: C
+  explanation: "React uses MessageChannel.postMessage to schedule continuation of work. The browser processes pending input, layout, and paint between the message being posted and the onmessage callback firing. setTimeout(0) is throttled to 4ms minimum in nested calls; MessageChannel fires in ~0-1ms."
+  difficulty: 2
+  tags: [concept]
+
+- id: "15.8"
+  question: "Which API prevents tearing when reading external store state during concurrent rendering?"
+  options:
+    A: "useEffect with dependency array"
+    B: "useSyncExternalStore"
+    C: "flushSync"
+    D: "useRef to store snapshot"
+  answer: B
+  explanation: "useSyncExternalStore forces getSnapshot to run synchronously at commit time, ensuring render and commit use same store snapshot. Without it, a store update between render and commit produces UI with inconsistent state (tearing). React detects snapshot changes and re-renders synchronously."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "15.9"
+  question: "A component shows a blue lane badge in DevTools but is wrapped in startTransition. What is the most likely cause?"
+  options:
+    A: "DevTools always show blue for all transitions"
+    B: "A setState outside the transition callback is triggering the re-render on DefaultLane"
+    C: "startTransition only works in production mode"
+    D: "The component uses useDeferredValue which overrides startTransition"
+  answer: B
+  explanation: "startTransition only affects setState calls executed inside its callback. If any setState outside the callback triggers the render (e.g., a parent re-render, or a setState in the same handler but outside startTransition), it uses DefaultLane (blue). Check that all relevant setState calls are inside startTransition."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "15.10"
+  question: "In React 19, what is the recommended way to update an external store (Zustand) inside useTransition?"
+  options:
+    A: "Call store.setState directly inside startTransition"
+    B: "Use useSyncExternalStore + startTransition on the component that reads the store"
+    C: "External stores cannot be used with transitions"
+    D: "Wrap the entire store in useDeferredValue"
+  answer: B
+  explanation: "startTransition only wraps React setState calls. External store mutations bypass React's scheduler. The correct pattern: use useSyncExternalStore for safe reads, then wrap the rendering of store-driven data in startTransition. For writes, trigger the store mutation outside transition and let useSyncExternalStore detect the change."
+  difficulty: 3
+  tags: [application]

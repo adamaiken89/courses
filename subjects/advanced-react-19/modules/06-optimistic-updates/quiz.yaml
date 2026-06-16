@@ -1,0 +1,119 @@
+- id: "6.1"
+  question: "What does useOptimistic return?"
+  options:
+    A: "[state, setState] — like useState"
+    B: "[optimisticState, addOptimisticUpdate] — optimistic overlay + trigger"
+    C: "[optimisticState, rollback] — optimistic overlay + rollback function"
+    D: "[state, formAction] — like useActionState"
+  answer: B
+  explanation: "useOptimistic returns [optimisticState, addOptimisticUpdate]. The optimistic state is the source-of-truth merged with pending optimistic updates. addOptimisticUpdate triggers the optimistic update function. The hook does not return a setState-like setter — the source of truth is the first argument."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "6.2"
+  question: "When does useOptimistic automatically roll back an optimistic update?"
+  options:
+    A: "When addOptimisticUpdate is called with null"
+    B: "When the source-of-truth state (first argument) changes — optimistic state recalculates"
+    C: "When a timeout of 5 seconds expires"
+    D: "useOptimistic never rolls back automatically"
+  answer: B
+  explanation: "useOptimistic is a derived overlay. When the source-of-truth (the first argument) changes, React recalculates the optimistic state by applying pending updates to the new source. If the source didn't change (error case), optimistic items are gone because they were never confirmed."
+  difficulty: 2
+  tags: [concept]
+
+- id: "6.3"
+  question: "Which scenario is appropriate for optimistic updates?"
+  options:
+    A: "Credit card payment processing"
+    B: "Medical record deletion"
+    C: "Social media like button toggle"
+    D: "Bank transfer authorization"
+  answer: C
+  explanation: "Optimistic updates are for low-risk, high-frequency actions where incorrect optimism has low cost. Social media likes are ideal. Financial transactions, medical records, and irreversible deletes should use pessimistic updates with explicit confirmation."
+  difficulty: 2
+  tags: [application]
+
+- id: "6.4"
+  question: "What is the recommended pairing for useOptimistic in React 19?"
+  options:
+    A: "useOptimistic + useState"
+    B: "useOptimistic + useActionState (or transition)"
+    C: "useOptimistic + useReducer"
+    D: "useOptimistic + useEffect"
+  answer: B
+  explanation: "useOptimistic naturally pairs with useActionState or useTransition. The action contains the async mutation. The optimistic update fires immediately, then the action's pending/error states handle the server response. This keeps optimistic + mutation logic co-located."
+  difficulty: 2
+  tags: [concept]
+
+- id: "6.5"
+  question: "A user posts a comment optimistically. Server rejects it. What is the simplest rollback behavior?"
+  options:
+    A: "The comment stays but shows an error icon"
+    B: "The comment disappears from the UI"
+    C: "The entire page reloads from server"
+    D: "The user is redirected to an error page"
+  answer: B
+  explanation: "Default implicit rollback: the source-of-truth (comments prop) didn't change, so the optimistic item disappears when React recalculates. This is clean but can be jarring. For better UX, keep the item with error state and retry button using explicit error tracking."
+  difficulty: 2
+  tags: [concept]
+
+- id: "6.6"
+  question: "What causes duplicate items in optimistic update flows?"
+  options:
+    A: "Calling addOptimisticUpdate twice accidentally"
+    B: "Server returns new data that includes the same logical item while optimistic item is still pending"
+    C: "Using useOptimistic without a transition"
+    D: "Not wrapping the component in React.memo"
+  answer: B
+  explanation: "When the server responds and the new source-of-truth includes the item (which now has a server ID), the optimistic item (with temp ID) hasn't been cleared yet. React sees two items: the optimistic temp-ID version and the server-confirmed version. Use dedup or idempotency keys to prevent this."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "6.7"
+  question: "Should optimistic items be fully interactive (clickable links, submit buttons)?"
+  options:
+    A: "Yes — instant interactivity is the point of optimistic updates"
+    B: "No — optimistic items have provisional data; navigation to optimistically referenced pages may fail"
+    C: "Only links are safe; buttons should be disabled"
+    D: "Only during the first 500ms after submission"
+  answer: B
+  explanation: "Optimistic items often use temporary/local IDs. Navigating to /posts/optimistic-temp-id will 404 because the server hasn't confirmed the item yet. Disable non-local interactions (navigation, submission) on optimistic items. Local interactions (edit preview text) are safe."
+  difficulty: 3
+  tags: [application]
+
+- id: "6.8"
+  question: "What is the update function in useOptimistic(state, updateFn) supposed to be?"
+  options:
+    A: "An async function that calls the server"
+    B: "A pure function that returns new optimistic state given current state and the optimistic value"
+    C: "A reducer that handles action types"
+    D: "A transformation that runs once on mount"
+  answer: B
+  explanation: "The update function must be pure — no side effects, no async operations. It takes (currentState, optimisticValue) and returns the new optimistic state. React calls it synchronously during the transition to compute the overlay."
+  difficulty: 2
+  tags: [terminology]
+
+- id: "6.9"
+  question: "At what server latency threshold does pessimistic UX feel indistinguishable from optimistic?"
+  options:
+    A: "< 100ms"
+    B: "< 200ms"
+    C: "< 500ms"
+    D: "< 1000ms"
+  answer: B
+  explanation: "Research shows <200ms latency is perceived as instant. Between 200-500ms, users notice the delay but it's tolerable. At >500ms, users perceive lag. Pessimistic is fine below 200ms. Optimistic brings UX benefit above 500ms. Between 200-500ms, use judgment."
+  difficulty: 2
+  tags: [concept]
+
+- id: "6.10"
+  question: "Can useOptimistic be used inside a Server Component?"
+  options:
+    A: "Yes — it works anywhere in React 19"
+    B: "No — useOptimistic requires client-side interactivity ('use client')"
+    C: "Yes, but only with async Server Components"
+    D: "Yes, but only when the server has low latency"
+  answer: B
+  explanation: "useOptimistic is a client-side hook that manages a UI overlay. Server Components have no interactivity, no state, and no re-renders. Mark the component with 'use client' to use useOptimistic. The server sends the source-of-truth data as props."
+  difficulty: 1
+  tags: [terminology]

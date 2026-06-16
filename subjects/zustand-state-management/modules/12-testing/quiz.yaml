@@ -1,0 +1,119 @@
+- id: "12.1"
+  question: "Which Zustand API is used to test store logic without React?"
+  options:
+    A: "create from zustand"
+    B: "createStore from zustand/vanilla"
+    C: "useStore hook"
+    D: "useBoundStore hook"
+  answer: B
+  explanation: "createStore (zustand/vanilla) returns a plain store with getState/setState/subscribe. No React dependency. The 'create' from 'zustand' includes React bindings. Hooks require React environment."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "12.2"
+  question: "What is the correct pattern to prevent test pollution in Zustand tests?"
+  options:
+    A: "Use a global store singleton for all tests"
+    B: "Recreate the store in beforeEach or call setState to reset"
+    C: "Import the store fresh every test"
+    D: "Use vi.resetModules() before each store import"
+  answer: B
+  explanation: "Recreate store in beforeEach (or call setState with initial state) to give each test a clean state. Global singletons cause order-dependent failures. vi.resetModules() is heavy-handed and unnecessary."
+  difficulty: 1
+  tags: [application]
+
+- id: "12.3"
+  question: "How should selectors be tested?"
+  options:
+    A: "Render a component that uses the selector, assert DOM output"
+    B: "Pass a state object to the selector function, assert return value"
+    C: "Mock the store hook and test the mock return value"
+    D: "Use Testing Library's renderHook to call the selector"
+  answer: B
+  explanation: "Selectors are pure functions (state in, derived value out). Test them directly with a state object — no store, no React, no rendering. This is the simplest and fastest test pattern."
+  difficulty: 1
+  tags: [concept]
+
+- id: "12.4"
+  question: "What must be mocked to test Zustand's persist middleware?"
+  options:
+    A: "The entire zustand/middleware module"
+    B: "localStorage or a custom Storage object"
+    C: "The create function from zustand/vanilla"
+    D: "React's useEffect"
+  answer: B
+  explanation: "Persist middleware reads from/writes to storage. Mock the Storage object (getItem, setItem) to control serialization and rehydration without browser dependency. Test that setItem is called with correct serialized state and that getItem restores state."
+  difficulty: 2
+  tags: [application]
+
+- id: "12.5"
+  question: "A selector uses .filter() which creates a new array reference each call. What testing approach catches the resulting re-render bug?"
+  options:
+    A: "Snapshot test of the component"
+    B: "Selector test asserting reference equality (toBe) across calls with same state"
+    C: "Integration test with act() wrapping the store update"
+    D: "Mock console.log and count render calls"
+  answer: B
+  explanation: "Assert selectItems(storeState) is(selectItems(storeState)) catches reference instability. If the selector returns a new reference each call, components without useShallow re-render on every store change. Reference tests in selector unit tests catch this early."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "12.6"
+  question: "What is the recommended approach for testing async store actions?"
+  options:
+    A: "Set timeout to wait for the action to complete"
+    B: "Mock the async operation, assert loading state before await, assert result after await"
+    C: "Only test synchronous actions — skip async tests"
+    D: "Use Testing Library's waitFor on the store's getState"
+  answer: B
+  explanation: "Mock the async dependency (fetch, API call). Assert loading=true before awaiting the promise. Assert loading=false and the resolved data after await. This tests the full lifecycle: pending → success/error transition."
+  difficulty: 2
+  tags: [application]
+
+- id: "12.7"
+  question: "When testing persist middleware rehydration, why might the assertion fail even though the mock returns correct data?"
+  options:
+    A: "The mock is misconfigured"
+    B: "Rehydration is asynchronous — assertions need vi.waitFor or microtask flush"
+    C: "Persist middleware does not hydrate in test mode"
+    D: "createStore does not support persist middleware"
+  answer: B
+  explanation: "Zustand persist rehydration uses Promise.resolve().then(), making it async. Assert immediately after creating the store — the hydrator has not run yet. Use vi.waitFor() or flush promises before asserting rehydrated state."
+  difficulty: 3
+  tags: [concept]
+
+- id: "12.8"
+  question: "Which testing scenario is best served by mocking the Zustand store hook?"
+  options:
+    A: "Testing selector correctness"
+    B: "Testing persist middleware serialization"
+    C: "Isolated component unit testing with controlled store state"
+    D: "Integration testing of multiple components sharing the same store"
+  answer: C
+  explanation: "Mock the store hook for isolated component unit tests — supply exact state and action stubs. Integration tests (D) should use real stores to catch cross-component bugs. Selector tests (A) and persist tests (B) are pure store tests needing no mock."
+  difficulty: 2
+  tags: [concept]
+
+- id: "12.9"
+  question: "A team has 100% store test coverage and 0% component test coverage. Which bug category reaches production?"
+  options:
+    A: "Store action logic errors"
+    B: "Middleware order bugs"
+    C: "Component rendering bugs and wrong selector-to-component wiring"
+    D: "Rehydration failures"
+  answer: C
+  explanation: "Store tests prove state logic is correct — actions, selectors, middleware. They do not test which component uses which selector, whether the component renders correctly, or whether conditional UI based on store state is styled properly. Component tests catch rendering bugs."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "12.10"
+  question: "Two components subscribe to different slices of the same Zustand store. One component updates store state. What type of test catches whether the second component re-renders correctly?"
+  options:
+    A: "Unit test of the store action"
+    B: "Unit test of the second component in isolation with mocked store"
+    C: "Integration test with both components rendering and a real store"
+    D: "Selector unit test"
+  answer: C
+  explanation: "Cross-component synchronization requires both components + real store to execute together. Isolated unit tests (B) mock the store and miss re-render interactions. Store tests (A/D) verify individual state transitions but not React's subscription mechanism across components."
+  difficulty: 3
+  tags: [scenario]

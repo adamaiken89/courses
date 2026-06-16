@@ -1,0 +1,119 @@
+- id: "7.1"
+  question: "What must you pass as the third argument to Zustand's `set()` to see meaningful action names in Redux DevTools?"
+  options:
+    A: "A unique store ID"
+    B: "A boolean indicating whether to replace state"
+    C: "A string label describing the action"
+    D: "The current state snapshot"
+  answer: C
+  explanation: "Third argument to `set()` is the action type name shown in DevTools. Without it, all mutations appear as `anonymousActionType` (default: `'stateChange'`)."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "7.2"
+  question: "Which of the following is a benefit of function-based actions over string-constant actions in Zustand?"
+  options:
+    A: "Actions are serializable over WebSocket"
+    B: "TypeScript autocomplete on the action method name"
+    C: "Actions appear as named entries in DevTools action log"
+    D: "Actions can be logged and replayed for undo/redo"
+  answer: B
+  explanation: "Function-based actions like `store.addTodo(text)` give full TypeScript autocomplete. String constants require manual typing of `{ type, payload }` objects.\n\nA and D are benefits of string constants (serializable, replayable). C can work with named third arg regardless of style."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "7.3"
+  question: "A Zustand store has 12 action types, undo/redo requirements, and cross-slice updates. Which pattern should you use?"
+  options:
+    A: "Direct set() mutations for each action"
+    B: "Reducer pattern with string-constant action types"
+    C: "Function-based actions only"
+    D: "External state management outside Zustand"
+  answer: B
+  explanation: "12 action types with undo/redo and cross-slice updates need reducer pattern. String constants enable serializable action log for undo/redo. Direct set() would scatter mutation logic across unrelated functions. Function-based actions are not serializable for replay."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "7.4"
+  question: "How do you dispatch an action from a WebSocket handler using Zustand's Redux pattern?"
+  options:
+    A: "Wrap the WebSocket handler in a React component and call useDispatch"
+    B: "Import the store and call store.getState().dispatch({ type, payload })"
+    C: "Create a new Zustand store inside the WebSocket callback"
+    D: "Use Redux Toolkit's createAsyncThunk instead"
+  answer: B
+  explanation: "Zustand stores exist outside React. `store.getState()` returns the full state object including actions. No Component or Provider wrapper needed — call dispatch directly from any context."
+  difficulty: 1
+  tags: [application]
+
+- id: "7.5"
+  question: "What is the main reason to unit-test a reducer function separately from the store?"
+  options:
+    A: "Reducer tests are slower but more thorough"
+    B: "Reducers are pure functions — tests run without React environment or store setup"
+    C: "Zustand stores cannot be tested in isolation"
+    D: "Reducer tests automatically cover middleware behavior"
+  answer: B
+  explanation: "Reducers are pure `(state, action) => state` functions. They require no React, no store creation, no middleware. Fast to run, easy to reason about. Store integration tests cover the wiring (middleware, subscriptions, devtools) separately."
+  difficulty: 1
+  tags: [concept]
+
+- id: "7.6"
+  question: "A form has 3 fields, a submit button, and 1 API call. Which approach is most appropriate?"
+  options:
+    A: "Reducer pattern with 4 action types (UPDATE_FIELD_1, UPDATE_FIELD_2, UPDATE_FIELD_3, SUBMIT)"
+    B: "Direct set() mutations inside the component"
+    C: "External Redux store with createSlice"
+    D: "useRef for all fields to avoid re-renders"
+  answer: B
+  explanation: "3 fields + 1 submit = simple state. Reducer pattern would add 4 action types, a switch statement, and a dispatch function — ceremony without benefit. Direct set() is simpler, more readable, and co-located with the component. Rule: if no conditionals in set() callback, direct mutation wins."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "7.7"
+  question: "In Zustand's `devtools` middleware, what appears in the DevTools action log if you omit the third parameter to `set()`?"
+  options:
+    A: "An empty string"
+    B: "`undefined`"
+    C: "The value configured as `anonymousActionType` (default `'stateChange'`)"
+    D: "The previous state as a string"
+  answer: C
+  explanation: "The `anonymousActionType` option in the devtools middleware config sets the fallback label. Default is `'stateChange'`. Every unnamed mutation shows as the same label — useless for debugging multiple action types."
+  difficulty: 2
+  tags: [terminology]
+
+- id: "7.8"
+  question: "Which scenario forces the use of string-constant action types over function-based actions?"
+  options:
+    A: "You want TypeScript autocomplete on store actions"
+    B: "You want to export action creators for reuse across modules"
+    C: "You need to log and replay actions for undo/redo functionality"
+    D: "You have fewer than 3 action types"
+  answer: C
+  explanation: "Undo/redo requires a serializable action log `{ type, payload }` that can be replayed or inverted. Function-based actions are closures — they capture scope at call time and cannot be replayed later.\n\nA and B work with either style. D is irrelevant to the decision."
+  difficulty: 3
+  tags: [application]
+
+- id: "7.9"
+  question: "What happens when you have both a Redux slice and a Zustand reducer store managing `todos` in the same app?"
+  options:
+    A: "React throws an invariant violation"
+    B: "Both stores coexist independently — no conflict"
+    C: "Zustand store automatically syncs to Redux store"
+    D: "Only one store can exist per app"
+  answer: B
+  explanation: "Zustand stores do not use React Context or Providers. They are plain JavaScript objects. Multiple stores (Redux + Zustand, or multiple Zustand) coexist without conflict. You can migrate features incrementally."
+  difficulty: 1
+  tags: [concept]
+
+- id: "7.10"
+  question: "A Zustand store uses the reducer pattern. A bug: dispatching an action outside React (from a WebSocket) updates the store state, but the UI does not re-render. What is the most likely cause?"
+  options:
+    A: "The reducer function has a bug in the switch statement"
+    B: "The component's selector returns a stable reference preventing re-render"
+    C: "Zustand cannot trigger re-renders from outside React"
+    D: "The WebSocket handler needs to be wrapped in act()"
+  answer: B
+  explanation: "Store state is correct (reducer tested, no bug) → selector returns same reference (e.g., `useStore((s) => s.todos)` returns new array, but the component compares by reference). Most likely: the component uses a selector that returns a derived value that does not change, or a parent stops propagation. Zustand does trigger re-renders from outside React via `useSyncExternalStore`."
+  difficulty: 3
+  tags: [scenario]

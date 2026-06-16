@@ -1,0 +1,119 @@
+- id: "12.1"
+  question: "What makes use(Context) different from useContext in React 19?"
+  options:
+    A: "use(Context) is a hook, useContext is a render-time function"
+    B: "use(Context) can be called inside conditionals and early returns; useContext cannot"
+    C: "use(Context) only works with Promises, not Context"
+    D: "use(Context) requires a Provider wrapper, useContext does not"
+  answer: B
+  explanation: "use(Context) is a render-time function (not a hook) — Rules of Hooks do not apply. It works inside conditionals, early returns, and Suspended components alongside use(Promise). useContext still works for top-of-component reading."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "12.2"
+  question: "A 500-item list renders items. Only items with isFeatured=true need theme context. What is the best approach?"
+  options:
+    A: "Use useContext(ThemeContext) at top of every ListItem component"
+    B: "Use use(ThemeContext) inside a conditional block — only featured items subscribe"
+    C: "Pass theme as prop from parent to every ListItem"
+    D: "Create a separate ThemeProvider around each featured item"
+  answer: B
+  explanation: "use(Context) inside conditional means only featured items subscribe to ThemeContext. 495 non-featured items never register as consumers — zero re-render cost on theme changes. useContext at top forces all 500 items to subscribe."
+  difficulty: 2
+  tags: [application]
+
+- id: "12.3"
+  question: "A component calls use(fetchUser()) (suspends) and use(ThemeContext). What happens when theme changes while the component is suspended?"
+  options:
+    A: "The component ignores the theme change — it is suspended"
+    B: "React marks the component dirty and delivers latest context value on resume"
+    C: "The component re-renders immediately even while suspended"
+    D: "use() throws an error when used alongside Suspense"
+  answer: B
+  explanation: "React tracks both dependencies. If theme changes while suspended, component is marked dirty. On resume (after Promise resolves), it renders with latest context value. No stale context reads."
+  difficulty: 3
+  tags: [concept]
+
+- id: "12.4"
+  question: "Why does the following pattern cause all ThemeContext consumers to re-render on every parent render?\n\nfunction App() {\n  return (\n    <ThemeContext.Provider value={{ mode: 'dark' }}>\n      <Dashboard />\n    </ThemeContext.Provider>\n  )\n}"
+  options:
+    A: "Context cannot hold objects — only primitives"
+    B: "Object literal creates new reference every render, triggering all consumers"
+    C: "Dashboard component does not use useMemo"
+    D: "ThemeContext provider must be wrapped in a layout component"
+  answer: B
+  explanation: "{{ mode: 'dark' }} creates a new object reference on every App render. React Context re-renders all consumers whenever value reference changes. Fix: wrap value in useMemo(() => ({ mode: 'dark' }), []) or use a primitive."
+  difficulty: 2
+  tags: [application]
+
+- id: "12.5"
+  question: "An app has user info (rarely changes), notification count (changes every 30s), and theme (changes once per session). How many contexts should you create?"
+  options:
+    A: "One context with all three values — simplest structure"
+    B: "Three contexts — split by change frequency"
+    C: "Two contexts: user+theme together, notifications separate"
+    D: "Context is wrong here — use Zustand instead"
+  answer: B
+  explanation: "Split by co-change frequency: UserContext (rare), ThemeContext (very rare), NotificationContext (every 30s). Components subscribe only to what they need. Notification list does not re-render when user logs out and back in."
+  difficulty: 2
+  tags: [application]
+
+- id: "12.6"
+  question: "In the auth split pattern, why does AuthActionsContext.Provider never cause consumer re-renders?"
+  options:
+    A: "Actions are stored in a ref, not state"
+    B: "login/logout functions are wrapped in useCallback with empty deps — stable references"
+    C: "AuthActionsContext is created with createContext(null)"
+    D: "React skips re-render for contexts that only hold functions"
+  answer: B
+  explanation: "useCallback with empty deps creates stable function references for component lifecycle. The provider may re-render (from user state update), but value prop reference does not change. Consumers never re-render from context changes — stable ref = no propagation."
+  difficulty: 2
+  tags: [concept]
+
+- id: "12.7"
+  question: "A Server Component needs to access theme context. What happens?"
+  options:
+    A: "Server Component renders with default theme value"
+    B: "Server Component throws an error — context is client-only"
+    C: "Server Component reads context via a special Server Context API"
+    D: "React silently returns null for the context value"
+  answer: B
+  explanation: "Context is client-only. Server Components cannot read or provide context. Error thrown if Server Component calls use(Context) or renders Context.Provider. Use client boundary wrapper, or pass data as props from Server Component to Client leaf."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "12.8"
+  question: "When should you choose Zustand/Redux over Context + useReducer?"
+  options:
+    A: "Always — external stores are faster than context"
+    B: "When state needs complex selectors, middleware, or is shared across disconnected subtrees"
+    C: "Never — Context + useReducer replaces all state management in React 19"
+    D: "Only when using TypeScript"
+  answer: B
+  explanation: "Context + useReducer is default for subtree-local state with <10 action types. Zustand/Redux when: selectors for derived state, middleware (persistence, undo), state shared across disconnected subtrees, or performance-sensitive with many subscribers."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "12.9"
+  question: "A checkout wizard has 5 steps with distinct state slices. State is only used within the wizard subtree. Which approach is most appropriate?"
+  options:
+    A: "Create a Redux store with a slice for each step"
+    B: "Use Context + useReducer with WizardContext and WizardDispatchContext"
+    C: "Pass all state as props through 5 levels of nesting"
+    D: "Store step state in localStorage and read on each render"
+  answer: B
+  explanation: "State is subtree-local. Context + useReducer: no external dependencies, dispatch is stable (action components never re-render), state scoped to wizard. Redux adds dependency without benefit. Props at 5 levels is prop drilling. localStorage is wrong for runtime state."
+  difficulty: 2
+  tags: [application]
+
+- id: "12.10"
+  question: "A test needs to render a component that consumes UserContext, ThemeContext, and LocaleContext. What is the recommended testing pattern?"
+  options:
+    A: "Mock the context module entirely with jest.mock"
+    B: "Wrap each test with individual Provider components"
+    C: "Create a custom renderWithProviders utility that composes all providers"
+    D: "Skip rendering — test the reducer logic directly"
+  answer: C
+  explanation: "Custom render wrapper (using testing-library's wrapper option) provides single source of truth for provider configuration. Adding a new context requires updating one function, not 50 tests. Consistent defaults, reduced boilerplate."
+  difficulty: 2
+  tags: [application]

@@ -1,0 +1,119 @@
+- id: "10.1"
+  question: "Which React 19 API is designed for async static HTML generation with Suspense support?"
+  options:
+    A: "renderToString"
+    B: "renderToStaticMarkup"
+    C: "prerender"
+    D: "renderToPipeableStream"
+  answer: C
+  explanation: "prerender is the React 19 async static generation API. It supports Suspense boundaries, waiting for their content to resolve before emitting final HTML. renderToString and renderToStaticMarkup are synchronous and cannot resolve Suspense content."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "10.2"
+  question: "What happens to a Suspense boundary's fallback when using prerender?"
+  options:
+    A: "The fallback is streamed progressively, then replaced by resolved content"
+    B: "The fallback is rendered permanently into the HTML"
+    C: "prerender waits for the Suspense content to resolve — the fallback never appears in final HTML"
+    D: "Suspense boundaries throw an error during prerender"
+  answer: C
+  explanation: "Unlike SSR streaming APIs that emit fallback HTML first, prerender waits for all Suspense content to resolve before producing final HTML. The fallback is only used if the Suspense data fetch errors or times out."
+  difficulty: 2
+  tags: [concept]
+
+- id: "10.3"
+  question: "A team generates a contact page with zero interactivity. Which API produces the smallest HTML output?"
+  options:
+    A: "renderToString"
+    B: "renderToStaticMarkup"
+    C: "renderToPipeableStream"
+    D: "createRoot + hydrateRoot"
+  answer: B
+  explanation: "renderToStaticMarkup omits React internal markers (data-reactroot, etc.), producing 5-10% smaller HTML than renderToString. For a fully static page with no hydration, renderToStaticMarkup (or prerender in React 19) is correct."
+  difficulty: 1
+  tags: [comparison]
+
+- id: "10.4"
+  question: "Which rendering strategy eliminates hydration mismatch bugs entirely?"
+  options:
+    A: "Streaming SSR with renderToPipeableStream"
+    B: "Static generation with prerender or renderToStaticMarkup"
+    C: "Client-side rendering with createRoot"
+    D: "Server-side rendering with renderToString"
+  answer: B
+  explanation: "Static generation produces HTML with no React runtime on the client — no hydration step, no mismatch. SSR and CSR both involve React running on the client and reconciling with server output, which can produce hydration mismatches."
+  difficulty: 2
+  tags: [concept]
+
+- id: "10.5"
+  question: "You are generating 10,000 static pages from a content API. Which API minimizes peak memory usage?"
+  options:
+    A: "renderToStaticMarkup"
+    B: "prerender"
+    C: "renderToStaticNodeStream"
+    D: "renderToString"
+  answer: C
+  explanation: "renderToStaticNodeStream streams HTML in chunks without buffering the full page in memory. renderToStaticMarkup and prerender load the complete HTML string into memory. For large-scale generation (10,000+ pages), streaming avoids OOM and keeps memory flat."
+  difficulty: 3
+  tags: [application]
+
+- id: "10.6"
+  question: "A page uses prerender. A component inside a Suspense boundary calls fetch() during render. What happens?"
+  options:
+    A: "The fetch resolves and prerender waits for the data before emitting HTML"
+    B: "The fetch is ignored — prerender only renders static content"
+    C: "The Suspense fallback is rendered as the final output"
+    D: "prerender throws — fetch inside render is not supported in static generation"
+  answer: A
+  explanation: "prerender supports Suspense — it waits for async content (including fetch) inside Suspense boundaries to resolve. This is the key advantage over renderToStaticMarkup. However, best practice is to pre-fetch data before rendering and pass it as props."
+  difficulty: 2
+  tags: [concept]
+
+- id: "10.7"
+  question: "Which scenario requires streaming SSR instead of static generation?"
+  options:
+    A: "Marketing site with 5 pages updated weekly"
+    B: "Blog with content fetched from a CMS at build time"
+    C: "E-commerce product page with per-request inventory checks"
+    D: "Documentation site with 5000 pages"
+  answer: C
+  explanation: "Per-request data (inventory, pricing, user-specific content) requires SSR — content cannot be pre-built. Marketing sites, blogs, and docs are ideal for static generation because content does not change per request."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "10.8"
+  question: "What is the data flow difference between static generation and SSR?"
+  options:
+    A: "Static: fetch-then-render. SSR: render-while-fetch."
+    B: "Static: render-while-fetch. SSR: fetch-then-render."
+    C: "Both use the same data flow"
+    D: "Static generation does not support data fetching"
+  answer: A
+  explanation: "Static generation requires data to be pre-fetched and cached before rendering — fetch-then-render. SSR renders immediately and data streams in as it resolves — render-while-fetch. This is a fundamental architectural difference affecting component design."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "10.9"
+  question: "A Next.js team migrates from `getStaticProps` + `renderToString` to React 19's prerender. Which improvement do they see?"
+  options:
+    A: "Smaller HTML output and Suspense boundary content resolution"
+    B: "Automatic page hydration"
+    C: "Faster client-side navigation"
+    D: "Smaller bundle because React DOM server is no longer needed"
+  answer: A
+  explanation: "prerender produces HTML without React internal markers (smaller output) and resolves Suspense content instead of rendering fallbacks. Hydration, client navigation, and server bundle size are unrelated to this migration."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "10.10"
+  question: "How can you add interactivity to a prerendered static page without losing static shell benefits?"
+  options:
+    A: "Wrap the entire page in hydrateRoot"
+    B: "Use dynamic import with ssr: false for interactive components only"
+    C: "Use renderToString instead of prerender for the full page"
+    D: "Inject inline scripts that modify the DOM directly"
+  answer: B
+  explanation: "Loading interactive components via dynamic imports with ssr: false keeps the static shell JS-free. The static HTML loads instantly; React hydrates only the interactive island. hydrating the full page (A) reintroduces the React runtime cost. renderToString (C) loses static benefits entirely. Inline scripts (D) work but lose React's component model."
+  difficulty: 2
+  tags: [application]

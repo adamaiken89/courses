@@ -1,0 +1,119 @@
+- id: "17.1"
+  question: "What is the primary mechanism for sharing a Zustand store across microfrontends?"
+  options:
+    A: "Window.__SHARED_STATE__ global variable"
+    B: "Module Federation exposing the store module as a remote"
+    C: "Copying the store file into each microfrontend's codebase"
+    D: "Using React Context at the shell level"
+  answer: B
+  explanation: "Module Federation exposes Zustand stores as federated JS modules. Each remote imports the store at runtime from the host, ensuring a single store instance shared across app boundaries. Global variables (A) lack typing and reactivity. Copying files (C) creates duplicate instances. React Context (D) couples stores to React — Zustand stores are framework-agnostic modules."
+  difficulty: 1
+  tags: [terminology, concept]
+
+- id: "17.2"
+  question: "Two microfrontends each bundle their own Zustand library despite `shared: { zustand: { singleton: true } }`. What happens to the auth store?"
+  options:
+    A: "Nothing — Module Federation deduplicates Zustand instances automatically"
+    B: "Each microfrontend creates its own auth store instance — state diverges across apps"
+    C: "The app crashes — Zustand cannot be a singleton"
+    D: "Only the host's Zustand version is used — remote's version is ignored"
+  answer: B
+  explanation: "If Zustand is not shared as a singleton, each remote bundles its own Zustand instance. The `useAuthStore` import creates a new store in each remote's Zustand scope — these are separate closures with separate state. Auth state updated in remote A is invisible to remote B. Fix: ensure `shared: { zustand: { singleton: true } }` is respected and verify no duplicate bundling in remote builds."
+  difficulty: 1
+  tags: [concept, anti-pattern]
+
+- id: "17.3"
+  question: "A microfrontend subscribes to the host's auth store with `useAuthStore.subscribe(callback)` but never calls the returned unsubscribe. The microfrontend mounts and unmounts 20 times. What is the result?"
+  options:
+    A: "No issue — React garbage collection removes the subscription on unmount"
+    B: "The host's auth store accumulates 20 stale subscribers — memory leak"
+    C: "Zustand automatically deduplicates identical subscribers"
+    D: "Only the most recent subscription survives — earlier ones are overwritten"
+  answer: B
+  explanation: "Zustand's `subscribe()` adds a listener to the store's subscriber list. The returned `unsubscribe` function removes it. If never called, the closure persists in the subscriber list. After 20 mount/unmount cycles, 20 stale closures hold references to unmounted components — preventing garbage collection. Fix: always call `unsubscribe()` in `useEffect` cleanup."
+  difficulty: 2
+  tags: [scenario, memory]
+
+- id: "17.4"
+  question: "Host exposes `useAuthStore` with field `user.name`. Host v3 renames to `user.displayName`. Remote v1 still reads `user.name`. What happens when remote v1 renders?"
+  options:
+    A: "Remote displays undefined — field renamed, old consumer breaks"
+    B: "Zustand automatically aliases displayName to name"
+    C: "Module Federation falls back to the previous store version"
+    D: "Remote throws a TypeScript compilation error"
+  answer: A
+  explanation: "Renaming a field in the shared store is a breaking change. Remote v1 expects `user.name`; host v3 only has `user.displayName`. `user.name` is `undefined`, component renders nothing or crashes. Fix: never remove/rename shared store fields. Add new fields only. Provide accessor getters for deprecated names. Use adapter layer in remote to map host schema to legacy expectations."
+  difficulty: 2
+  tags: [scenario, migration]
+
+- id: "17.5"
+  question: "Which pattern correctly isolates per-instance widget state in a microfrontend?"
+  options:
+    A: "Singleton shared store — all widgets read same data"
+    B: "createStore from zustand/vanilla stored in useRef — each instance gets own store"
+    C: "React Context wrapping each widget — Provider per instance"
+    D: "Atomic store in host — widgets import from host"
+  answer: B
+  explanation: "`createStore` from `zustand/vanilla` creates a standalone Zustand store (no hook). Storing it in `useRef` ensures each widget instance gets one independent store that persists across renders but is garbage-collected when the component unmounts. Context (C) adds wrapper nesting. Singleton (A) shares state between all instances. Host store (D) couples widget logic to host."
+  difficulty: 2
+  tags: [application, concept]
+
+- id: "17.6"
+  question: "Why use an event bus instead of direct store imports for cross-microfrontend communication?"
+  options:
+    A: "Event bus is faster than Zustand's subscribe"
+    B: "Event bus decouples microfrontends — no direct module dependency between remotes"
+    C: "Zustand cannot subscribe to stores from other microfrontends"
+    D: "Event bus provides TypeScript type safety that direct imports lack"
+  answer: B
+  explanation: "Direct store imports create tight coupling — one remote depends on another remote's module path. Event bus uses string-based channels: any app can publish, any app can listen, without importing each other's modules. This enables independent deployment (remote A can be updated without affecting remote B's store imports) and prevents circular dependencies."
+  difficulty: 2
+  tags: [comparison, architecture]
+
+- id: "17.7"
+  question: "Dashboard microfrontend calls `useAuthStore.getState().user` inside `fetchMetrics`. Does this create a subscription?"
+  options:
+    A: "Yes — getState() registers a one-time subscription"
+    B: "No — getState() reads current state synchronously without subscribing"
+    C: "Yes — getState() is equivalent to useAuthStore((s) => s)"
+    D: "No — but it throws if user is null"
+  answer: B
+  explanation: "`getState()` returns the store's current state snapshot without adding a subscriber. The component does not re-render when auth state changes — it reads auth only at fetch time. This is intentional for dashboard: auth is read on demand, not reactively. For reactive auth-dependent UI, use `useAuthStore(selector)` which creates a subscription."
+  difficulty: 2
+  tags: [concept, comparison]
+
+- id: "17.8"
+  question: "Three microfrontends each import the same shared auth store via Module Federation. When auth updates, how many selector evaluations occur?"
+  options:
+    A: "Only subscribers in the microfrontend that initiated the change"
+    B: "All subscribers in all three microfrontends — singleton store has one subscriber list"
+    C: "None — Module Federation batches cross-app updates"
+    D: "Only subscribers to the specific field that changed"
+  answer: B
+  explanation: "Module Federation ensures one store instance (singleton). All `useAuthStore(selector)` calls from any microfrontend register with the same subscriber list. A single state update triggers all selectors. Remote boundaries do not create separate subscriber lists — the store is one object. Use selectors that extract only needed fields to limit re-renders."
+  difficulty: 2
+  tags: [concept, scenario]
+
+- id: "17.9"
+  question: "During migration from monolith to microfrontends, which bridge pattern allows zero consumer code changes?"
+  options:
+    A: "Copy the monolith store into each microfrontend"
+    B: "Re-export the host's store from the monolith's original import path"
+    C: "Use window.__STORE__ as intermediate bridge"
+    D: "Rewrite all consumer components to use new import paths"
+  answer: B
+  explanation: "In the monolith app, change the store file to `export { useAuthStore } from 'host/authStore'`. All existing consumer imports (`./store/authStore`) still resolve — they just re-export from the host. Consumers need zero changes. The store API is identical. After all consumers verify, remove the bridge file and update imports to point directly to host."
+  difficulty: 3
+  tags: [migration, application]
+
+- id: "17.10"
+  question: "A microfrontend dashboard has 4 widgets, each with its own vanilla store (createStore + useRef). Widget A updates its state. Which widgets re-render?"
+  options:
+    A: "All 4 widgets — they share the same vanilla store"
+    B: "Only Widget A — each widget has its own independent store instance"
+    C: "Widget A and any widget subscribed to the same event bus channel"
+    D: "None — vanilla stores do not trigger React re-renders"
+  answer: B
+  explanation: "Each widget creates its own `createStore` instance in `useRef`. These are independent Zustand stores — a state change in Widget A's store does not affect Widget B's store. Only Widget A's `useStore` hooks re-evaluate. This is the isolation benefit: each widget instance manages its own state without cross-widget interference."
+  difficulty: 2
+  tags: [scenario, application]

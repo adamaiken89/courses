@@ -1,0 +1,119 @@
+- id: "2.1"
+  question: "What does useActionState return?"
+  options:
+    A: "[state, action, pending]"
+    B: "[state, dispatch]"
+    C: "[action, pending, error]"
+    D: "[state, action, error]"
+  answer: A
+  explanation: "useActionState returns [data, formAction, isPending]. Unlike useState or useReducer which return [state, setter], useActionState includes the pending state that React manages automatically."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "2.2"
+  question: "What directive marks a function as a Server Action callable from the client?"
+  options:
+    A: "use client"
+    B: "use server"
+    C: "use action"
+    D: "use endpoint"
+  answer: B
+  explanation: "\"use server\" marks functions callable from client code. React's build step compiles these into POST endpoints. \"use client\" marks the client boundary — opposite direction."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "2.3"
+  question: "A Server Action throws an unexpected database error. What should handle this?"
+  options:
+    A: "The action's own try/catch returning error state"
+    B: "The nearest React error boundary"
+    C: "A global window.onerror handler"
+    D: "The form's onSubmit event"
+  answer: B
+  explanation: "Unexpected errors (DB down, network failure) should propagate to an error boundary. The action's catch is for expected validation errors. Without an error boundary, the form stays in pending state permanently."
+  difficulty: 2
+  tags: [concept]
+
+- id: "2.4"
+  question: "What happens when a user submits a form with a Server Action and JavaScript is disabled?"
+  options:
+    A: "Nothing — form requires JS"
+    B: "Form submits natively to the POST endpoint; server returns HTML response"
+    C: "React falls back to client-side rendering"
+    D: "Form submission is queued until JS loads"
+  answer: B
+  explanation: "Server Actions compile to POST endpoints during build. With JS disabled, the browser submits the form natively to that endpoint. The server processes the action and returns HTML. This is progressive enhancement."
+  difficulty: 2
+  tags: [application]
+
+- id: "2.5"
+  question: "When should you use useTransition instead of useActionState for a mutation?"
+  options:
+    A: "Always — useTransition is more general"
+    B: "When the mutation does not involve a form element"
+    C: "When the mutation needs error handling"
+    D: "useActionState and useTransition are interchangeable"
+  answer: B
+  explanation: "useActionState requires a <form action> or formAction prop. useTransition wraps any async work. Use useActionState for forms, useTransition for buttons, links, or programmatic mutations outside forms."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "2.6"
+  question: "How does React prevent stale closure bugs in useActionState?"
+  options:
+    A: "The action only receives FormData, not enclosing scope variables"
+    B: "React freezes action scope at submission time"
+    C: "useActionState uses refs internally to avoid closure capture"
+    D: "It does not — you must use useCallback"
+  answer: A
+  explanation: "Server Actions accept only FormData or serializable arguments. Client actions that use setState or props will capture closures. Solution: read current state via useActionState's prevState parameter instead of capturing from enclosing scope."
+  difficulty: 3
+  tags: [concept]
+
+- id: "2.7"
+  question: "What does the prevState parameter in useActionState enable?"
+  options:
+    A: "Undo functionality and accumulator patterns"
+    B: "Access to previous component props"
+    C: "Synchronous state updates"
+    D: "Cross-component state sharing"
+  answer: A
+  explanation: "prevState returns the previous action result. This enables accumulators (append to list), undo (swap with previous), and optimistic UI rollback (revert to previous value on error)."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "2.8"
+  question: "After a successful Server Action, how do you refresh displayed data?"
+  options:
+    A: "Call window.location.reload()"
+    B: "Use revalidatePath() or revalidateTag() inside the action"
+    C: "Set a local state flag to trigger useEffect"
+    D: "The action auto-refreshes the view"
+  answer: B
+  explanation: "revalidatePath('/path') purges the server cache for a route. revalidateTag('tag') purges cached data fetches tagged with that key. React re-renders affected components with fresh data."
+  difficulty: 2
+  tags: [application]
+
+- id: "2.9"
+  question: "Can a Server Action read React state or props from the client component?"
+  options:
+    A: "Yes — Server Actions have full access to component scope"
+    B: "No — Server Actions accept only FormData or serializable args"
+    C: "Yes, but only through useActionState's prevState"
+    D: "Yes, but only if wrapped in use client"
+  answer: B
+  explanation: "Server Actions compile to POST endpoints — they have no access to client React state, props, or closures. Data must be passed via FormData or serializable arguments (strings, numbers, plain objects)."
+  difficulty: 3
+  tags: [concept]
+
+- id: "2.10"
+  question: "A search form fetches results on each keystroke via Server Action. What is the risk?"
+  options:
+    A: "Server Actions cannot handle frequent calls"
+    B: "Each keystroke triggers a server round-trip; use debounce or client-side filtering"
+    C: "Server Actions automatically batch keystrokes"
+    D: "useActionState limits to one request at a time"
+  answer: B
+  explanation: "Server Actions are designed for form submission, not real-time input. Each keystroke fires a server request. Use client-side filtering, debounced API calls, or a dedicated search endpoint — not a Server Action wrapped in useActionState."
+  difficulty: 3
+  tags: [scenario]

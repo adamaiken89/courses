@@ -1,0 +1,119 @@
+- id: "9.1"
+  question: "A SubmitButton component uses useFormStatus. Where must it be rendered for pending to reflect the form's submission state?"
+  options:
+    A: "Anywhere in the React component tree"
+    B: "Inside a <form> element with a pending submission"
+    C: "Inside the same component that calls useActionState"
+    D: "Only inside a Server Component"
+  answer: B
+  explanation: "useFormStatus reads the nearest parent <form>'s pending state. Outside a <form>, it returns default values (pending: false, data: null). It does not need to be in the same component as useActionState — only inside the same <form> element."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "9.2"
+  question: "useFormStatus returns pending, data, method, action. Which of these is NOT accessible via useActionState?"
+  options:
+    A: "pending/isPending"
+    B: "data (the FormData being submitted)"
+    C: "the action return value (state)"
+    D: "a function to trigger submission"
+  answer: B
+  explanation: "useFormStatus exposes data (the FormData object of the current submission). useActionState does not provide this — it gives you [state, actionFn, pending]. Use useFormStatus if your child component needs to read the form data mid-submission for optimistic preview."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "9.3"
+  question: "A Server Action receives form data from a hidden input. What security concern applies?"
+  options:
+    A: "Hidden inputs are not included in FormData"
+    B: "Server Actions cannot read hidden inputs"
+    C: "Hidden inputs are visible in HTML source and can be modified by the client"
+    D: "Hidden inputs require the 'use server' directive on the input element"
+  answer: C
+  explanation: "Hidden inputs are visible in DevTools and can be changed via curl/DevTools. Never put sensitive data (auth tokens, secrets) in hidden inputs. Always validate authorization server-side — the Server Action must verify the session user matches the submitted data."
+  difficulty: 2
+  tags: [concept, security]
+
+- id: "9.4"
+  question: "A form needs 3 submit buttons: Save Draft, Publish, Preview. Each triggers a different Server Action. Which approach works correctly?"
+  options:
+    A: "Use a single useActionState with multiple submit buttons, all pointing to the same action"
+    B: "Use 3 separate useActionState hooks, each bound to a different button via formAction"
+    C: "Use 1 useActionState with a discriminator hidden input and a single action that dispatches"
+    D: "Server Actions cannot be used with multiple submit buttons"
+  answer: C
+  explanation: "Use one useActionState at form root. Each button sets a discriminator (name=\"__action\" with different value). The action function reads the discriminator from FormData and delegates. Multiple useActionState hooks on one form create conflicting state. The formAction attribute on buttons works but for different URLs — for different actions on same server, dispatcher pattern is cleanest."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "9.5"
+  question: "A form submits via Server Action. JS is disabled in the browser. What happens when the user clicks Submit?"
+  options:
+    A: "Nothing — form submission requires JavaScript"
+    B: "Form submits natively to the Server Action's POST endpoint; server returns HTML"
+    C: "React throws an error about missing JavaScript"
+    D: "Server Action falls back to client-side execution"
+  answer: B
+  explanation: "Server Actions create a POST endpoint at build time. When JS is disabled, the <form action> resolves to that URL. Native HTML submission sends form data via POST. Server processes the action and returns full HTML (or redirects). Progressive enhancement works because the action prop compiles to a URL string."
+  difficulty: 2
+  tags: [concept]
+
+- id: "9.6"
+  question: "A file upload Server Action accepts a 10MB image. What issue is most likely?"
+  options:
+    A: "FormData cannot encode binary files"
+    B: "Server Actions do not support encType=\"multipart/form-data\""
+    C: "Server Actions receive the complete FormData in memory — large files may cause memory pressure"
+    D: "Files must be converted to base64 before Server Actions can process them"
+  answer: C
+  explanation: "Server Actions receive the full FormData as a single payload. For files >5-10MB, this causes memory pressure on the server and no upload progress tracking. Use dedicated upload endpoints with streaming for large files. Server Actions work well for profile images and document attachments under ~5MB."
+  difficulty: 3
+  tags: [scenario, concept]
+
+- id: "9.7"
+  question: "A form uses useActionState. After successful submission, the form inputs auto-reset. When does the reset NOT happen?"
+  options:
+    A: "When the action returns null"
+    B: "When the action returns a truthy value"
+    C: "When the action throws an error"
+    D: "When the action returns undefined"
+  answer: A
+  explanation: "React auto-resets controlled inputs inside <form action={action}> when the action returns a defined value that differs from initialState. Returning null means 'no update' — React does not reset. Thrown errors are caught by error boundaries and do not trigger reset. For explicit control, use formRef.current.reset() in a useEffect watching state."
+  difficulty: 2
+  tags: [concept]
+
+- id: "9.8"
+  question: "Which scenario is useFormStatus the appropriate hook over useActionState?"
+  options:
+    A: "Managing the full form lifecycle including error display"
+    B: "Disabling a deep child submit button during form submission"
+    C: "Triggering form submission programmatically"
+    D: "Reading the Server Action's return value in the parent component"
+  answer: B
+  explanation: "useFormStatus is for child components that need to read parent form state without prop drilling (disabling button, showing spinner). useActionState is for the form root: managing submission, reading return values, displaying errors. They are complementary — useActionState at root, useFormStatus in children."
+  difficulty: 1
+  tags: [comparison]
+
+- id: "9.9"
+  question: "A form validates client-side with inline checks and server-side with Zod in a Server Action. Client passes, server fails with 'Email already exists'. User sees error, fixes email, resubmits. Client passes, server succeeds. How should the error be returned?"
+  options:
+    A: "Server Action throws an error — let error boundary handle it"
+    B: "Server Action returns { errors: { email: ['Email already exists'] } } — same shape as client errors"
+    C: "Server Action redirects to a different page showing the error"
+    D: "Server Action modifies the FormData and re-runs client validation"
+  answer: B
+  explanation: "Both validation layers should return the same error shape. Server Action returns expected validation errors as return values, not thrown exceptions. Throw only for unexpected failures (DB crash, network error). Same error shape means the UI renders errors identically regardless of which layer caught them."
+  difficulty: 2
+  tags: [application, concept]
+
+- id: "9.10"
+  question: "A user submits a form wrapped in startTransition. What is the benefit over submitting without startTransition?"
+  options:
+    A: "The form data is compressed before sending"
+    B: "React prioritizes keeping the UI responsive — navigation and state updates are non-urgent"
+    C: "The Server Action runs on the client instead of the server"
+    D: "Multiple form submissions are queued and deduplicated"
+  answer: B
+  explanation: "startTransition marks the action and subsequent state updates as non-urgent. React can interrupt them for urgent user input (typing, scrolling). Without startTransition, the pending state update and router navigation are urgent — they block the main thread. startTransition prevents jank and layout shift during form submission."
+  difficulty: 2
+  tags: [concept, comparison]

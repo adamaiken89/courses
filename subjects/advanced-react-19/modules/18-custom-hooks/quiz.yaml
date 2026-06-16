@@ -1,0 +1,119 @@
+- id: "18.1"
+  question: "When should a custom hook return an object instead of a tuple?"
+  options:
+    A: "When there is exactly one return value"
+    B: "When there are two return values in state+setter pattern"
+    C: "When there are three or more named return values"
+    D: "Custom hooks should always return tuples"
+  answer: C
+  explanation: "Objects with named properties are clearer for 3+ return values — destructuring by name avoids positional confusion. Tuples follow the useState convention for 2-element state+setter pairs. Single values can be returned directly."
+  difficulty: 1
+  tags: [convention]
+
+- id: "18.2"
+  question: "What happens if a custom hook calls another hook conditionally?"
+  options:
+    A: "React ignores the hook call and continues"
+    B: "React throws an error — Rules of Hooks violation"
+    C: "The hook works but returns undefined on skipped calls"
+    D: "Conditional hook calls are valid in custom hooks"
+  answer: B
+  explanation: "Rules of Hooks apply to custom hooks too — hooks must be called in the same order on every render. Conditional calls break React's internal hook-to-state pairing. Move the condition inside the hook or guard after all hook calls."
+  difficulty: 1
+  tags: [convention]
+
+- id: "18.3"
+  question: "Which strategy prevents stale closures in a custom hook callback without adding deps?"
+  options:
+    A: "Wrap the callback in useMemo instead of useCallback"
+    B: "Store the latest value in a ref, read from ref inside the callback"
+    C: "Use async/await to ensure fresh values"
+    D: "Define the callback outside the custom hook"
+  answer: B
+  explanation: "Refs always hold the latest value without triggering re-render or re-subscription. The pattern: `const ref = useRef(value); ref.current = value;` then read `ref.current` inside the callback. The callback reference stays stable, but reads fresh values."
+  difficulty: 2
+  tags: [pattern]
+
+- id: "18.4"
+  question: "A custom hook internally uses useSyncExternalStore to subscribe to a Zustand store. Which condition is required to prevent infinite re-renders?"
+  options:
+    A: "getSnapshot must return a new object on every call"
+    B: "getSnapshot must return a referentially stable value when data has not changed"
+    C: "The store must use immer for immutability"
+    D: "Subscribe must call the callback synchronously"
+  answer: B
+  explanation: "useSyncExternalStore compares getSnapshot return values with Object.is. If getSnapshot creates a new object each time (even with same data), React detects a 'change' every render and re-renders infinitely. Return primitives or memoized objects from getSnapshot."
+  difficulty: 3
+  tags: [concept]
+
+- id: "18.5"
+  question: "You are testing a custom hook with renderHook. The hook subscribes to an event source in useEffect. How do you verify cleanup runs correctly?"
+  options:
+    A: "Assert on the return value of renderHook"
+    B: "Call unmount() from renderHook result, then assert the subscription was removed"
+    C: "Rerender the hook with new props"
+    D: "Use waitForNextUpdate to check cleanup"
+  answer: B
+  explanation: "unmount() triggers the effect cleanup function. After unmount, assert that the subscription's unsubscribe/disconnect was called (spy on subscribe, check cleanup callback). Mount/unmount testing covers React 19's StrictMode double-invoke behavior."
+  difficulty: 2
+  tags: [testing]
+
+- id: "18.6"
+  question: "A custom hook wraps useActionState for form submission. Where should error handling logic live?"
+  options:
+    A: "Inside the action function — catch errors and return error state"
+    B: "In a useEffect that watches the state for errors"
+    C: "In the component's ErrorBoundary"
+    D: "In the hook's cleanup function"
+  answer: A
+  explanation: "Action errors must be caught inside the action function and returned as state. ErrorBoundary does not catch action errors (they run in event handlers, not render). useEffect-based error watching adds latency. The action function is the correct single source of error state."
+  difficulty: 2
+  tags: [application]
+
+- id: "18.7"
+  question: "Which custom hook can be safely used inside a Server Component?"
+  options:
+    A: "A hook that uses useState and useEffect for data fetching"
+    B: "A hook that only calls use() to read a promise"
+    C: "A hook that uses useSyncExternalStore to subscribe to a Redux store"
+    D: "A hook that calls useRef for DOM access"
+  answer: B
+  explanation: "Server Components can only use hooks that don't depend on client state. use() (promise/context reading) works on both server and client. useState, useEffect, useRef, useSyncExternalStore all require client-side execution and need the 'use client' directive."
+  difficulty: 2
+  tags: [concept]
+
+- id: "18.8"
+  question: "A custom hook chain looks like: useDashboardData calls useUserPermissions calls useUser. A stale closure in useUser corrupts useUserPermissions and useDashboardData. What is the minimal testing strategy?"
+  options:
+    A: "Test only useDashboardData — integration test covers the chain"
+    B: "Test each hook in isolation, then test the composed behavior"
+    C: "Test only useDashboardData with integration test, skip unit tests for sub-hooks"
+    D: "Stale closures cannot be tested — rely on TypeScript"
+  answer: B
+  explanation: "Each hook should be unit-tested in isolation (mount, update props, unmount, edge cases). Then test the composed hook to verify data flows correctly through the chain. Integration tests alone cannot isolate which link has a stale closure. Unit tests pinpoint the failure."
+  difficulty: 3
+  tags: [testing]
+
+- id: "18.9"
+  question: "In React 19 concurrent mode, a custom hook's useEffect subscribes to a WebSocket. The component mounts, the effect fires, then a higher-priority update causes React to discard the render. What happens to the WebSocket connection?"
+  options:
+    A: "The WebSocket stays connected — React never unmounts discarded renders"
+    B: "React runs the effect cleanup (disconnect), then re-runs effect (reconnect) — the WebSocket sees connect→disconnect→connect"
+    C: "React defers the effect until the higher-priority update commits"
+    D: "The WebSocket connection is paused but not closed"
+  answer: B
+  explanation: "In concurrent mode, when a render is discarded, React runs cleanup for effects from that render, then re-runs effects when the render commits. This means WebSocket sees connect → disconnect → connect. The hook must handle this idempotently — tolerate brief disconnects and clean up stale connections."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "18.10"
+  question: "You are publishing a custom hook library. Which change is considered breaking and requires a major version bump?"
+  options:
+    A: "Adding an optional parameter with a default value"
+    B: "Changing the return type from tuple [T, (v: T) => void] to object { value: T; setValue: (v: T) => void }"
+    C: "Adding a new hook export to the package"
+    D: "Updating internal implementation to use useCallback instead of inline functions"
+  answer: B
+  explanation: "Return type changes break all consumers — every call site must update destructuring. Adding optional parameters (A) is backward compatible. Adding new exports (C) is additive. Internal implementation changes (D) do not affect the public API. Follow semver: breaking changes = major, features = minor, patches = patch."
+  difficulty: 2
+  tags: [convention]

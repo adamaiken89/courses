@@ -1,0 +1,119 @@
+- id: "7.1"
+  question: "What happens when a component calling use(promise) during render has a pending promise?"
+  options:
+    A: "The component throws the promise — React catches it and shows the nearest Suspense fallback"
+    B: "The component returns null until the promise resolves"
+    C: "use(promise) returns undefined — component must handle loading state"
+    D: "React blocks the entire render tree until the promise resolves"
+  answer: A
+  explanation: "use() throws the pending promise. React's Suspense mechanism catches this thrown promise, 'suspends' the component, and renders the nearest parent Suspense boundary's fallback instead. When the promise resolves, React retries rendering the component."
+  difficulty: 2
+  tags: [concept]
+
+- id: "7.2"
+  question: "What does React's cache() function provide?"
+  options:
+    A: "Persistent storage across browser sessions"
+    B: "Request-scoped deduplication — concurrent calls with same arguments share one promise"
+    C: "LocalStorage wrapper with type safety"
+    D: "Automatic cache invalidation on mutation"
+  answer: B
+  explanation: "cache() wraps an async function and deduplicates concurrent calls. If two components call getUser('1') simultaneously, they share one promise. In Server Components, the cache is scoped to the request. In Client Components, it persists across renders. cache() does not provide invalidation."
+  difficulty: 2
+  tags: [terminology]
+
+- id: "7.3"
+  question: "In React 19 streaming SSR, when does the browser receive HTML for a Suspense-bounded component?"
+  options:
+    A: "All at once after all data is fetched"
+    B: "The shell (outside Suspense) streams first, then each Suspense boundary streams when its data resolves"
+    C: "Only after JavaScript loads"
+    D: "In order of component definition in source code"
+  answer: B
+  explanation: "Streaming SSR sends the shell HTML immediately (fast TTFB). Each Suspense boundary streams independently when its data resolves. The browser progressively renders content as chunks arrive. Each boundary is wrapped in a template placeholder, then replaced by streamed HTML."
+  difficulty: 2
+  tags: [concept]
+
+- id: "7.4"
+  question: "What happens to Suspense fallback during a transition?"
+  options:
+    A: "The fallback is shown immediately"
+    B: "The fallback is suppressed — React keeps showing old content until new content is ready"
+    C: "Both old and new content render simultaneously"
+    D: "The fallback is shown but with lower priority"
+  answer: B
+  explanation: "React 19 suppresses Suspense fallback during transitions. Instead of showing a loading skeleton, React keeps existing committed content visible. Once new data resolves, React swaps old content for new. This prevents flashing skeletons during data refresh."
+  difficulty: 2
+  tags: [concept]
+
+- id: "7.5"
+  question: "How should ErrorBoundary and Suspense be composed for error-resilient loading?"
+  options:
+    A: "ErrorBoundary inside Suspense — error retries Suspense"
+    B: "ErrorBoundary wrapping Suspense — errors are caught by ErrorBoundary, loading by Suspense"
+    C: "They cannot be composed — use one or the other"
+    D: "Suspense inside ErrorBoundary — Suspense catches both loading and errors"
+  answer: B
+  explanation: "ErrorBoundary wrapping Suspense is the recommended pattern. Suspense handles the loading phase (pending promise). ErrorBoundary handles the error phase (rejected promise). Errors thrown from the suspended component or during rendering are caught by the ErrorBoundary."
+  difficulty: 2
+  tags: [application]
+
+- id: "7.6"
+  question: "A page has three Suspense boundaries fetching data in 500ms, 2s, and 4s. What is the user experience with streaming SSR?"
+  options:
+    A: "User sees nothing for 4 seconds, then all content appears"
+    B: "User sees shell immediately, first section at 500ms, second at 2s, third at 4s"
+    C: "Content appears in reverse order (slowest first)"
+    D: "Content appears only after JavaScript hydrates"
+  answer: B
+  explanation: "Streaming SSR sends each Suspense chunk as its data resolves. Shell (navigation, header, footer) arrives at TTFB (<100ms typically). First section resolves at 500ms, streams its HTML. Second at 2s. Third at 4s. User sees progressive content without full-page loading."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "7.7"
+  question: "What is cache()'s scope in Server Components?"
+  options:
+    A: "Persistent across all users and requests"
+    B: "Scoped to the current request — automatically garbage collected after response"
+    C: "Scoped to the current module — persists until server restart"
+    D: "No scope — cache() does not work in Server Components"
+  answer: B
+  explanation: "In Server Components, cache() is request-scoped. Each HTTP request gets a fresh cache. This prevents data leakage between users and ensures stale data is not served across requests. The cache lives only as long as the Server Component renders."
+  difficulty: 3
+  tags: [concept]
+
+- id: "7.8"
+  question: "When would you use null as a Suspense fallback?"
+  options:
+    A: "Never — null fallback is invalid"
+    B: "For below-fold or non-critical content where blank space is better than a skeleton"
+    C: "For the outermost Suspense boundary only"
+    D: "When the component never suspends"
+  answer: B
+  explanation: "null fallback renders nothing during loading. This is appropriate for below-fold content, recommendations, analytics panels — places where showing a skeleton may cause more layout shift than blank space. Above-fold content should always have a meaningful fallback."
+  difficulty: 2
+  tags: [application]
+
+- id: "7.9"
+  question: "Which of the following is NOT a valid use of Suspense in React 19?"
+  options:
+    A: "Wrapping a Server Component that uses async/await"
+    B: "Wrapping a Client Component that uses use(promise)"
+    C: "Wrapping an event handler that navigates to a new page"
+    D: "Wrapping a lazy-loaded component with React.lazy()"
+  answer: C
+  explanation: "Suspense only works at the rendering level — it catches thrown promises during render. Event handlers are imperative code, not rendering. Navigation during an event handler is handled by the router, not Suspense. All other options are valid Suspense use cases."
+  difficulty: 3
+  tags: [application]
+
+- id: "7.10"
+  question: "A product detail page has reviews that take 3s to load. What Suspense strategy provides the best UX?"
+  options:
+    A: "One boundary for the entire page — single fallback, everything loads together"
+    B: "Product info inline (no Suspense), reviews in a separate Suspense boundary with skeleton fallback"
+    C: "Nested boundaries: product info boundary contains reviews boundary"
+    D: "No Suspense — manage loading state within the reviews component with useState"
+  answer: B
+  explanation: "Product info should render immediately without Suspense (no waiting). Reviews should be in a separate Suspense boundary with a skeleton matching review card dimensions. This gives fast product info display while reviews stream in. Option A blocks everything on reviews. Option C works but adds unnecessary nesting. Option D loses streaming benefits."
+  difficulty: 3
+  tags: [application]

@@ -1,0 +1,119 @@
+- id: "3.1"
+  question: "Where can use() be called in a React component?"
+  options:
+    A: "Inside useEffect, event handlers, and render"
+    B: "Only during render — same phase as other hooks"
+    C: "Anywhere in the component including callbacks"
+    D: "Only at the top level, like other hooks"
+  answer: B
+  explanation: "use() must be called during render. Unlike other hooks, it works in conditionals and loops — but still only in the render phase, not in effects, handlers, or callbacks."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "3.2"
+  question: "What does use(ThemeContext) return?"
+  options:
+    A: "A Promise that resolves to the context value"
+    B: "The current context value, same as useContext"
+    C: "A tuple of [value, setter]"
+    D: "undefined — use() does not work with Context"
+  answer: B
+  explanation: "use(Context) returns the current context value, identical to useContext(Context). The difference is placement: use() works in conditionals and early returns."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "3.3"
+  question: "What happens when use(promise) is called and the promise is pending?"
+  options:
+    A: "React returns undefined and logs a warning"
+    B: "Component suspends — nearest Suspense fallback is shown"
+    C: "The promise is ignored and render continues"
+    D: "React throws an error"
+  answer: B
+  explanation: "use(promise) suspends when the promise is pending. React unwinds the component and renders the nearest <Suspense> fallback. When the promise resolves, React retries the render."
+  difficulty: 2
+  tags: [concept]
+
+- id: "3.4"
+  question: "Why must promises passed to use() be cached or memoized?"
+  options:
+    A: "To reduce memory usage"
+    B: "Because use() creates a new fetch for every render otherwise"
+    C: "use() requires stable references for Suspense to work"
+    D: "Caching is optional — use() deduplicates automatically"
+  answer: B
+  explanation: "Each render creates a new promise argument. Without caching, every re-render suspends again because use() receives a new (different) promise. cache() or a Map ensures the same args produce the same promise reference."
+  difficulty: 2
+  tags: [application]
+
+- id: "3.5"
+  question: "Which pattern correctly handles errors from use(promise)?"
+  options:
+    A: "try/catch around the use() call"
+    B: "An Error Boundary wrapping the Suspense boundary"
+    C: "A .catch() on the promise before passing to use()"
+    D: "Error callback in the promise cache"
+  answer: B
+  explanation: "use() throws rejected promises during render. Error Boundaries catch render-phase errors. try/catch does not work because use() suspends before throwing. Error Boundary is the correct surface for use() errors."
+  difficulty: 2
+  tags: [concept]
+
+- id: "3.6"
+  question: "use() can read context conditionally. What does useContext lack that enables this?"
+  options:
+    A: "Context type inference"
+    B: "The ability to call after early returns or inside if blocks"
+    C: "Re-render subscription"
+    D: "Server Component support"
+  answer: B
+  explanation: "useContext follows Rules of Hooks: must be at top level, never after early return. use() removes this restriction. You can read context mid-component, after guards and conditions."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "3.7"
+  question: "Two sibling components use use(promise). One has a fast fetch, the other slow. What renders first?"
+  options:
+    A: "Both wait for the slowest"
+    B: "Each Suspense boundary is independent — fast renders first"
+    C: "React serializes fetch order"
+    D: "The parent blocks until both resolve"
+  answer: B
+  explanation: "Each <Suspense> boundary manages its own fallback independently. Fast fetch component replaces its fallback first. The slow one remains in fallback until resolved. This enables progressive rendering."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "3.8"
+  question: "A cached promise rejects. Subsequent renders with the same args will:"
+  options:
+    A: "Retry fetch automatically"
+    B: "Re-throw the same rejection from cache"
+    C: "Skip the cache and create a new promise"
+    D: "Return undefined"
+  answer: B
+  explanation: "cache() stores the promise reference, including rejected promises. Next read returns the same rejected promise, which throws. Solution: cache wrapper that clears entry on rejection."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "3.9"
+  question: "Which scenario is NOT suitable for use() over useEffect + fetch?"
+  options:
+    A: "Initial page data that streams with SSR"
+    B: "Analytics logging after user data loads"
+    C: "Parallel data loading for dashboard widgets"
+    D: "Conditional data fetching based on user role"
+  answer: B
+  explanation: "use() is render-only — no side effect phase. Analytics logging after data loads is a side effect that needs useEffect. use() manages data, useEffect manages effects on that data."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "3.10"
+  question: "React's cache() deduplicates by:"
+  options:
+    A: "Memory reference of the callback"
+    B: "Arguments passed to the wrapped function"
+    C: "Component identity where cache() is called"
+    D: "A random unique key on each invocation"
+  answer: B
+  explanation: "cache() creates a memoized function keyed by its arguments. Same args → same promise reference. This is crucial for use() — stable references prevent re-suspension on re-render."
+  difficulty: 2
+  tags: [concept]

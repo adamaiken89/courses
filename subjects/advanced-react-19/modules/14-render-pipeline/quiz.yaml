@@ -1,0 +1,119 @@
+- id: "14.1"
+  question: "What data structure does React Fiber use to represent the component tree?"
+  options:
+    A: "Recursive tree with parent-child relationships only"
+    B: "Linked list with child, sibling, and return pointers"
+    C: "Flat array indexed by component ID"
+    D: "Hash map keyed by component instance"
+  answer: B
+  explanation: "Fiber uses linked list with child (first child), sibling (next sibling), and return (parent) pointers. This flattened structure allows pause/resume during traversal — impossible with recursive tree walking that uses the call stack."
+  difficulty: 1
+  tags: [terminology, concept]
+
+- id: "14.2"
+  question: "During which phase can React's work loop be interrupted to process a higher-priority update?"
+  options:
+    A: "Commit phase"
+    B: "Render phase"
+    C: "Effect cleanup phase"
+    D: "Layout effect phase"
+  answer: B
+  explanation: "Render phase is pure computation with no DOM mutations — React can pause, yield to browser, or process urgent updates. Commit phase mutates DOM and runs synchronously — cannot be interrupted."
+  difficulty: 1
+  tags: [concept]
+
+- id: "14.3"
+  question: "A component has the same props (shallow-equal), no state updates, and no context changes. Is it guaranteed to bail out?"
+  options:
+    A: "Yes — bailout check evaluates all three conditions"
+    B: "No — only if also wrapped in React.memo"
+    C: "No — bailout requires all ancestors to also bail out"
+    D: "No — bailout never happens for function components"
+  answer: A
+  explanation: "Bailout check runs at fiber level before calling component function. If pendingProps and memoizedProps are shallow-equal, no state updates queued, and no context dependency changed, React skips rendering the component entirely. React.memo adds memoizedProps comparison for function components, but the bailout check itself is universal."
+  difficulty: 2
+  tags: [concept]
+
+- id: "14.4"
+  question: "In keyed reconciliation, which operation is cheapest for React?"
+  options:
+    A: "Deleting a fiber and recreating it at a new position"
+    B: "Moving an existing fiber to a new position"
+    C: "Deleting a fiber at the end of the list"
+    D: "Creating a new fiber at the beginning of the list"
+  answer: B
+  explanation: "Moving a fiber (updating parent's child order) reuses the existing DOM node and component state. This is cheaper than destroy+recreate (A), which tears down effects and DOM. Keyed reconciliation detects moves via key-to-fiber map. Deleting (C) and creating (D) each require separate DOM operations but are cheaper than combined delete+create."
+  difficulty: 2
+  tags: [comparison, concept]
+
+- id: "14.5"
+  question: "Where does useLayoutEffect run in the commit phase ordering?"
+  options:
+    A: "During render phase, before commit"
+    B: "After DOM mutations, before paint"
+    C: "After paint, before passive effects"
+    D: "After passive effects, during idle callback"
+  answer: B
+  explanation: "Commit phase order: detach old refs → DOM mutations → attach new refs → run layout effects (useLayoutEffect) → paint. Passive effects (useEffect) run after paint. Layout effects block paint — use for DOM measurements and synchronous animations."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "14.6"
+  question: "What is the primary reason Fiber uses double buffering (current + workInProgress trees)?"
+  options:
+    A: "Reduce memory allocation per render"
+    B: "Enable comparing two snapshots for reconciliation"
+    C: "Ensure users always see a complete, consistent UI"
+    D: "Allow parallel processing of sibling fibers"
+  answer: C
+  explanation: "Double buffering prevents tearing — user never sees partially rendered UI. Current tree represents committed state. React builds workInProgress tree while user sees current tree. If render is interrupted or discarded, current tree remains unchanged. Only on successful commit does workInProgress become current."
+  difficulty: 2
+  tags: [concept]
+
+- id: "14.7"
+  question: "A React.memo component bails out. How does DevTools Profiler represent it?"
+  options:
+    A: "No bar appears — render time is 0"
+    B: "Grayed-out bar with 0ms render time"
+    C: "Thin red bar indicating skipped work"
+    D: "Blue bar with same width as normal render"
+  answer: A
+  explanation: "Bailed-out components do not appear in DevTools flamegraph because their component function was never called — render time is 0ms. Only committed components (which actually rendered) appear. If a component appears in flamegraph but has no prop changes, check for context changes or state updates."
+  difficulty: 2
+  tags: [application, tooling]
+
+- id: "14.8"
+  question: "Inside callback ref during commit, setState is called. When does the re-render happen?"
+  options:
+    A: "Deferred to next idle callback"
+    B: "Synchronous re-render within the same commit phase"
+    C: "Queued for next animation frame"
+    D: "Scheduled as passive effect after paint"
+  answer: B
+  explanation: "setState in callback ref triggers synchronous re-render within commit phase. This is legacy behavior that React 19 preserves for backward compatibility. It causes the parent to potentially see stale state until the next frame. Avoid setState in callback refs — use useLayoutEffect instead."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "14.9"
+  question: "List of 100 items re-renders with same stable keys in same order. Parent passes items as inline array literal. What happens?"
+  options:
+    A: "React bails out — same keys means nothing changed"
+    B: "React re-renders all 100 items because array reference is new each render"
+    C: "React reuses DOM nodes but re-runs component functions"
+    D: "React skips reconciliation entirely for the list"
+  answer: B
+  explanation: "Inline array literal creates new array reference per render. Even with same string contents, shallow prop comparison fails. React re-renders the list component. DOM nodes are reused (same keys, same order → fiber reuse) but the component function re-executes. Fix: useMemo to stabilize array reference or wrap list component with React.memo."
+  difficulty: 2
+  tags: [scenario, application]
+
+- id: "14.10"
+  question: "In workLoopConcurrent, what determines when React yields control back to the browser?"
+  options:
+    A: "After processing each complete fiber subtree"
+    B: "When shouldYield returns true based on elapsed time or pending input"
+    C: "Only when the entire fiber tree is processed"
+    D: "After each DOM mutation in commit phase"
+  answer: B
+  explanation: "workLoopConcurrent calls shouldYield() between processing units of work. shouldYield checks elapsed time (~5ms threshold) and whether higher-priority work (user input, animation frames) is pending. If yield needed, React suspends workLoopConcurrent and schedules resumption via the Scheduler. This is the mechanism that enables jank-free rendering during heavy computations."
+  difficulty: 2
+  tags: [concept, scenario]

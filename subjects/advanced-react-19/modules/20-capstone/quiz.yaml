@@ -1,0 +1,119 @@
+- id: "20.1"
+  question: "A component renders product details fetched from DB, has no event handlers, no hooks. Where should it render?"
+  options:
+    A: "Client Component — most React components should be client-side"
+    B: "RSC — default for components without hooks, events, or browser APIs"
+    C: "Hybrid — fetch in RSC, render in Client Component"
+    D: "Edge Runtime — component requires server but also needs client interactivity"
+  answer: B
+  explanation: "RSC is default. This component needs no client runtime — no hooks, no events, no browser APIs. Rendering it as RSC eliminates its JS from bundle. Converting to Client Component adds unnecessary JS. Hybrid pattern (C) is wrong: if rendering is pure, keep both fetch and render in RSC. Edge Runtime (D) is about infrastructure, not component classification."
+  difficulty: 1
+  tags: [concept]
+
+- id: "20.2"
+  question: "A route has three sections: header (static, fast), chart (client D3, 80kb), comments (slow DB). Which streaming architecture is correct?"
+  options:
+    A: "Single Suspense boundary wrapping entire page — one skeleton, everything loads together"
+    B: "Three Suspense boundaries: header no wrapper, chart Suspense with skeleton, comments Suspense with skeleton"
+    C: "Header + comments in RSC, chart lazy loaded via next/dynamic with Suspense"
+    D: "All sections client-side — Suspense only works with client components"
+  answer: B
+  explanation: "Three Suspense boundaries isolate each section. Header renders immediately (no async dependency). Chart is a client component — it loads via Suspense when JS arrives. Comments stream when DB query completes. One boundary (A) makes all content wait for slowest section. Option C is partially correct but chart still needs Suspense for its lazy load. Option D is false — Suspense works with RSC streaming."
+  difficulty: 2
+  tags: [application]
+
+- id: "20.3"
+  question: "A Server Action updates user display name. After action succeeds, the header showing the name does not update. What is missing?"
+  options:
+    A: "The action must return the new name — client component sets state manually"
+    B: "The action must call revalidatePath('/') or revalidateTag('user') to trigger RSC re-render"
+    C: "The header component must be wrapped in useOptimistic"
+    D: "Server Actions cannot update server-rendered content — only client state"
+  answer: B
+  explanation: "Server Action mutates DB but client does not know to re-fetch. `revalidatePath('/')` tells Next.js to re-render the RSC tree on next request, which fetches new data and returns updated RSC payload. Option A works but duplicates data — server is source of truth. Option C is for optimistic UI on the action caller, not for unrelated components. Option D is false — Actions explicitly work with RSC via revalidation."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "20.4"
+  question: "Which state type belongs in Zustand store in a React 19 application?"
+  options:
+    A: "Product data from database — server source of truth"
+    B: "Form field values in a checkout form — ephemeral, route-specific"
+    C: "Cart drawer open/close state — cross-cutting UI state used by header, overlay, and mobile nav"
+    D: "URL search params — belongs in address bar for shareability"
+  answer: C
+  explanation: "Cart drawer state is used by multiple unrelated components (header cart icon, drawer overlay, mobile navigation) across routes. Zustand is appropriate for cross-cutting client state. Option A belongs in RSC. Option B belongs in local component state or useActionState. Option D belongs in URL via useSearchParams."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "20.5"
+  question: "E2E test clicks 'Add to Cart' and checks cart count. Test sometimes passes, sometimes shows old count. What is the most reliable fix?"
+  options:
+    A: "Add a fixed delay (page.waitForTimeout(1000)) after clicking"
+    B: "Use await expect(page.locator('[data-testid=cart-count]')).toHaveText('1') with retry"
+    C: "Use page.reload() before checking cart count"
+    D: "Disable optimistic updates to make state synchronous"
+  answer: B
+  explanation: "Playwright's toHaveText retries until timeout or match — handles the race between action response and RSC revalidation. Test should not depend on timing. Fixed delay (A) is fragile — works for local but fails in CI. Reload (C) defeats the purpose of testing client interaction. Disabling optimistic updates (D) changes the application behavior being tested."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "20.6"
+  question: "A team migrates Create React App to Next.js App Router. They convert all components to 'use client' in week 1. What is the primary risk of leaving them as Client Components?"
+  options:
+    A: "Server Actions will not work with 'use client' components"
+    B: "They miss the main benefit: client JS bundle reduction from moving rendering to RSC"
+    C: "Client Components cannot receive props from Server Components"
+    D: "Client Components require webpack 5, which CRA does not support"
+  answer: B
+  explanation: "'use client' components ship their JS to the browser even if they only render static data. The main adoption benefit is moving pure-rendering components to RSC to eliminate ~40-60% of route-level JS. Option A is false — Server Actions work with client components via formAction. Option C is false — client components can receive serializable props from RSC. Option D is false — Next.js handles webpack."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "20.7"
+  question: "Self-hosted Next.js app with RSC. CPU usage spikes under load. Which optimization has the highest impact on reducing server render CPU cost?"
+  options:
+    A: "Add more Node.js processes behind load balancer"
+    B: "Implement ISR or static generation for pages that can be pre-rendered"
+    C: "Move all components to 'use client' to offload work to browser"
+    D: "Increase server RAM from 2GB to 8GB"
+  answer: B
+  explanation: "ISR eliminates per-request RSC rendering for pages that can be generated once and served cached. RSC rendering is CPU-bound (serializing JSX to RSC payload). Moving components to client (C) negates the benefits of RSC and increases client JS. Horizontal scaling (A) helps but does not address root cause. RAM (D) addresses memory, not CPU."
+  difficulty: 1
+  tags: [concept]
+
+- id: "20.8"
+  question: "A form uses useActionState. User submits with invalid data. Validation fails server-side. The form should show per-field errors. Which pattern correctly implements this?"
+  options:
+    A: "Client-side validation only — submit action returns nothing, client handles all errors"
+    B: "Server Action returns { errors: { email: ['Invalid email'], name: [] } } — useActionState receives these, form renders errors per field"
+    C: "Server Action throws Error with validation message — useActionState catches in error boundary"
+    D: "Validation happens in middleware — form never reaches Server Action"
+  answer: B
+  explanation: "Server Action returns structured errors object in the state. useActionState receives this as the new state value. Form reads state.errors to display per-field messages. Option A duplicates validation logic — server must validate regardless. Option C — throwing Error breaks the payload protocol. Option D — middleware validation is separate from form state management."
+  difficulty: 2
+  tags: [application]
+
+- id: "20.9"
+  question: "A company has 100 React components wrapped in React.memo + useMemo. They adopt React Compiler. What should they do?"
+  options:
+    A: "Remove all React.memo and useMemo — Compiler handles everything"
+    B: "Keep existing memoization. Enable Compiler. Incrementally remove manual memoization from files the compiler handles correctly, tested per module"
+    C: "Keep only React.memo — Compiler replaces useMemo but not memo"
+    D: "Disable compiler — manual memoization is always more predictable"
+  answer: B
+  explanation: "Compiler is conservative — skips memoization when uncertain. Keeping existing manual memoization is safe: compiler does not double-memoize, it detects existing memo and skips. Incremental removal per module with StrictMode testing is correct. Option A risks regression if compiler skips a component it cannot analyze. Option C is false — compiler handles both. Option D misses the benefit of eliminating defensive memoization."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "20.10"
+  question: "A Server Component fetches user profile and passes it to a child Client Component. The client component modifies the profile locally (optimistic update). Where does the authoritative profile data live?"
+  options:
+    A: "Client component state — always trust the latest UI state"
+    B: "Server Component fetch — server is source of truth. Client optimistic state is temporary and reverts on action resolution"
+    C: "Both — data is synced bidirectionally"
+    D: "Zustand store — cross-cutting state must be centralized"
+  answer: B
+  explanation: "Server is always source of truth for server-originated data. useOptimistic provides a temporary UI overlay. When the server action resolves, the optimistic state reverts and the server value (updated via revalidation) becomes the current value. Option A causes inconsistent state — different clients could have different 'truth.' Option C is not how unidirectional data flow works. Option D is wrong — server data belongs in RSC, not Zustand."
+  difficulty: 2
+  tags: [concept]

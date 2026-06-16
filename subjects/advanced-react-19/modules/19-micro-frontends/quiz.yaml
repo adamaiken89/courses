@@ -1,0 +1,119 @@
+- id: "19.1"
+  question: "In Module Federation, why must React be configured as a shared singleton?"
+  options:
+    A: "To reduce bundle size by deduplicating React"
+    B: "React uses internal module-scoped state (fiber tree). Two instances create separate context trees — hooks, events, context break"
+    C: "Singleton mode is required by Webpack 5"
+    D: "To enable tree-shaking across micro-frontend boundaries"
+  answer: B
+  explanation: "React's fiber tree, context system, and event system are module-scoped. Two React instances run two independent trees — useContext returns wrong values, events miss, hooks access wrong fiber. Singleton forces one React runtime. Bundle reduction is a side benefit, not the reason."
+  difficulty: 2
+  tags: [concept]
+
+- id: "19.2"
+  question: "A shell app hosts two remotes: dashboard and checkout. Shell uses React 19.0. Dashboard bundled with React 19.1. Checkout bundled with React 19.0. Federation config: `react: { singleton: true, requiredVersion: '^19.0.0' }`. Which version runs?"
+  options:
+    A: "19.0 — lowest common denominator"
+    B: "19.1 — highest satisfying version"
+    C: "Error — version mismatch detected at runtime"
+    D: "Both — dashboard uses 19.1, checkout uses 19.0"
+  answer: B
+  explanation: "Webpack picks the highest semver-satisfying version from all consumers. 19.1 satisfies ^19.0.0 for both. However, if checkout relied on behavior only in 19.0, it may break. Testing against the resolved version is required."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "19.3"
+  question: "What router architecture prevents routing conflicts between shell and remote micro-frontends?"
+  options:
+    A: "Both shell and remote use BrowserRouter with different basenames"
+    B: "Shell owns BrowserRouter with routes per remote; each remote uses MemoryRouter with basename from shell"
+    C: "Each remote uses its own BrowserRouter"
+    D: "Remote uses HashRouter; shell uses BrowserRouter"
+  answer: B
+  explanation: "Shell must own the address bar (BrowserRouter). Remotes use MemoryRouter receiving basename as prop — they render relative routes internally. This prevents multiple BrowserRouters competing for URL control and lets shell handle top-level navigation."
+  difficulty: 2
+  tags: [application]
+
+- id: "19.4"
+  question: "When does React context propagate from shell into a federated remote component?"
+  options:
+    A: "Always — React context is global by default"
+    B: "Only when both shell and remote share a single React singleton and remote renders inside shell's tree"
+    C: "Only when remote uses createContext with the same provider"
+    D: "Context never crosses micro-frontend boundaries"
+  answer: B
+  explanation: "React context propagates through the component tree. If remote renders inside shell's tree and both share one React (singleton), shell's context providers are visible to remote. Two React instances = separate context trees = no propagation. Singleton React is necessary but not sufficient — remote must render inside shell's provider tree."
+  difficulty: 3
+  tags: [concept]
+
+- id: "19.5"
+  question: "Which CSS isolation approach provides full DOM/event isolation but breaks form submissions and event retargeting?"
+  options:
+    A: "CSS Modules"
+    B: "CSS-in-JS"
+    C: "Shadow DOM"
+    D: "BEM naming conventions"
+  answer: C
+  explanation: "Shadow DOM isolates DOM, CSS, and events completely. However, events that cross shadow boundary are retargeted (target points to shadow root, not actual element). Form submissions inside shadow DOM are invisible to outer document. CSS Modules and CSS-in-JS scope classes only — DOM remains in same document."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "19.6"
+  question: "A micro-frontend crashes mid-render before its useEffect hooks mount. What resources leak?"
+  options:
+    A: "None — React automatically cleans up on error"
+    B: "WebSocket connections and timers — effects never mounted so their cleanup cannot run. Fallback: singleton cleanup registry"
+    C: "The shell crashes too — errors propagate up the tree"
+    D: "Only React component state is lost; side effects are unaffected"
+  answer: B
+  explanation: "ErrorBoundary catches render errors. The crashed component's effects never mounted — so no cleanup ran. WebSocket connections, intervals, third-party scripts stay alive. Solution: remote should register cleanup handlers in a singleton map that shell invokes on error or use a crash-only pattern (reload on navigation)."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "19.7"
+  question: "Two micro-frontends need to share cart state. Cart count changes in checkout. Product listing in another remote must reflect the update. Which approach has the lowest coupling?"
+  options:
+    A: "Shared Zustand store exposed via Module Federation"
+    B: "Window-level CustomEvent dispatched by checkout, listened by product"
+    C: "Context bridge with React context provider in shell"
+    D: "Direct import of checkout module into product"
+  answer: B
+  explanation: "Custom events: sender does not know receiver exists. Zero import coupling between remotes. Zustand store requires a shared dependency and store contract. Context bridge requires rendering inside same provider tree. Direct import creates a build dependency. For low coupling: events. For devtools/debugging: store."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "19.8"
+  question: "What makes RSC (Server Component) micro-frontends harder to deploy than client-only micro-frontends?"
+  options:
+    A: "RSC requires a HTTP/2 server"
+    B: "RSC micro-frontends need remote servers reachable at server-render time — remote failure causes shell SSR failure. Client-only degrades to error boundary gracefully"
+    C: "RSC cannot be lazy loaded"
+    D: "RSC bundles must be tree-shaken together"
+  answer: B
+  explanation: "RSC micro-frontends fetch RSC payload from remote server during shell's server render. If remote server is down, shell SSR may fail entirely. Client-only micro-frontends load on the client — failure shows an error boundary without affecting shell SSR. RSC micro-frontends increase server coupling and require independent server infrastructure per remote."
+  difficulty: 3
+  tags: [comparison]
+
+- id: "19.9"
+  question: "Shell preloads dashboard's remoteEntry.js on hover. What is the trade-off?"
+  options:
+    A: "Preloading wastes bandwidth — remoteEntry.js is 2-6 KB, which is an acceptable trade-off for instant navigation"
+    B: "Preloading is always harmful — never preload micro-frontends"
+    C: "remoteEntry.js contains all dashboard code, so preloading is equivalent to loading the full app"
+    D: "Module Federation does not support preloading"
+  answer: A
+  explanation: "remoteEntry.js is just the module registry (~2-6 KB), not the full dashboard app. Preloading it on hover is cheap and makes navigation instant. Actual dashboard chunks load on route activation, not on preload. This is a standard performance pattern — preload metadata, load content on demand."
+  difficulty: 1
+  tags: [concept]
+
+- id: "19.10"
+  question: "A shell deploys a new feature expecting an updated dashboard remote API. Dashboard deploys 3 days later. What pattern prevents users from seeing a broken page during the gap?"
+  options:
+    A: "Shell waits for dashboard to deploy first — coordinated release"
+    B: "Feature flag in shell — feature behind flag. Dashboard toggles flag when ready"
+    C: "Module Federation automatically rolls back incompatible changes"
+    D: "Dashboard deploys before shell — always"
+  answer: B
+  explanation: "Feature flags decouple deploy from release. Shell ships feature behind flag. Dashboard team deploys their changes independently, then toggles the flag. This avoids blocking shell deploys on dashboard readiness. Coordinated releases (A) are safe but slow. Auto-rollback (C) does not exist. Hard ordering (D) is impractical for independent teams."
+  difficulty: 2
+  tags: [application]

@@ -1,0 +1,119 @@
+- id: "11.1"
+  question: "What is derived state in the context of Zustand?"
+  options:
+    A: "State that is persisted to localStorage"
+    B: "Data computed from existing store state rather than stored directly"
+    C: "State that is shared across multiple stores"
+    D: "The initial state passed to create()"
+  answer: B
+  explanation: "Derived state is computed from raw store state. Store minimum raw data, derive everything else via selectors. This eliminates sync bugs because derivation is always consistent with source."
+  difficulty: 1
+  tags: [concept]
+
+- id: "11.2"
+  question: "What problem occurs when derived state is stored redundantly in the store?"
+  options:
+    A: "Store initialization becomes slower"
+    B: "Derived values can desync from source when mutations forget to update them"
+    C: "TypeScript cannot infer derived field types"
+    D: "create() throws an error for computed fields"
+  answer: B
+  explanation: "Every mutation must update both raw and derived fields. When code forgets, derived value diverges from reality. Example: updating items without updating totalItems displays stale count. Deriving s.items.length eliminates this."
+  difficulty: 1
+  tags: [concept]
+
+- id: "11.3"
+  question: "Which statement about derived selectors is true?"
+  options:
+    A: "They must be defined inside the create() callback"
+    B: "They are pure functions — same state input always produces same output"
+    C: "They can trigger side effects like API calls"
+    D: "They cannot be used with TypeScript"
+  answer: B
+  explanation: "Derived selectors are pure functions. Same state in → same result out. No side effects, no mutations. This makes them testable without React or store instance, and composable into selector graphs."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "11.4"
+  question: "What does reselect's createSelector do?"
+  options:
+    A: "Creates a new Zustand store"
+    B: "Memoizes derived computation — only recomputes when input selectors return new values"
+    C: "Deep-clones the store state to prevent mutations"
+    D: "Generates TypeScript types from store shape"
+  answer: B
+  explanation: "createSelector accepts input selectors and a combiner function. It caches the combiner result. On next call, it checks if any input selector returned a new value. If all unchanged, returns cached result. Prevents unnecessary recomputation."
+  difficulty: 2
+  tags: [terminology]
+
+- id: "11.5"
+  question: "A selector graph: selectItems → selectFilteredItems → selectStats. User name updates. What recomputes?"
+  options:
+    A: "All three selectors recompute"
+    B: "Only selectStats recomputes"
+    C: "None recompute because user name is unrelated"
+    D: "The entire store re-renders all subscribers"
+  answer: C
+  explanation: "If selectStats depends only on selectFilteredItems (not on user name nor selectItems directly), and selectFilteredItems is memoized via createSelector, then when only user name changes, selectFilteredItems returns cached result (items reference unchanged). selectStats sees same input → returns cached result. Zero recomputation."
+  difficulty: 3
+  tags: [application, concept]
+
+- id: "11.6"
+  question: "When should you wrap useStore selector result in useMemo?"
+  options:
+    A: "Always — useMemo prevents all unnecessary re-renders"
+    B: "When the selector returns a newly created object/array and the component passes it to child components as props"
+    C: "When the store has fewer than 10 fields"
+    D: "Never — useMemo inside component defeats Zustand's subscription model"
+  answer: B
+  explanation: "useMemo stabilizes object/array references between renders. Use when derived selector creates new objects and child components depend on reference equality (React.memo, useEffect deps). Prefer memoized selectors (createSelector) or shallow equality instead — they fix the problem at the source rather than the consumer."
+  difficulty: 2
+  tags: [application]
+
+- id: "11.7"
+  question: "Normalized store stores entities as Record<string, Entity> + string[]. What is the primary benefit?"
+  options:
+    "A": "Smaller bundle size"
+    "B": "Single source of truth enables multiple derived views without data duplication"
+    "C": "Faster store creation"
+    "D": "Automatic TypeScript type generation"
+  answer: B
+  explanation: "Normalized stores store each entity once by ID. Derived selectors reshape into arrays, groups, joins, or aggregates per view. Adding a new view (e.g., 'todos grouped by priority') does not change store shape. Multiple views derive from same source without duplication."
+  difficulty: 2
+  tags: [concept]
+
+- id: "11.8"
+  question: "How do you test derived selectors?"
+  options:
+    A: "Render a React component and assert on DOM output"
+    B: "Call the selector function directly with mock state and assert on return value"
+    C: "Dispatch store actions and check derived fields in store"
+    D: "Snapshot test the entire store"
+  answer: B
+  explanation: "Derived selectors are pure functions. Call with mock state → assert return value. No store creation, no React rendering. Fast (microseconds), isolated (fails only when selector logic is wrong), high coverage (test edge cases directly). Example: selectStats(mockState).total."
+  difficulty: 2
+  tags: [application]
+
+- id: "11.9"
+  question: "A store has items: Todo[] and a computed get filteredItems() using get(). Why is this pattern problematic for React components?"
+  options:
+    A: "get() is async and does not work with synchronous component rendering"
+    B: "get() computed properties recompute on every access without memoization — no subscription integration"
+    C: "get() cannot access other store state"
+    D: "get() throws errors in production mode"
+  answer: B
+  explanation: "get() reads current state but does not establish a subscription. Component calling getState().filteredItems gets the value but does not re-render when it changes. Additionally, getters recompute on every access without caching. Use derived selectors for component subscriptions — they integrate with Zustand's subscription system."
+  difficulty: 3
+  tags: [concept, application]
+
+- id: "11.10"
+  question: "A team stores items as Todo[] (array, not normalized). They need: sorted list, grouped-by-project view, and search results. What is the consequence?"
+  options:
+    A: "No consequence — array stores work fine for all derived views"
+    B: "Each derived view requires O(n) iteration. Without memoization, unrelated updates re-run all derivations. Adding entities requires O(n) splice or spread."
+    C: "Array stores cannot be used with createSelector"
+    D: "Derived state only works with normalized stores"
+  answer: B
+  explanation: "Array stores work but have trade-offs: adding/removing in middle requires O(n) splice; each derived view iterates full array. Normalized (Record + ID array) gives O(1) lookup/update. For small lists (<100 items), array is fine. For large lists with many views, normalized reduces iteration and gives O(1) updates."
+  difficulty: 3
+  tags: [comparison, scenario]

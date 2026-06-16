@@ -1,0 +1,119 @@
+- id: "17.1"
+  question: "Which lifecycle method in an ErrorBoundary must be pure and cannot have side effects?"
+  options:
+    A: "componentDidCatch"
+    B: "getDerivedStateFromError"
+    C: "componentDidMount"
+    D: "render"
+  answer: B
+  explanation: "getDerivedStateFromError runs during render phase and must be pure. componentDidCatch runs during commit phase where side effects (logging, telemetry) are allowed. render must also be pure, but getDerivedStateFromError is the dedicated method for transitioning to error state."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "17.2"
+  question: "Which errors does a React ErrorBoundary NOT catch?"
+  options:
+    A: "Errors thrown during render of a child component"
+    B: "Errors thrown in componentDidMount lifecycle"
+    C: "Errors thrown inside an onClick event handler"
+    D: "Errors thrown inside a component's constructor"
+  answer: C
+  explanation: "ErrorBoundary only catches errors during render phase and lifecycle methods (constructor, componentDidMount). Event handler errors (onClick) run outside React's error boundary scope — they must be handled with try-catch or other mechanisms."
+  difficulty: 1
+  tags: [concept]
+
+- id: "17.3"
+  question: "An ErrorBoundary catches a render error. What is the standard pattern to allow user retry?"
+  options:
+    A: "Call this.setState inside componentDidCatch to clear error state"
+    B: "Increment a key prop on the children to force unmount + remount"
+    C: "Call forceUpdate() on the ErrorBoundary"
+    D: "Return null from render to reset React's internal error state"
+  answer: B
+  explanation: "Incrementing key on children forces React to destroy the crashed subtree and mount fresh. This clears any stale state causing the crash. setState alone only toggles fallback visibility — children retain corrupted state. componentDidCatch cannot trigger recovery. forceUpdate does not reset child state."
+  difficulty: 2
+  tags: [application]
+
+- id: "17.4"
+  question: "A Server Action throws an error during execution. How should the client handle this?"
+  options:
+    A: "Wrap the form in an ErrorBoundary — it catches Server Action errors"
+    B: "Use componentDidCatch in the nearest parent boundary"
+    C: "Catch the error inside the action function and return error state via useActionState"
+    D: "The error is automatically serialized and displayed by React 19 runtime"
+  answer: C
+  explanation: "Server Action errors must be caught inside the action function. ErrorBoundary does not catch Action errors (they run in event scope, not render). Use try-catch in the action and return error state. React 19 does not auto-display server errors."
+  difficulty: 2
+  tags: [concept]
+
+- id: "17.5"
+  question: "In React 19, what happens when a Promise read via use() rejects?"
+  options:
+    A: "The error is swallowed silently"
+    B: "The rejection propagates to the nearest ErrorBoundary as if thrown during render"
+    C: "use() returns null and sets an error ref"
+    D: "React displays the Promise rejection reason in the fallback"
+  answer: B
+  explanation: "use() rejection behaves identically to a thrown error during render. It propagates up to the nearest ErrorBoundary. Wrap use() calls with Suspense + ErrorBoundary for loading and error states respectively."
+  difficulty: 2
+  tags: [concept]
+
+- id: "17.6"
+  question: "A dashboard has 12 independent widgets. One widget's chart library throws during render. What ErrorBoundary placement minimizes blast radius?"
+  options:
+    A: "Single ErrorBoundary wrapping the entire dashboard"
+    B: "One ErrorBoundary per widget"
+    C: "ErrorBoundary only at page level, not widget level"
+    D: "No ErrorBoundary — widgets should not throw"
+  answer: B
+  explanation: "Per-widget boundaries isolate failures. One widget crash should not take down the other 11. A single global boundary would replace the entire dashboard with a fallback. Per-section boundaries are the standard for dashboard, feed, and grid layouts."
+  difficulty: 2
+  tags: [application]
+
+- id: "17.7"
+  question: "What information does componentDidCatch's second parameter (info: React.ErrorInfo) provide?"
+  options:
+    A: "The React version and build hash"
+    B: "The component stack trace showing which component tree position threw"
+    C: "The full call stack of the JavaScript runtime"
+    D: "The props and state of the crashed component"
+  answer: B
+  explanation: "info.componentStack shows the component hierarchy (which component in the tree threw). This is more actionable than a JS stack trace — it tells you the React component path, not just the function call stack. React does not expose crashed component's props or state for security reasons."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "17.8"
+  question: "A form uses useActionState. The action function throws an unexpected error instead of returning an error state. What happens in production?"
+  options:
+    A: "The ErrorBoundary catches it and shows fallback"
+    B: "React displays an error overlay"
+    C: "The error is silently swallowed — form hangs with no feedback"
+    D: "useActionState catches it and sets error state automatically"
+  answer: C
+  explanation: "Uncaught exceptions in Actions propagate to the event handler scope, not render. ErrorBoundary does not catch them. In development, React logs the error. In production, the error is swallowed — the action fails silently, the form never transitions out of pending state. Always wrap action bodies in try-catch and return error state."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "17.9"
+  question: "An ErrorBoundary's componentDidCatch throws while logging to an error reporting service. What happens?"
+  options:
+    A: "React catches it and ignores — logging errors are non-fatal"
+    B: "The error propagates to the nearest parent ErrorBoundary"
+    C: "React freezes the component tree"
+    D: "componentDidCatch is retried automatically"
+  answer: B
+  explanation: "Errors in ErrorBoundary lifecycle methods cascade up to the nearest parent ErrorBoundary. componentDidCatch is not self-catching. If all parent boundaries also fail, React's crash recovery takes over. Wrap logging in try-catch to prevent telemetry from becoming a crash vector."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "17.10"
+  question: "Which combination provides complete error coverage for a production React 19 app?"
+  options:
+    A: "Global ErrorBoundary only"
+    B: "Feature ErrorBoundaries + window.onerror listener only"
+    C: "Global ErrorBoundary + feature boundaries + event handler try-catch + Action error states + unhandledrejection listener"
+    D: "useActionState error state + componentDidCatch logging only"
+  answer: C
+  explanation: "Different error locations need different handlers. Global + feature boundaries cover render errors. try-catch covers event handler errors. Action states cover mutation errors. unhandledrejection covers async errors. No single mechanism covers all cases. Option A misses events and actions. Option B misses events and actions. Option D misses events and unhandled rejections."
+  difficulty: 3
+  tags: [application]

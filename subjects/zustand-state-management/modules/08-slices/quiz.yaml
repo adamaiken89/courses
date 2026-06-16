@@ -1,0 +1,119 @@
+- id: "8.1"
+  question: "What does a Zustand slice creator function return?"
+  options:
+    A: "A complete Zustand store ready for consumption"
+    B: "A partial state object with only that slice's properties and actions"
+    C: "A React component that provides the slice via context"
+    D: "A reducer function compatible with Redux"
+  answer: B
+  explanation: "A slice creator receives `set` and `get` and returns an object containing only that slice's state properties and actions. Multiple slice results are merged via spread into the final store."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "8.2"
+  question: "How do you combine multiple slice creators into a single Zustand store?"
+  options:
+    A: "Pass each slice creator as separate arguments to create()"
+    B: "Spread each slice creator result inside create(): `create((...a) => ({ ...sliceA(...a), ...sliceB(...a) }))`"
+    C: "Use an array of slice creators and call create() with the array"
+    D: "Create separate stores and merge them with Object.assign"
+  answer: B
+  explanation: "Each slice creator receives the same `set`/`get`. Spreading their results merges all slices into one store object. TypeScript intersection of slice interfaces provides type safety."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "8.3"
+  question: "What is the correct way for one slice to read state owned by another slice?"
+  options:
+    A: "Import the other slice's creator and call it inside set()"
+    B: "Call get() inside the slice action — get() returns the entire combined store state"
+    C: "Use React Context to access the store from another slice"
+    D: "Pass the other slice's state as a function argument during creation"
+  answer: B
+  explanation: "All slices share the same `get()` reference, which returns the full combined store state. Any action can read any property via `get()`. The slice type parameter lists dependencies so TypeScript validates the access."
+  difficulty: 1
+  tags: [concept]
+
+- id: "8.4"
+  question: "What happens if two slices define the same property name (e.g., both define `loading: boolean`)?"
+  options:
+    A: "TypeScript throws a compile-time error about duplicate property"
+    B: "Both slices' values are merged into an array"
+    C: "The last slice spread wins — one loading property overwrites the other"
+    D: "Zustand creates two separate loading properties accessible by slice name"
+  answer: C
+  explanation: "JavaScript object spread overwrites duplicate keys. The last slice's `loading` replaces the first. This is why prefixed names (`productsLoading`, `authLoading`) or nested objects per slice are safer for common names."
+  difficulty: 2
+  tags: [concept]
+
+- id: "8.5"
+  question: "A slice action needs to trigger state changes in two other slices. Which pattern preserves slice independence best?"
+  options:
+    A: "Directly call get().otherSliceAction() from the action"
+    B: "Use an orchestrator slice that coordinates the cross-slice flow"
+    C: "Duplicate the logic across all three slices"
+    D: "Put all three domains into one monolithic slice"
+  answer: B
+  explanation: "Orchestrator slice centralizes cross-cutting workflows in one place. Each domain slice stays focused on its own state. Direct calls (A) create hard dependencies. Duplication (C) violates DRY. Monolithic (D) defeats slice purpose."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "8.6"
+  question: "What is the recommended migration strategy when refactoring a monolithic store into slices?"
+  options:
+    A: "Rewrite all slices in one branch and merge as one PR"
+    B: "Extract one slice per PR, keeping the store functional at each step"
+    C: "Create a new store from scratch and cut over with a feature flag"
+    D: "Delete the monolithic store file and rebuild from memory"
+  answer: B
+  explanation: "One-slice-per-PR migration keeps the store working at every step. Each PR extracts a slice, spreads it, and handles cross-slice references. This avoids long-lived branches, large diffs, and regression risk."
+  difficulty: 2
+  tags: [application]
+
+- id: "8.7"
+  question: "A store has 6 entity types (articles, authors, tags, categories, media, comments), each with identical CRUD operations. What is the best approach?"
+  options:
+    A: "Write each CRUD slice manually for full control"
+    B: "Create a slice factory `createCrudSlice<T>()` and reuse it for each entity"
+    C: "Put all entities in a single slice with a generic items array"
+    D: "Use a separate non-Zustand store for entities"
+  answer: B
+  explanation: "Slice factory eliminates 90% code repetition while keeping each entity as its own slice. Each entity calls the factory with its type parameter and API base. Custom per-entity logic is added through composition or overrides."
+  difficulty: 3
+  tags: [application]
+
+- id: "8.8"
+  question: "A store uses slices. Component A subscribes to `useStore((s) => s.user)`. When CartSlice updates `items`, does Component A re-render?"
+  options:
+    A: "Yes — all components subscribed to any part of the store re-render on any change"
+    B: "No — Zustand's selector equality check skips re-render when s.user reference has not changed"
+    C: "Yes — but only if CartSlice and UserSlice are in the same store"
+    D: "No — slices prevent cross-slice re-renders by design"
+  answer: B
+  explanation: "Zustand uses `useSyncExternalStore` with reference equality on selector output. If `s.user` is the same reference, the component skips re-render — regardless of which slice triggered the update. This works identically for monolithic and sliced stores."
+  difficulty: 2
+  tags: [concept]
+
+- id: "8.9"
+  question: "What must the first generic parameter of a `StateCreator` include when a slice depends on another slice?"
+  options:
+    A: "Only the current slice's interface"
+    B: "The intersection of the current slice and all slices it depends on"
+    C: "The full AppStore type"
+    D: "The other slice's StateCreator type"
+  answer: B
+  explanation: "The first generic parameter to `StateCreator` represents the full store type available via `get()`. When a slice reads from another slice, it must include the other slice's interface in the intersection. TypeScript validates cross-slice access at compile time."
+  difficulty: 3
+  tags: [terminology]
+
+- id: "8.10"
+  question: "A developer writes an action in ProductsSlice that calls `set({ token: null })`. `token` is owned by AuthSlice. What is the best assessment?"
+  options:
+    A: "Correct — all slices share the same set()"
+    B: "Technically works but is an anti-pattern — one slice should not set another slice's state directly"
+    C: "Will throw a runtime error because set() validates property ownership"
+    D: "Works and is recommended for simplicity"
+  answer: B
+  explanation: "Cross-slice `set()` is technically possible (set merges into the same store) but is an anti-pattern. It creates invisible dependencies and violates the principle that each slice controls its own state transitions. Preferred approach: call `get().logout()` from AuthSlice, which internally sets `token: null`."
+  difficulty: 2
+  tags: [concept]

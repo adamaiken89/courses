@@ -1,0 +1,129 @@
+- id: "15.1"
+  question: "What value does JSON.stringify produce for a Map with entries `[['key', 'value']]`?"
+  options:
+    A: '[["key","value"]]'
+    B: '{"key":"value"}'
+    C: "{}"
+    D: '{"__type":"Map","value":[["key","value"]]}'
+  answer: C
+  explanation: |
+    JSON has no Map representation. JSON.stringify calls Map's toJSON method, which returns {}. Arrays and objects serialize correctly; Maps and Sets become empty objects. Replacer functions can override this behavior.
+  difficulty: 1
+  tags: [terminology]
+
+- id: "15.2"
+  question: "A store has `createdAt: new Date()`. After persist + page refresh, `createdAt.getTime()` returns NaN. Why?"
+  options:
+    A: Date objects cannot be stored in Zustand stores
+    B: JSON.stringify converts Date to ISO string; JSON.parse returns a string, not a Date
+    C: persist middleware strips Date fields by default
+    D: localStorage corrupts Date objects on write
+  answer: B
+  explanation: |
+    JSON.stringify calls Date.prototype.toJSON, which returns an ISO string. On rehydration, JSON.parse returns the string. Calling .getTime() on a string returns NaN. Fix with custom reviver that reconstructs Date objects.
+  difficulty: 1
+  tags: [concept]
+
+- id: "15.3"
+  question: "A store uses `persist` middleware with default settings. Which of these state shapes survives round-trip serialization identically?"
+  options:
+    A: "{ items: [{ id: '1', addedAt: new Date() }] }"
+    B: "{ metadata: new Map([['count', 5]]) }"
+    C: "{ config: { host: 'localhost', port: 3000 } }"
+    D: "{ fn: () => console.log('hi') }"
+  answer: C
+  explanation: |
+    Only plain objects, strings, numbers, booleans, null, and arrays survive JSON round-trip unchanged. Dates become strings, Maps become empty objects, functions are removed. Nested plain objects like `config` serialize and deserialize correctly.
+  difficulty: 1
+  tags: [concept]
+
+- id: "15.4"
+  question: "In `createJSONStorage(() => localStorage, { replacer, reviver })`, what does the `reviver` argument do?"
+  options:
+    A: Transforms values before they are written to localStorage
+    B: Restores custom types from their serialized form during JSON.parse
+    C: Validates the store schema before persist runs
+    D: Generates a storage key from the store name
+  answer: B
+  explanation: |
+    The reviver is passed to JSON.parse as the second argument. It runs on every key-value pair during deserialization, allowing reconstruction of custom types (Date, Map, Set) from their serialized markers. The replacer (not reviver) handles the write direction.
+  difficulty: 2
+  tags: [terminology]
+
+- id: "15.5"
+  question: "A Next.js Server Component imports a Zustand store using `persist` middleware with localStorage. What error occurs?"
+  options:
+    A: Hydration mismatch warning in the browser
+    B: TypeScript compilation error
+    C: ReferenceError: localStorage is not defined (during SSR)
+    D: No error — localStorage returns undefined on server
+  answer: C
+  explanation: |
+    localStorage is a browser API. On the server (Node.js), it is not defined. persist middleware calls localStorage during store initialization, causing a ReferenceError. Fix: either use 'use client' directive, or conditionally wrap persist with `typeof window !== 'undefined'`.
+  difficulty: 2
+  tags: [scenario]
+
+- id: "15.6"
+  question: "You call `useStore.persist.skipHydration()` but never call `rehydrate()`. What is the result?"
+  options:
+    A: Store hydrates on next state mutation
+    B: Store never hydrates — component shows default state permanently
+    C: Store hydrates after a 5-second timeout
+    D: Store hydrates from sessionStorage instead
+  answer: B
+  explanation: |
+    skipHydration prevents the automatic rehydration that persist normally does on store creation. Manual rehydrate() triggers the read from storage. Without it, the store stays at default values. The persisted data remains in localStorage but is never loaded into the store.
+  difficulty: 2
+  tags: [concept]
+
+- id: "15.7"
+  question: "A Zustand store at module level in a Next.js server component causes User B to see User A's data. What is the fix?"
+  options:
+    A: Add `'use client'` to the store file
+    B: Create a fresh store instance per request using `createStore` or `React.cache()`
+    C: Use `persist` middleware with sessionStorage
+    D: Add `useEffect` to reset store on mount
+  answer: B
+  explanation: |
+    Module-level stores are singletons — they persist across all requests in the server runtime. Concurrent requests share the same store instance, causing cross-request state leaks. Creating store per request (via factory function or React.cache()) isolates each request's state. This is a server-side issue, not a client issue.
+  difficulty: 3
+  tags: [scenario]
+
+- id: "15.8"
+  question: "A store uses `persist` with `version: 2`. User has v1 data in localStorage. Which function handles converting v1 to v2 schema?"
+  options:
+    A: merge
+    B: partialize
+    C: migrate
+    D: onRehydrateStorage
+  answer: C
+  explanation: |
+    The `migrate` function receives the persisted state and its version number. It applies sequential transformations to upgrade to the current version. merge handles combining persisted state with defaults, but does not handle schema version transformations. migrate runs before merge during rehydration.
+  difficulty: 2
+  tags: [concept]
+
+- id: "15.9"
+  question: "Which pattern prevents React hydration mismatch when a Zustand store holds a persisted theme preference?"
+  options:
+    A: Use `suppressHydrationWarning` on the theme element
+    B: Render default theme until client-side `useEffect` confirms hydration, then apply persisted value
+    C: Move theme to a CSS custom property instead of className
+    D: Both A and B
+  answer: D
+  explanation: |
+    suppressHydrationWarning (A) skips React's mismatch check for that element — server renders default, client rehydrates to persisted value without warning. The mounted guard (B) suppresses the client render until hydration completes, so the first client render matches the server. Both are valid; choose based on whether you want to suppress warnings (A) or defer rendering (B). CSS custom properties do not fix the underlying mismatch.
+  difficulty: 3
+  tags: [scenario]
+
+- id: "15.10"
+  question: "In a persisted cart store, `merge` function receives corrupted localStorage data where `items` is `null`. What should the merge function do?"
+  options:
+    A: Spread `persisted` over `current` — corrupted data replaces defaults silently
+    B: Validate `items` is an array in merge; if not, use `current.items` (the default empty array)
+    C: Throw an error to crash the app and alert the developer
+    D: Call `localStorage.clear()` automatically
+  answer: B
+  explanation: |
+    merge is the safety valve for corrupted persisted state. Before applying persisted values, validate types and ranges. If items is null (corrupted), fall back to current.items (the empty array default). Throwing errors crashes the app for users. Silently spreading corrupted data propagates null errors downstream. localStorage.clear() loses potentially recoverable data.
+  difficulty: 3
+  tags: [application]

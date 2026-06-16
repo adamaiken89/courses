@@ -1,0 +1,119 @@
+- id: "16.1"
+  question: "Why does default persist middleware fail to correctly serialize a Map or Set?"
+  options:
+    A: "Persist only serializes primitive types — JSON ignores Map and Set entirely"
+    B: "JSON.stringify converts Map to {} and Set to [], but JSON.parse cannot reconstruct the original types"
+    C: "Persist uses structuredClone which throws on Map and Set"
+    D: "Map and Set are not supported in localStorage at all"
+  answer: B
+  explanation: "JSON.stringify converts Map entries to {} (empty object) and Set values to []. JSON.parse returns a plain object and plain array — the type information is lost. You need custom reviver/replacer in createJSONStorage or a custom storage engine to restore Map/Set on rehydration."
+  difficulty: 2
+  tags: [concept, terminology]
+
+- id: "16.2"
+  question: "In a production middleware pipeline, which middleware layer should be outermost?"
+  options:
+    A: "Immer — needs to intercept all state changes first"
+    B: "Persist — must save state after all transforms"
+    C: "Error boundary — catches errors from all inner layers"
+    D: "Devtools — must record every action including errors"
+  answer: C
+  explanation: "Error boundary must be outermost because it wraps all other middleware. When an inner layer throws (validation, serialize, persist), the outermost error boundary catches it. Any middleware placed outside the error boundary would not be protected by it."
+  difficulty: 2
+  tags: [concept, ordering]
+
+- id: "16.3"
+  question: "You deploy a migration that renames the field 'user' to 'profile'. An older deployment that does not know about the rename reads persisted state written by the newer version. What happens?"
+  options:
+    A: "The old deployment migrates forward — it runs all migrations including the rename"
+    B: "The old deployment sees missing 'user' field and sets it to null — data loss"
+    C: "Persist throws a version conflict error and resets to default state"
+    D: "The old deployment ignores unknown fields and works with what it has"
+  answer: B
+  explanation: "The old deployment runs its own migration chain up to its highest version. If it only knows v2 but the persisted state is v3 (with renamed fields), it reads 'user' as undefined and may set it to the default (null). Rule: never delete old field names in migrations — rename by copying the value to the new key while preserving the old key for one version cycle."
+  difficulty: 3
+  tags: [scenario, migration]
+
+- id: "16.4"
+  question: "A logging middleware captures state diffs on every set. The store dispatches 50 actions on mount. What strategy best prevents log noise and memory pressure?"
+  options:
+    A: "Increase maxLogEntries to 1000 to ensure all initialization actions are recorded"
+    B: "Disable diff logging entirely — only log action names"
+    C: "Add a skipInitial option that filters actions until a hydrated flag is true, and cap maxLogEntries at 100-200"
+    D: "Remove logging middleware in production — initialization only happens once"
+  answer: C
+  explanation: "A skipInitial flag prevents logging until hydration completes, reducing noise. A cap at 100-200 entries prevents unbounded memory growth. Option A grows memory unnecessarily. Option B loses useful information. Option D does not address the dev-mode noise problem."
+  difficulty: 2
+  tags: [scenario, application]
+
+- id: "16.5"
+  question: "Validation middleware is placed OUTSIDE persist. A user has stale persisted data with an invalid 'todos' value. What happens on page load?"
+  options:
+    A: "Persist rehydrates successfully, then validation runs and throws — the user sees an error"
+    B: "Validation runs during rehydration, catches the invalid value, and prevents the store from initializing"
+    C: "Persist rehydrates after validation — the invalid state loads before validation can check it"
+    D: "Persist catches the validation error internally and falls back to default state"
+  answer: A
+  explanation: "When validation middleware is outside persist, rehydration runs first (restoring invalid state), then validation sees the invalid value on the next set call, not on rehydration itself. Validation inside persist catches invalid state before it is saved, not after it loads. To validate on rehydration, use onRehydrateStorage or place validation inside persist."
+  difficulty: 3
+  tags: [scenario, ordering]
+
+- id: "16.6"
+  question: "Error boundary middleware with recoverMode: 'rollback' stores previous state. What is a potential memory issue with this pattern?"
+  options:
+    A: "Storing prevSnapshot after every set doubles memory usage per update"
+    B: "If set is called rapidly (animation, drag), prevSnapshot is captured and discarded on every frame — no memory issue"
+    C: "Rollback stores a deep clone of state, which can be expensive for large stores"
+    D: "Both A and C are correct"
+  answer: B
+  explanation: "The error boundary stores prevSnapshot before each set, overwriting the previous snapshot. It does not accumulate snapshots — only one exists at a time. No deep clone is performed unless the middleware implementation explicitly clones. The rollback stores the reference, not a clone, so memory overhead is negligible."
+  difficulty: 2
+  tags: [concept, performance]
+
+- id: "16.7"
+  question: "A team uses createProductionStore factory (Module 16 pattern) with 4 stores. One store needs different validation rules. What is the cleanest approach?"
+  options:
+    A: "Duplicate the factory function with modified validation for that store"
+    B: "Pass validation rules via the options parameter — each store supplies its own rules"
+    C: "Import the base middleware functions and compose manually without the factory"
+    D: "Remove validation from the factory and add it as a separate middleware call in each store"
+  answer: B
+  explanation: "The factory function already accepts options.rules per store. Passing different rules per store is the intended design. Duplication (A) violates DRY. Manual composition (C) defeats the factory's purpose. Removing validation from the factory (D) loses the consistency of having validation in every store."
+  difficulty: 1
+  tags: [application, pattern]
+
+- id: "16.8"
+  question: "Devtools middleware is enabled in production. What is the primary concern?"
+  options:
+    A: "Production users cannot open DevTools — the middleware silently fails"
+    B: "Devtools sends state diffs over WebSocket to the Redux DevTools extension every time set is called, even if no extension is connected"
+    C: "Devtools in production behaves identically to development — no downside"
+    D: "Devtools blocks the main thread on serialization of large states"
+  answer: B
+  explanation: "Devtools middleware internally calls performance.mark and sends messages via postMessage. Even without an extension connected, the middleware still captures and serializes actions. The overhead is small but unnecessary in production. Set enabled: false or NODE_ENV conditional to eliminate it entirely."
+  difficulty: 2
+  tags: [concept, performance]
+
+- id: "16.9"
+  question: "A logger middleware captures action duration and logs a warning when a set takes > 16ms. Action 'syncTodos' consistently takes 45ms. What does 16ms represent?"
+  options:
+    A: "The maximum time React 19 allows for state updates before yielding to the scheduler"
+    B: "The frame budget at 60fps — 1000ms / 60 frames = ~16.6ms per frame"
+    C: "Zustand's internal middleware timeout threshold"
+    D: "JavaScript's event loop minimum resolution"
+  answer: B
+  explanation: "16ms is the frame budget for 60fps rendering. If a state update takes longer than 16ms, it can cause a dropped frame (jank). The logger warns when an action exceeds this budget, indicating it might block the render cycle. Useful for identifying expensive state transformations."
+  difficulty: 1
+  tags: [performance, terminology]
+
+- id: "16.10"
+  question: "You have middleware order: devtools(persist(logger(immer(store)))). Logger wraps set and calls it with modified args (drops action name). What is the consequence?"
+  options:
+    A: "Logger actions are invisible — no impact on other middleware"
+    B: "Persist receives correct set but devtools loses action names because logger consumed them"
+    C: "Immer receives the wrong args and produces corrupted drafts"
+    D: "Persist silently drops the modified args and writes incorrect state"
+  answer: B
+  explanation: "Logger wraps set and if it does not pass through the original third argument (action name), devtools (outermost) receives set calls without names. Devtools shows 'anonymous' actions. Persist and immer receive only the state partial and are unaffected — they do not use the action name. Rule: custom middleware wrapping set must pass through all original arguments or explicitly forward them."
+  difficulty: 3
+  tags: [scenario, ordering]

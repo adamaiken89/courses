@@ -1,0 +1,119 @@
+- id: "8.1"
+  question: "What happens when React encounters a 'use client' directive during Server Component rendering?"
+  options:
+    A: "It stops server rendering and throws an error"
+    B: "It inserts a placeholder and the Client Component hydrates from that point downward"
+    C: "It ships the component as HTML only with no interactivity"
+    D: "It converts the component to a Server Component silently"
+  answer: B
+  explanation: "'use client' marks boundary. Server renders tree until boundary, inserts placeholder. Client bundle hydrates subtree. Component retains all interactivity via client-side hooks."
+  difficulty: 1
+  tags: [concept]
+
+- id: "8.2"
+  question: "Which of these can be passed as a prop from a Server Component to a Client Component?"
+  options:
+    A: "A function reference"
+    B: "A plain object with string values"
+    C: "A React element created with createElement"
+    D: "A class instance with methods"
+  answer: B
+  explanation: "Only serializable values cross boundary: strings, numbers, booleans, plain objects, arrays, Date, Map, Set, BigInt. Functions, class instances, Symbols, and React elements (except children) cannot serialize."
+  difficulty: 1
+  tags: [concept]
+
+- id: "8.3"
+  question: "Where should the 'use server' directive be placed for a module-level Server Action?"
+  options:
+    A: "Above each individual function that needs server execution"
+    B: "At the top of the file, making all exports Server Actions"
+    C: "At the top of the calling Client Component"
+    D: "In a separate configuration file"
+  answer: B
+  explanation: "'use server' at file top makes all exports Server Actions. Inline actions use 'use server' as first statement in function body. File-level 'use server' is preferred for reusable actions."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "8.4"
+  question: "An async Server Component fetches data from three independent database tables. What is the recommended pattern to minimize response time?"
+  options:
+    A: "Use three sequential await statements"
+    B: "Use Promise.all to fetch in parallel"
+    C: "Use three separate useEffect calls"
+    D: "Fetch in a Server Action and return results"
+  answer: B
+  explanation: "Promise.all parallelizes independent fetches. Server Component awaits once for all results. Sequential awaits cause waterfall (total = sum). useEffect not available in Server Components. Server Actions for mutations, not data fetching."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "8.5"
+  question: "What happens if a Client Component imports and renders a Server Component directly?"
+  options:
+    A: "The Server Component renders on server and sends HTML to client"
+    B: "The Server Component renders on client with full functionality"
+    C: "React throws a runtime error — Server Component cannot be imported into Client Component"
+    D: "The import is ignored silently"
+  answer: C
+  explanation: "Client Component files ship to browser. Server Component files cannot execute in browser (no server APIs). React throws error. Correct pattern: pass Server Component as children prop to Client Component."
+  difficulty: 2
+  tags: [concept]
+
+- id: "8.6"
+  question: "Which statement about inline Server Actions vs module-level Server Actions is correct?"
+  options:
+    A: "Inline actions have lower latency than module-level"
+    B: "Module-level actions can be reused across multiple forms and components"
+    C: "Inline actions cannot access the database"
+    D: "Module-level actions must be async, inline actions can be sync"
+  answer: B
+  explanation: "Module-level ('use server' at file level) exports reusable actions importable by any component. Inline actions scoped to one component. Both access server APIs. Both must be async. Latency identical — compile to same RPC mechanism."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "8.7"
+  question: "A Server Component page has three Suspense boundaries wrapping async children. One child takes 4s, another 200ms, another 50ms. How does content reach the browser?"
+  options:
+    A: "All content arrives after 4s when slowest completes"
+    B: "50ms content arrives first, then 200ms, then 4s — each boundary streams independently"
+    C: "Content arrives in declaration order regardless of speed"
+    D: "Only the fastest boundary renders; slower ones are discarded"
+  answer: B
+  explanation: "Each Suspense boundary streams independently. Fast resolved promises flush immediately. Slow sibling does not block fast ones. Client sees progressive enhancement—skeletons replaced as data arrives."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "8.8"
+  question: "What is the correct way to test an async Server Component that queries a database?"
+  options:
+    A: "Render the component in a browser test and assert on DOM"
+    B: "Mock the database module, await the component, and assert on rendered output"
+    C: "Use only end-to-end tests since Server Components cannot be unit tested"
+    D: "Test the database query directly and skip component rendering"
+  answer: B
+  explanation: "Mock DB module with vitest/jest, call component as async function, use renderToString or Testing Library to assert output. Server Components are deterministic — given same data, produce same output. No browser needed."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "8.9"
+  question: "A developer needs a navigation sidebar that tracks active link (client state) wrapping server-fetched user data. What composition pattern should they use?"
+  options:
+    A: "Server Component wrapping Client Sidebar, pass user as serialized prop"
+    B: "Client Sidebar component that imports and renders user Server Component"
+    C: "Server Component that contains all interactivity inline"
+    D: "Client Component that fetches user data in a useEffect"
+  answer: A
+  explanation: "Correct pattern: Server wrapper page → Server Component fetches user → Client Sidebar receives user as serializable prop. Server content can also be passed as children to Client Component. Option B causes runtime error. Option C impossible (no hooks in Server). Option D regresses to client-side fetch."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "8.10"
+  question: "Which statement accurately distinguishes Server Components from traditional SSR?"
+  options:
+    A: "Server Components and SSR are the same technology with different names"
+    B: "SSR components ship zero JS to client; Server Components ship full JS bundle"
+    C: "Server Components produce zero client JS and never hydrate; SSR renders on server then hydrates fully on client"
+    D: "SSR is only for initial page load; Server Components work only for client interactions"
+  answer: C
+  explanation: "Critical distinction: SSR renders to HTML on server, ships JS bundle, hydrates — every component eventually runs in browser. Server Components never hydrate, never ship code. They produce serialized output consumed by client rendering. They complement SSR but are different architectural models."
+  difficulty: 1
+  tags: [comparison]

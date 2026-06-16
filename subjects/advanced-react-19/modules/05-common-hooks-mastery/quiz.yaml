@@ -1,0 +1,119 @@
+- id: "5.1"
+  question: "When does useCallback actually prevent a child component from re-rendering?"
+  options:
+    A: "Always — useCallback memoizes the function reference, which always prevents re-render"
+    B: "Only when the child is wrapped in React.memo — otherwise child re-renders on parent render anyway"
+    C: "Only when the child is an HTML element"
+    D: "useCallback never prevents re-renders"
+  answer: B
+  explanation: "useCallback returns a stable reference, but that only matters if the child checks for reference changes via memo. Without memo (or PureComponent in class), the child re-renders whenever the parent renders, regardless of prop references."
+  difficulty: 2
+  tags: [concept]
+
+- id: "5.2"
+  question: "Which scenario requires manual useMemo even with React 19 Compiler enabled?"
+  options:
+    A: "An object literal created inside a component from props"
+    B: "An inline arrow function passed as onClick"
+    C: "An expensive sort (10,000 items) imported from a utility module"
+    D: "A string concatenated from two state variables"
+  answer: C
+  explanation: "The Compiler cannot analyze functions imported from other modules. It cannot prove that expensiveSort is idempotent or determine its cost. For cross-module expensive computations, manual useMemo is still needed."
+  difficulty: 2
+  tags: [application]
+
+- id: "5.3"
+  question: "What is the purpose of useRef when used as a mutable instance variable?"
+  options:
+    A: "To trigger re-render when the value changes"
+    B: "To store a value that persists across renders without causing re-render"
+    C: "To bind a variable to the component's props"
+    D: "To create reactive state that updates the DOM directly"
+  answer: B
+  explanation: "useRef returns a { current } object that persists across renders. Mutating current does not trigger re-render. Useful for timer IDs, animation frames, previous values, and other mutable data that should not cause re-rendering."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "5.4"
+  question: "What happens when you pass useCallback with empty deps [] to an event handler that calls setState?"
+  options:
+    A: "The handler always works correctly because setState is stable"
+    B: "The handler captures the initial state and causes a stale closure"
+    C: "React detects the missing dependency and throws a warning"
+    D: "The handler only works on the first render"
+  answer: B
+  explanation: "Empty deps means the function captures the state from the first render. If the handler reads count (state), it will always read the initial value. React DevTools ESLint rule (exhaustive-deps) flags this. Include all captured values in the deps array."
+  difficulty: 2
+  tags: [concept]
+
+- id: "5.5"
+  question: "In React 19, how do you expose imperative methods from a custom component?"
+  options:
+    A: "Wrap the component in forwardRef, use useImperativeHandle"
+    B: "Define ref as a regular prop, use useImperativeHandle"
+    C: "Export the methods as static class methods"
+    D: "Both A and B are valid — forwardRef is deprecated but still works"
+  answer: D
+  explanation: "React 19 makes ref a regular prop, so forwardRef is no longer required. However, forwardRef still works for backward compatibility. useImperativeHandle is used the same way in both cases. TypeScript: define ref: React.Ref<HandleType> as a prop."
+  difficulty: 2
+  tags: [concept]
+
+- id: "5.6"
+  question: "A component renders in 0.2ms. Parent re-renders 100 times during animation. The component is not wrapped in memo. Should you memoize its callback props?"
+  options:
+    A: "Yes — useCallback always improves performance"
+    B: "Yes — 100 re-renders is significant"
+    C: "No — without memo on child, useCallback has no effect on render count. Profile before optimizing"
+    D: "No — animation renders are always fast enough"
+  answer: C
+  explanation: "Without memo, the child re-renders on every parent render regardless of prop references. 0.2ms × 100 = 20ms total — trivial. useCallback would add overhead without benefit. The correct approach: profile, identify the actual bottleneck, then optimize."
+  difficulty: 3
+  tags: [application]
+
+- id: "5.7"
+  question: "What is the React 19 enhancement to ref callbacks?"
+  options:
+    A: "Ref callbacks now support returning a cleanup function"
+    B: "Ref callbacks can be async"
+    C: "Ref callbacks now receive the previous value as second argument"
+    D: "Ref callbacks are deprecated in favor of useRef"
+  answer: A
+  explanation: "React 19 allows ref callbacks to return a cleanup function, similar to useEffect. This is useful for disconnecting observers, removing event listeners, and cleaning up other side effects when the ref target changes or unmounts."
+  difficulty: 2
+  tags: [concept]
+
+- id: "5.8"
+  question: "Which of the following is a valid reason to use useImperativeHandle?"
+  options:
+    A: "Getting form field values from parent component"
+    B: "Exposing animation control methods (play, pause, reset)"
+    C: "Sharing state between sibling components"
+    D: "Fetching data on component mount"
+  answer: B
+  explanation: "Imperative handles are appropriate for imperative operations: animations, media control, focus management. Form field values should flow declaratively (useActionState, controlled components). Data fetching belongs in effects or Server Components. Sibling state sharing should use lifting state or context."
+  difficulty: 2
+  tags: [application]
+
+- id: "5.9"
+  question: "What does the React 19 Compiler automatically memoize?"
+  options:
+    A: "All functions, objects, and arrays created within a component"
+    B: "Only component return JSX expressions"
+    C: "Only values passed to React.memo components"
+    D: "Only class component methods"
+  answer: A
+  explanation: "The Compiler analyzes React rendering at build time and auto-memoizes values (functions, objects, arrays) derived from props and state within a component. It wraps the component in memo automatically. It does not handle cross-module values, refs, or values that escape React's scope."
+  difficulty: 2
+  tags: [terminology]
+
+- id: "5.10"
+  question: "A developer writes: const fn = useCallback(() => doSomething(), []). doSomething reads an external store (Zustand) directly. Is the closure stale?"
+  options:
+    A: "Yes — the callback captures the store state at first render"
+    B: "No — external store reads are always up-to-date because getState() returns current state, not captured state"
+    C: "Yes — useCallback with empty deps always produces stale closures"
+    D: "No — React automatically re-executes callbacks on store changes"
+  answer: B
+  explanation: "Zustand's getState() (and similar external store methods accessed directly, not via hooks) returns the current state on every call. The callback captures the getState function reference (stable), but getState() reads the latest store state at call time. This is a valid pattern for useCallback with empty deps when the callback does not capture React state."
+  difficulty: 3
+  tags: [scenario]

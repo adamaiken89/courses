@@ -1,0 +1,119 @@
+- id: "20.1"
+  question: "What is the primary purpose of an Architecture Decision Record (ADR)?"
+  options:
+    A: "To provide a step-by-step implementation guide for code"
+    B: "To capture a single architecture decision with context, tradeoffs, and consequences"
+    C: "To replace all other documentation in the repository"
+    D: "To serve as a project roadmap with timeline and milestones"
+  answer: B
+  explanation: "ADR focuses on one decision — context, alternatives evaluated, tradeoffs, consequences. It is not implementation guide, not all documentation, not project roadmap. Length: 1 page max."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "20.2"
+  question: "A team evaluates Zustand vs Redux for a mobile-first app. Which criteria should receive the highest weight?"
+  options:
+    A: "Middleware ecosystem richness"
+    B: "Bundle size"
+    C: "Number of GitHub stars"
+    D: "Action type convention"
+  answer: B
+  explanation: "Mobile-first prioritizes bundle size. Zustand = 1.1KB. Redux + RTK = ~18.5KB. Bundle size directly impacts mobile load time. Stars and convention are low-weight criteria. Middleware ecosystem matters only if app needs complex orchestration."
+  difficulty: 2
+  tags: [application]
+
+- id: "20.3"
+  question: "In store architecture documentation, what is the difference between a public selector and a private selector?"
+  options:
+    A: "Public selectors are exported; private selectors are inlined in components"
+    B: "Public selectors are documented and versioned; private selectors may change without notice"
+    C: "Public selectors use React hooks; private selectors use vanilla API"
+    D: "Public selectors are slower; private selectors are optimized"
+  answer: B
+  explanation: "Public selectors are part of store's external API — documented, tested, breaking changes require ADR. Private selectors are internal to store owner's team, may change without notice. External consumers rely on public selectors for stability."
+  difficulty: 2
+  tags: [concept]
+
+- id: "20.4"
+  question: "An e-commerce app has auth, cart, search, and notifications state. Which store architecture follows best practice?"
+  options:
+    A: "Single monolithic store for all four domains"
+    B: "Four atomic stores — one per domain"
+    C: "Two stores: auth+cart combined, search+notifications combined"
+    D: "One store per component"
+  answer: B
+  explanation: "One store per domain is idiomatic Zustand. Auth, cart, search, notifications have independent lifecycles, different teams, different consumer sets. Monolithic store creates PR conflicts and cross-domain coupling. Two-store hybrid is arbitrary grouping."
+  difficulty: 1
+  tags: [concept]
+
+- id: "20.5"
+  question: "A migration ADR documents rollback criteria. Which of the following is a well-defined rollback criterion?"
+  options:
+    A: "If users complain, we revert"
+    B: "If re-render count is not reduced by at least 60% compared to baseline"
+    C: "If the team feels uncomfortable with the new solution"
+    D: "We roll back if any issues arise"
+  answer: B
+  explanation: "Well-defined criterion is measurable (60% reduction) and objective. 'Users complain' is subjective — which users? what complaints? 'Team feels uncomfortable' is emotional. 'Any issues' is too broad — some issues are acceptable tradeoffs. Measurable thresholds prevent sunk cost fallacy."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "20.6"
+  question: "During ADR review, which finding would justify rejection?"
+  options:
+    A: "Only one alternative evaluated — the chosen solution"
+    B: "Rollback plan exists but is vague"
+    C: "Success metrics are aspirational but not yet measured"
+    D: "The ADR is three pages long"
+  answer: A
+  explanation: "Only evaluating chosen solution with no comparison is automatic reject. Reader cannot assess whether alternatives were fairly considered. Vague rollback (B) triggers revision, not rejection. Aspirational metrics (C) are normal before migration. Length (D) is preference, not rejection criterion."
+  difficulty: 2
+  tags: [application]
+
+- id: "20.7"
+  question: "In the real e-commerce ADR example (Context → Zustand for cart), what was the actual re-render reduction achieved?"
+  options:
+    A: "15+ components to 15 components"
+    B: "15+ components to 2 components"
+    C: "15+ components to 0 components"
+    D: "15+ components to 5 components"
+  answer: B
+  explanation: "Baseline: 15+ components re-rendered on any cart change. After Zustand migration: 2 components re-rendered (subscribed selectors). Target was ≤3. Result exceeded target. 0 components (C) is impossible — at least the component with the button re-renders."
+  difficulty: 1
+  tags: [scenario]
+
+- id: "20.8"
+  question: "A new engineer joins and asks why the app uses 5 Zustand stores instead of 1. What should the team answer?"
+  options:
+    A: "We have always done it this way"
+    B: "Refer to ADR-015 which documents the monolithic store split decision"
+    C: "5 stores is standard Zustand practice"
+    D: "Because Redux uses one store so we wanted to be different"
+  answer: B
+  explanation: "ADR-015 captures the exact context (PR conflicts, test overhead, ownership ambiguity), alternatives considered, and results. 'Always done this way' is dogma. 'Standard practice' ignores project-specific context. 'Be different from Redux' is arbitrary. ADR provides reasoned, reviewable rationale."
+  difficulty: 2
+  tags: [application]
+
+- id: "20.9"
+  question: "A migration achieves 3 of 4 success metrics but misses one. Rollback criteria says 're-renders not reduced by 60%.' Actual reduction is 55%. What action?"
+  options:
+    A: "Keep the migration — 55% is close enough"
+    B: "Revert per rollback criteria — criteria exists to prevent subjective judgment"
+    C: "Extend the trial period by 2 weeks and re-measure"
+    D: "Lower the threshold to 50% retroactively"
+  answer: B
+  explanation: "Criteria exist to prevent sunk cost and subjective judgment. 55% misses 60% threshold. Revert per plan. If migration is still desirable, write new ADR with adjusted criteria based on learnings. Retroactively lowering threshold (D) defeats purpose of objective criteria."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "20.10"
+  question: "According to the ADR template, what must happen when an ADR supersedes a previous ADR?"
+  options:
+    A: "Delete the old ADR from the repository"
+    B: "Update the new ADR with 'Supersedes ADR-NNN' reference"
+    C: "Move both ADRs to an archive directory"
+    D: "Rewrite the old ADR with a deprecation notice"
+  answer: B
+  explanation: "New ADR references superseded ADR: 'Supersedes ADR-012.' Old ADR remains in repository (history matters) but its Status updates to 'Superseded by ADR-015.' Never delete ADRs — future engineers need the context chain. Moving to archive is alternative but must preserve reference chain."
+  difficulty: 1
+  tags: [terminology]

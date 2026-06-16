@@ -1,0 +1,119 @@
+- id: "18.1"
+  question: "What directive must a React file include to use Zustand's useStore hook inside Next.js App Router?"
+  options:
+    A: "'use server'"
+    B: "'use client'"
+    C: "'use store'"
+    D: "'use zustand'"
+  answer: B
+  explanation: "useStore depends on React context and subscription, which only exist in client components. 'use client' marks the file as a Client Component, granting access to hooks."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "18.2"
+  question: "Where should a Zustand store definition file be placed relative to the 'use client' boundary?"
+  options:
+    A: "Must be in a file with 'use client'"
+    B: "Can be in any file, but only imported by client components that call useStore"
+    C: "Must be in a file with 'use server'"
+    D: "Must be in a separate package"
+  answer: B
+  explanation: "The store definition (create(...)) is pure JS and needs no directive. Only components calling useStore need 'use client'. If store uses browser APIs (localStorage), it must only be imported by client components."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "18.3"
+  question: "A Server Component fetches product data and wants a Client Component to have it in a Zustand store. What is the correct data flow?"
+  options:
+    A: "Server Component calls useStore.setState directly"
+    B: "Server Component passes data as props to Client Component, which hydrates store via useEffect"
+    C: "Client Component fetches the same data from a client-side API route"
+    D: "Store is defined in a Server Component module and imported by the Client Component"
+  answer: B
+  explanation: "Server Component cannot access Zustand stores (no hooks). Data flows down as serialized props. Client Component accepts props and hydrates the store, typically via useEffect on mount."
+  difficulty: 1
+  tags: [concept]
+
+- id: "18.4"
+  question: "In Next.js App Router, is a singleton Zustand store (created at module level with create) safe from cross-request data leaks?"
+  options:
+    A: "No — all users share the same Node process, so singleton leaks data"
+    B: "Yes — the store executes only in the browser (behind 'use client'), so each browser gets its own instance"
+    C: "Only if wrapped in createStore from zustand/vanilla"
+    D: "Only if persist middleware is not used"
+  answer: B
+  explanation: "The store is only imported by 'use client' components, which never execute on the server in App Router. Each browser tab gets its own module execution context, so the singleton is scoped per tab."
+  difficulty: 2
+  tags: [concept]
+
+- id: "18.5"
+  question: "A product page streams 20 cards over 3 seconds via Suspense. A user clicks 'Add to Cart' on card #5 before cards #6-20 have streamed. What happens?"
+  options:
+    A: "Nothing — store waits for all cards to finish streaming"
+    B: "The store rejects the click because card data is incomplete"
+    C: "The store adds the item immediately — card #5 already hydrated"
+    D: "The store throws an error"
+  answer: C
+  explanation: "Card #5 arrived and hydrated before the click. The store is independent of streaming progress. Unstreamed cards simply do not exist in the store yet."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "18.6"
+  question: "A Server Action removes item X from the cart. RSC revalidates. The client Zustand store should:"
+  options:
+    A: "Keep item X in the store until user manually refreshes"
+    B: "Re-hydrate from the new server props, removing item X"
+    C: "Ignore the server change and maintain optimistic state"
+    D: "Emit a warning about server/client mismatch"
+  answer: B
+  explanation: "Server is source of truth. After revalidation, new server props reflect the mutated state. The client store re-hydrates from those props, matching the server state."
+  difficulty: 2
+  tags: [scenario, concept]
+
+- id: "18.7"
+  question: "What causes a React hydration mismatch with Zustand in App Router?"
+  options:
+    A: "Server renders HTML with empty store, client renders with empty store — then useEffect hydrates"
+    B: "Server renders HTML with empty store, client first render also uses empty store — no mismatch"
+    C: "useEffect hydration runs before React hydration completes"
+    D: "persist middleware loads from localStorage during server render"
+  answer: B
+  explanation: "Mismatch occurs only when server HTML differs from client first render. Both render empty store. The useEffect hydration runs after hydration completes, so React does not flag a difference."
+  difficulty: 3
+  tags: [concept]
+
+- id: "18.8"
+  question: "User clicks 'Remove Item' — store optimistically removes it. Server Action fails (network error). User refreshes page. What state does the cart show?"
+  options:
+    A: "Item still removed because store saves to localStorage"
+    B: "Item reappears because RSC re-fetches from server (source of truth)"
+    C: "Blank page — error boundary catches the failed action"
+    D: "Item removed, but with a warning badge"
+  answer: B
+  explanation: "Server action never reached server — cart in DB still has the item. RSC re-renders from server data. Client store re-hydrates from server props. The optimistic deletion is discarded. Server is always source of truth."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "18.9"
+  question: "Which state belongs in a root layout-level Zustand store vs a page-level store?"
+  options:
+    A: "Theme toggle → root layout; search results → page-level"
+    B: "Cart items → root layout; user theme → page-level"
+    C: "Both belong in root layout to avoid prop drilling"
+    D: "All state should be fetched from server per navigation"
+  answer: A
+  explanation: "Root layout persists across pages — suitable for global UI state (theme, sidebar). Page-level state (search results, product filters) should re-initialize per navigation. Cart straddles both — typically layout-level because it persists across pages."
+  difficulty: 2
+  tags: [scenario, comparison]
+
+- id: "18.10"
+  question: "An e-commerce page has server-fetched product data and a client Zustand cart store. A product's price is static (never changes after creation). Where should the price data live?"
+  options:
+    A: "In the Zustand cart store, duplicated per cart item"
+    B: "Rendered from server props directly — not stored in Zustand"
+    C: "Fetched again from the client via API"
+    D: "Stored in a separate Zustand 'product' store"
+  answer: B
+  explanation: "Static server data that never changes should not go into Zustand. Render directly from server props. Only mutable client state belongs in Zustand: cart quantities, applied filters, UI toggles. Duplicating static data wastes memory and creates sync risk."
+  difficulty: 3
+  tags: [application, comparison]

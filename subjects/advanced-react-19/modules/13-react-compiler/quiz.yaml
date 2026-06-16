@@ -1,0 +1,119 @@
+- id: "13.1"
+  question: "What does the React Compiler do at build time?"
+  options:
+    A: "Runs components on the server and sends HTML to the client"
+    B: "Injects useMemo, useCallback, and React.memo calls into components automatically"
+    C: "Replaces JSX with direct DOM manipulation for faster rendering"
+    D: "Compiles TypeScript to JavaScript with stricter type checking"
+  answer: B
+  explanation: "React Compiler transforms source at build time, injecting memoization calls (useMemo, useCallback, React.memo) into components and hooks. No runtime overhead — output is standard React code with automatic memoization."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "13.2"
+  question: "How do you enable the React Compiler for a specific file?"
+  options:
+    A: "Add 'use compiler'; at the top of the file"
+    B: "Add // @reactCompiler at the top of the file"
+    C: "Set compilationMode: 'all' in build config"
+    D: "Name the file with .compiler.tsx extension"
+  answer: B
+  explanation: "The // @reactCompiler directive at the top of the file opts it into compiler analysis. Files without the directive compile normally. This enables incremental adoption across a codebase."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "13.3"
+  question: "A compiler-enabled component stores a computed value in a module-level variable. What happens?"
+  options:
+    A: "Compiler memoizes the value and updates the module variable"
+    B: "Compiler detects the leak and skips memoization"
+    C: "Compilation fails with an error"
+    D: "Compiler creates a duplicate value inside the component"
+  answer: B
+  explanation: "Compiler detects values that 'leak' outside React's component lifecycle (module scope, singletons). It conservatively skips memoization rather than risk incorrect behavior when a value escapes React's management."
+  difficulty: 2
+  tags: [concept]
+
+- id: "13.4"
+  question: "Which pattern will the React Compiler successfully memoize?"
+  options:
+    A: "const value = data[dynamicKey as keyof Data]"
+    B: "const value = ref.current"
+    C: "const fullName = `${first} ${last}`"
+    D: "const config = buildConfig(importedDefaults)"
+  answer: C
+  explanation: "Template literal from props/state is a derived value — compiler traces first/last to their sources and memoizes fullName. Dynamic key access, ref.current reads, and cross-module function calls are opaque to compiler analysis."
+  difficulty: 2
+  tags: [application]
+
+- id: "13.5"
+  question: "Your team enabled the compiler globally. A critical component enters infinite re-render. What is the fastest recovery?"
+  options:
+    A: "Revert the entire build to pre-compiler"
+    B: "Remove // @reactCompiler from that specific file"
+    C: "Add useMemo around every value in the component"
+    D: "Increase StrictMode double-invoke threshold"
+  answer: B
+  explanation: "Incremental per-file opt-in means per-file rollback. Remove the directive from the broken component, fix its data flow, re-enable. No other files affected."
+  difficulty: 1
+  tags: [scenario]
+
+- id: "13.6"
+  question: "A component uses both compiler and manual useMemo. What is the result?"
+  options:
+    A: "Compiler ignores the file — manual memoization takes precedence"
+    B: "Nested memoization — compiler wraps manual useMemo in another memo"
+    C: "Compiler errors — manual useMemo not allowed with compiler"
+    D: "Manual useMemo is replaced by compiler's copy"
+  answer: B
+  explanation: "Both apply. Compiler wraps values in its own memoization on top of existing useMemo — resulting in nested memo closures. Not incorrect but wastes memory. Remove redundant manual memo after compiler enable."
+  difficulty: 2
+  tags: [concept]
+
+- id: "13.7"
+  question: "A component passes an inline arrow function as prop to a child. With compiler enabled, what changes?"
+  options:
+    A: "Nothing — inline functions always create new references"
+    B: "Compiler wraps the function in useCallback — stable reference when deps unchanged"
+    C: "Compiler throws an error — inline functions are not allowed"
+    D: "Compiler moves the function outside the component as a module-level helper"
+  answer: B
+  explanation: "Compiler traces the closure's dependencies and wraps it in useCallback. Same behavior as manual useCallback, but automatic and with precise dep tracking."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "13.8"
+  question: "A suspended component with compiler enabled resumes after data arrives. What happens to compiler-memoized values?"
+  options:
+    A: "Values are preserved from before suspension"
+    B: "Values are recomputed and re-memoized on resume"
+    C: "Values are cleared — compiler disabled for suspended components"
+    D: "Values are null until next render cycle"
+  answer: B
+  explanation: "Suspense discards the previous render output. On resume, component runs fresh — compiler recomputes all derived values and creates new memoization cache. No value carryover across suspend boundaries."
+  difficulty: 2
+  tags: [concept]
+
+- id: "13.9"
+  question: "What is the recommended approach for compiler adoption in CI for a large codebase?"
+  options:
+    A: "Enable compiler globally on day one, fix errors in production"
+    B: "Phase 1: warnings only. Phase 2: new files require directive. Phase 3: all files required"
+    C: "Only run compiler locally — CI should not enforce compiler rules"
+    D: "Run compiler only on test files, skip production builds"
+  answer: B
+  explanation: "Phased approach reduces risk: start with non-blocking warnings (team adapts), require directive on new files (grow adoption), finally require on all files (complete coverage). Each phase validates before escalation."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "13.10"
+  question: "A component reads store.getState() directly (not through a hook) and derives a value. Will the compiler memoize the derived value?"
+  options:
+    A: "Yes — derivation from any variable is memoized"
+    B: "No — store.getState() is a cross-module call, compiler skips"
+    C: "Yes — but only if the store is imported from a module with // @reactCompiler"
+    D: "No — compiler skips all components that use external stores"
+  answer: B
+  explanation: "store.getState() is a direct call on an imported module value. Compiler cannot analyze the store's internal state changes — it treats it as opaque and skips memoization. Using a hook like useStore(selector) gives the compiler a stable memoization signal."
+  difficulty: 3
+  tags: [application]

@@ -1,0 +1,119 @@
+- id: "11.1"
+  question: "Which React 19 change replaces forwardRef?"
+  options:
+    A: "ref as regular prop accessible via destructuring"
+    B: "useRef() must now wrap every component"
+    C: "createRef() replaces forwardRef"
+    D: "forwardRef renamed to passRef"
+  answer: A
+  explanation: "React 19 makes ref a regular prop. Destructure `ref` from props object. No forwardRef HOC needed."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "11.2"
+  question: "What is the recommended command to bulk-migrate forwardRef components?"
+  options:
+    A: "npx react-codemod update-ref-as-prop"
+    B: "npm run migrate-forward-ref"
+    C: "npx react-upgrade ref-migration"
+    D: "npx @react/codemod remove-forward-ref"
+  answer: A
+  explanation: "The official codemod is `npx react-codemod update-ref-as-prop`. It handles ~90% of forwardRef removals automatically."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "11.3"
+  question: "What TypeScript type replaces ForwardedRef<T> in React 19?"
+  options:
+    A: "React.Ref<T>"
+    B: "React.RefObject<T>"
+    C: "React.RefCallback<T>"
+    D: "React.ForwardedRef<T> (unchanged)"
+  answer: A
+  explanation: "React.Ref<T> replaces ForwardedRef<T>. It is the union of RefCallback<T> | RefObject<T> | null. No distinction between forwarded and direct refs."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "11.4"
+  question: "When does a ref callback cleanup function run?"
+  options:
+    A: "When ref target changes OR component unmounts"
+    B: "Every render cycle regardless of ref stability"
+    C: "Only when component unmounts"
+    D: "Only when ref target changes"
+  answer: A
+  explanation: "Ref cleanup runs when ref target changes (new element, different element, null) or component unmounts. Stable refs during re-renders do not trigger cleanup."
+  difficulty: 2
+  tags: [concept]
+
+- id: "11.5"
+  question: "You need a component that exposes both a DOM ref and sets up a ResizeObserver. Which approach is most idiomatic in React 19?"
+  options:
+    A: "Callback ref with observer setup and cleanup return"
+    B: "useEffect with ref object for observer setup"
+    C: "Two separate ref props: one for parent, one for observer"
+    D: "forwardRef + useEffect for observer"
+  answer: A
+  explanation: "Callback ref with cleanup return ties observer lifecycle to element lifecycle. A single callback handles parent ref forwarding, observer setup, and cleanup. No useEffect needed."
+  difficulty: 2
+  tags: [application]
+
+- id: "11.6"
+  question: "What happens when you pass an inline arrow function as ref callback every render?"
+  options:
+    A: "React treats it as new ref each render, runs cleanup then re-attaches"
+    B: "React detects identical behavior and skips re-attachment"
+    C: "Inline functions are not valid ref callbacks"
+    D: "React caches the function reference automatically"
+  answer: A
+  explanation: "Inline arrow functions create new references every render. React runs previous cleanup function, calls ref(null), then calls ref(element). Use useCallback for stable ref to avoid unnecessary re-attachment cycles."
+  difficulty: 2
+  tags: [concept]
+
+- id: "11.7"
+  question: "Can a Server Component accept and use a ref prop?"
+  options:
+    A: "No — Server Components have no DOM and refs are non-serializable"
+    B: "Yes — refs work identically in Server and Client Components"
+    C: "Yes — but only callback refs, not ref objects"
+    D: "No — but refs can be passed through to children via props spread"
+  answer: A
+  explanation: "Server Components render to JSON on server. They have no DOM nodes. Refs reference DOM nodes and are non-serializable. Server Components silently ignore ref props."
+  difficulty: 2
+  tags: [concept, scenario]
+
+- id: "11.8"
+  question: "A library you depend on still uses forwardRef internally. Does it break in React 19?"
+  options:
+    A: "No — forwardRef still works in React 19 with deprecation warning"
+    B: "Yes — forwardRef was removed in React 19, library must update"
+    C: "Yes — but only in StrictMode"
+    D: "No — React 19 automatically converts forwardRef to ref-as-prop"
+  answer: A
+  explanation: "forwardRef is deprecated, not removed. It still works with a console warning. Libraries can ship React 18-style components and they function correctly in React 19."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "11.9"
+  question: "When should you prefer useCallback for a ref callback over an inline function?"
+  options:
+    A: "When ref callback performs side effects beyond setting .current"
+    B: "Always — inline ref callbacks cause infinite re-renders"
+    C: "Never — inline ref callbacks are always fine"
+    D: "Only when the ref targets an SVG element"
+  answer: A
+  explanation: "Stable useCallback prevents unnecessary cleanup/re-attach cycles when ref callback has side effects (observers, measurements). Inline functions work but React re-runs them every render."
+  difficulty: 3
+  tags: [application]
+
+- id: "11.10"
+  question: "Which statement correctly describes useImperativeHandle in React 19?"
+  options:
+    A: "Works identically to React 18 — ref comes from props instead of forwardRef second argument"
+    B: "Removed in React 19 — replaced by direct method calls"
+    C: "Requires forwardRef wrapper to function"
+    D: "Now accepts a dependency array as third required argument"
+  answer: A
+  explanation: "useImperativeHandle API is unchanged. The only difference is the ref source: React 18 received ref as forwardRef's second argument; React 19 destructures it from props."
+  difficulty: 2
+  tags: [comparison]

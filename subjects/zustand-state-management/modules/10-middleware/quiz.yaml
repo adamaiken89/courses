@@ -1,0 +1,119 @@
+- id: "10.1"
+  question: "What is the signature of a Zustand middleware function?"
+  options:
+    A: "(set, get, api) => store"
+    B: "(config) => (set, get, api) => store"
+    C: "(config) => store"
+    D: "(set, get) => (config) => store"
+  answer: B
+  explanation: "Middleware takes a config function, returns a function that receives set/get/api, and returns the wrapped store. This lets middleware intercept set before passing to the next layer."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "10.2"
+  question: "Which Zustand middleware allows writing state updates with direct mutation (no spread operators)?"
+  options:
+    A: "persist"
+    B: "devtools"
+    C: "immer"
+    D: "subscribeWithSelector"
+  answer: C
+  explanation: "Immer wraps set with produce(). Inside set, state is a Draft — direct mutations like state.todos.push() are intercepted by Immer's Proxy and produce immutable state."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "10.3"
+  question: "In a middleware chain `devtools(persist(immer(config)))`, which middleware runs `set` first when an action is dispatched?"
+  options:
+    A: "devtools — it is outermost"
+    B: "persist — it serializes state"
+    C: "immer — it is innermost, so its set runs first"
+    D: "config — the original store is always first"
+  answer: C
+  explanation: "Middleware executes inside-out. `set` flows innermost outward: immer runs first (converts Drafts to plain objects), then persist (serializes), then devtools (logs). Outermost middleware is last to modify set before it reaches your code."
+  difficulty: 3
+  tags: [concept]
+
+- id: "10.4"
+  question: "What happens if you place `persist` outside `immer` in the middleware chain?"
+  options:
+    A: "Everything works — order does not matter"
+    B: "Immer will not apply mutations — errors thrown"
+    C: "Persist serializes Immer Proxy objects — corrupted JSON in storage"
+    D: "Persist ignores immer — only stores plain object state"
+  answer: C
+  explanation: "Immer produces Draft/Proxy objects inside set. If persist serializes before immer resolves the Draft, it serializes non-serializable Proxy objects. immer must be innermost so its set converts Drafts to plain objects before persist reads the result."
+  difficulty: 2
+  tags: [concept]
+
+- id: "10.5"
+  question: "Which `persist` config option selects only specific fields for storage?"
+  options:
+    A: "select"
+    B: "pick"
+    C: "partialize"
+    D: "filter"
+  answer: C
+  explanation: "partialize receives full state, returns partial object to persist. Example: partialize: (s) => ({ user: s.user, token: s.token }) skips ephemeral fields like searchResults."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "10.6"
+  question: "Your store uses `devtools` middleware. How do you name an action so it appears clearly in the Redux DevTools timeline?"
+  options:
+    A: "Pass a name string as third argument to set()"
+    B: "Define action name in the devtools config object"
+    C: "Use a named function in the store definition"
+    D: "Actions are automatically named by the middleware"
+  answer: A
+  explanation: "Third argument to set is the action name: set({ count: 1 }, false, 'increment'). It appears in DevTools as the action type. Without it, the action shows as 'anonymous' or 'set'."
+  difficulty: 2
+  tags: [application]
+
+- id: "10.7"
+  question: "A custom logging middleware logs every state change. A component calls set 60 times/second on scroll. What is the best fix?"
+  options:
+    A: "Remove the logging middleware entirely"
+    B: "Throttle the log call, not the set — sample at 1s intervals"
+    C: "Debounce the set call itself"
+    D: "Wrap the entire store in requestAnimationFrame"
+  answer: B
+  explanation: "Throttle only the console.log, not the set. set must execute immediately for responsive UI. Check Date.now() in middleware and only log if > 1000ms since last log. Or gate behind NODE_ENV."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "10.8"
+  question: "You persist a Set object via Zustand persist. On rehydrate, it becomes a plain Array. How do you restore it?"
+  options:
+    A: "Convert it in the action, not in persistence"
+    B: "Use partialize to transform on save"
+    C: "Use merge or onRehydrateStorage to reconstruct on load"
+    D: "Sets cannot be persisted — use Arrays only"
+  answer: C
+  explanation: "JSON loses type information — Set becomes Array. Use merge: (saved, initial) => ({ ...initial, ...saved, tags: new Set(saved.tags) }) or onRehydrateStorage callback to reconstruct. partialize transforms on save (pre-serialization)."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "10.9"
+  question: "A custom middleware factory `withAnalytics('eventName')` captures options at store creation. What happens if you need to change the event name at runtime?"
+  options:
+    A: "Re-create the store with new options"
+    B: "Pass options as a getter function to middleware"
+    C: "Modify the middleware closure directly"
+    D: "Use a ref to hold mutable event name"
+  answer: A
+  explanation: "Middleware closures capture options at creation time. For dynamic options, either pass a function () => opts, use a shared ref object, or re-create the store. Direct closure modification is unreliable."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "10.10"
+  question: "Which middleware should be outermost in a combined devtools + persist + immer chain?"
+  options:
+    A: "immer — to resolve Drafts before anything else sees state"
+    B: "persist — to capture state before devtools modifies it"
+    C: "devtools — to log the final state after all transforms"
+    D: "Order does not matter as long as immer is included"
+  answer: C
+  explanation: "devtools outermost captures the final state after immer resolves Drafts and persist serializes. This gives accurate diffs in the DevTools panel. devtools also sees persist's rehydration events when outermost."
+  difficulty: 2
+  tags: [application]

@@ -1,0 +1,119 @@
+- id: "13.1"
+  question: "What is over-subscription in Zustand?"
+  options:
+    A: "A component subscribes to more store fields than it needs, causing unnecessary re-renders"
+    B: "Multiple components share the same selector function"
+    C: "The store has more subscribers than React can handle"
+    D: "A selector returns undefined and crashes the component"
+  answer: A
+  explanation: "Over-subscription = component selects more state than it reads. Coarse selectors like `useStore((s) => s.user)` re-render on any user field change even when only user.name is displayed."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "13.2"
+  question: "Which selector causes the most over-subscription?"
+  options:
+    A: "useStore((s) => s.user.name)"
+    B: "useStore()"
+    C: "useStore((s) => s.items.length)"
+    D: "useStore((s) => s.settings, shallow)"
+  answer: B
+  explanation: "`useStore()` with no selector subscribes to entire store — any field change re-renders the component. Leaf selectors (A, C) or selectors with shallow (D) are more granular."
+  difficulty: 1
+  tags: [concept]
+
+- id: "13.3"
+  question: "Why does `useStore((s) => ({ name: s.user.name, email: s.user.email }))` re-render on every state change?"
+  options:
+    A: "Zustand does not support object returns from selectors"
+    B: "The selector creates a new object reference each call — Object.is returns false"
+    C: "The function syntax is invalid in TypeScript strict mode"
+    D: "useStore only accepts arrow functions that return primitives"
+  answer: B
+  explanation: "Selectors returning objects/arrays create new references every call. Object.is compares by reference, always returns false → re-render. Fix: add shallow equality or extract scalar values individually."
+  difficulty: 2
+  tags: [concept]
+
+- id: "13.4"
+  question: "A notification bell reads unread count via `useStore((s) => s.notifications.filter(n => !n.read).length)`. Profile shows it re-renders when unrelated user name updates. What's wrong?"
+  options:
+    A: "The filter method mutates the notifications array"
+    B: "The selector returns a non-primitive causing reference instability"
+    C: "The length property is not reactive in Zustand"
+    D: "Nothing — this is expected Zustand behavior"
+  answer: B
+  explanation: "`.filter()` returns new array each call. length is primitive, but intermediate array creation happens before .length access. The selector runs on every state change → new array → reference changed → Object.is false → re-render. Fix: extract notifications with shallow, compute length in component with useMemo, or use a memoized selector."
+  difficulty: 2
+  tags: [application]
+
+- id: "13.5"
+  question: "How does `useShallow` differ from passing `shallow` as second argument to `useStore`?"
+  options:
+    A: "useShallow is deprecated — always use shallow as second argument"
+    B: "useShallow wraps the selector with useMemo to stabilize its reference between renders"
+    C: "useShallow performs deep equality instead of shallow"
+    D: "They are identical — useShallow is just syntactic sugar"
+  answer: B
+  explanation: "useShallow uses useMemo internally to stabilize the selector function reference. Inline arrow functions create new reference each render → extra store subscription calls. useShallow prevents this. Both apply shallow comparison to the selector result."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "13.6"
+  question: "A dashboard has RevenueChart, UserTable, and NotificationBell. Revenue trend updates trigger re-renders in all three. Which debugging tool tells you which action caused NotificationBell to re-render?"
+  options:
+    A: "console.log(useStore.getState())"
+    B: "devtools middleware showing action timeline in Redux DevTools"
+    C: "React.StrictMode"
+    D: "useStore.subscribe with no arguments"
+  answer: B
+  explanation: "Devtools middleware labels each set with action name (third argument). Redux DevTools shows action timeline — you see 'setRevenueTrend' triggered, then see that NotificationBell re-rendered because its selector returned new array (bad selector). Subscribe logging shows state diffs but not action names without manual labeling."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "13.7"
+  question: "Component reads `useStore((s) => s.orders)`. Orders array updates when new order arrives (expected). But it also re-renders when product catalog updates. Why?"
+  options:
+    A: "Zustand always re-renders all subscribers on any change"
+    B: "The selectors return a new array reference each time — re-renders on every state mutation"
+    C: "Product catalog is nested inside orders in the store shape"
+    D: "React.memo is not wrapping the component"
+  answer: B
+  explanation: "Extracting `s.orders` returns new array reference each selector call. Even when orders array unchanged, the product catalog update triggers a new selector run → new array reference → Object.is false → re-render. Fix: use shallow equality or extract specific order properties."
+  difficulty: 2
+  tags: [concept]
+
+- id: "13.8"
+  question: "Which approach best prevents over-subscription in a store with 50+ fields and 20+ components?"
+  options:
+    A: "Wrap every component with React.memo"
+    B: "Use leaf selectors per component — each component subscribes to exactly the primitive values it displays"
+    C: "Use a single global selector in a custom hook that returns the full store"
+    D: "Disable re-renders with useRef and manually update the DOM"
+  answer: B
+  explanation: "Leaf selectors (`s.user.name` instead of `s.user`) ensure each component re-renders only when its specific data changes. React.memo (A) is a band-aid that does not fix root cause. Full store (C) makes over-subscription worse. Manual DOM (D) defeats React's purpose."
+  difficulty: 2
+  tags: [application]
+
+- id: "13.9"
+  question: "You add `why-did-you-render` to a project and see 'Header re-rendered because store.cart.total changed'. Header only reads `s.user.name`. Which selector anti-pattern does Header use?"
+  options:
+    A: "useStore((s) => s.user.name) — still subscribes to cart via closure"
+    B: "useStore((s) => s) — subscribes to entire store"
+    C: "useStore((s) => s.user) — subscribes to user object but cart total is nested inside user"
+    D: "useStore((s) => s, shallow) — shallow comparison fails on deeply nested objects"
+  answer: B
+  explanation: "`useStore()` or `useStore((s) => s)` subscribes to everything. Any store field change (including cart.total) re-renders Header. Fix: `useStore((s) => s.user.name)` — leaf selector for only the field Header needs."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "13.10"
+  question: "A team disables devtools middleware in production. A user reports slowness. Which approach allows on-demand debugging without redeploying?"
+  options:
+    A: "Add a global flag `window.__DEBUG_ZUSTAND` that toggles logger middleware dynamically"
+    B: "Devtools cannot be enabled after the store is created"
+    C: "Use React DevTools Profiler — it works on production builds without Zustand-specific setup"
+    D: "Both A and C are valid approaches"
+  answer: D
+  explanation: "A conditional flag toggling logger middleware enables on-demand tracing without redeploy. React DevTools Profiler works in production builds — record a session, examine flamegraph for unnecessary re-renders. Both approaches diagnose over-subscription without shipping devtools WebSocket connection to all users."
+  difficulty: 3
+  tags: [scenario, application]

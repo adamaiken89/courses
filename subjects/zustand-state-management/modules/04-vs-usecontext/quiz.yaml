@@ -1,0 +1,124 @@
+- id: "4.1"
+  question: "What triggers a Context consumer to re-render?"
+  options:
+    A: "When any component in the tree calls setState"
+    B: "When the provider's value prop reference changes (new object/array)"
+    C: "When a sibling context provider updates"
+    D: "When any component imports the context object"
+  answer: B
+  explanation: "React compares provider value with Object.is. If reference changed (new object/array created during render), every consumer re-renders regardless of which fields changed."
+  difficulty: 1
+  tags: [concept]
+
+- id: "4.2"
+  question: "In a Context-based app with 10 consumers and 1 provider, a single field in the context value changes. How many consumers re-render?"
+  options:
+    A: "0 — React batches updates"
+    B: "1 — only the consumer reading that field"
+    C: "10 — all consumers re-render"
+    D: "Depends on whether React.memo wraps the consumers"
+  answer: C
+  explanation: "Context does not track which fields consumers read. Any value reference change cascades to all consumers. React.memo only checks props, not context value changes."
+  difficulty: 1
+  tags: [concept, scenario]
+
+- id: "4.3"
+  question: "What mechanism does Zustand use to subscribe to store changes in React 18+?"
+  options:
+    A: "addEventListener on the store"
+    B: "useSyncExternalStore"
+    C: "custom setState override in React reconciler"
+    D: "Proxy-based property tracking"
+  answer: B
+  explanation: "useSyncExternalStore is the official React 18+ API for subscribing to external stores. Zustand wraps it internally — it handles subscription, snapshot comparison, and prevents tearing."
+  difficulty: 2
+  tags: [concept]
+
+- id: "4.4"
+  question: "A component calls `useStore()` without a selector argument. How does this affect re-renders?"
+  options:
+    A: "It throws a type error — selector is required"
+    B: "It subscribes to the entire store and re-renders on any state change"
+    C: "It subscribes to nothing — component never re-renders"
+    D: "It only re-renders when primitive values in the store change"
+  answer: B
+  explanation: "Without a selector, the identity function is used as default — useStore subscribes to the entire state object. Any set() call creates a new state reference, triggering re-render. Always provide a selector for granular subscriptions."
+  difficulty: 2
+  tags: [concept]
+
+- id: "4.5"
+  question: "A team has 8 context providers wrapping the app root. A new feature needs to read auth state inside a cart provider. What must the team verify?"
+  options:
+    A: "Nothing — context works regardless of nesting order"
+    B: "AuthProvider must be outside CartProvider in the nesting order"
+    C: "CartProvider must be outside AuthProvider"
+    D: "The team must combine auth and cart into a single context"
+  answer: B
+  explanation: "Provider order matters when contexts depend on each other. AuthProvider must be an ancestor of any component that reads auth — including CartProvider. Wrong order means cart cannot access auth context."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "4.6"
+  question: "You migrate from Context to Zustand. Which migration order prevents components reading stale state?"
+  options:
+    A: "Delete provider first, then migrate all components simultaneously"
+    B: "Migrate leaf components first, then parent components, delete provider last"
+    C: "Rename context to store in a single commit"
+    D: "Rewrite entire app in a feature branch before merging"
+  answer: B
+  explanation: "Leaf-to-root migration keeps the provider mounted during transition. As each component switches to useStore(), the provider still exists for unmigrated components. Delete provider only when no component imports it. This prevents stale-state bugs during migration."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "4.7"
+  question: "Which state category is still appropriate for React Context rather than Zustand?"
+  options:
+    A: "Real-time cursor positions in a collaborative editor"
+    B: "Theme toggle — user changes it once per session, 20 components read it"
+    C: "Live stock price feed updating every 100ms"
+    D: "Form input values in a 50-field survey"
+  answer: B
+  explanation: "Theme is low-frequency (changes rarely) with wide fan-out (many consumers). The re-render cost of Context is negligible for rare updates. Zustand is overkill here. Collaborative cursors (A), stock ticks (C), and large forms (D) benefit from Zustand's granular subscriptions."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "4.8"
+  question: "Does React 19's use() hook fix the Context re-render cascade?"
+  options:
+    A: "Yes — use() subscribes to individual fields like Zustand selectors"
+    B: "Yes — use() batches all context updates into a single render"
+    C: "No — use() changes how you read context, not how context propagates changes"
+    D: "No — use() is deprecated in React 19"
+  answer: C
+  explanation: "use() is a read-side mechanism (works in conditionals, early returns). The write-side propagation — provider value change cascading to all consumers — is unchanged. use() does not eliminate re-render cascade."
+  difficulty: 3
+  tags: [comparison, concept]
+
+- id: "4.9"
+  question: "A Zustand store has 10 fields. Component A uses `useStore((s) => ({ a: s.a, b: s.b }))`. What happens to Component A when field c changes?"
+  options:
+    A: "Component A re-renders — object selector creates a new reference every time"
+    B: "Component A does not re-render — selector does not read field c"
+    C: "Component A re-renders — any store change triggers all subscribers"
+    D: "Component A throws — selectors must return primitives"
+  answer: A
+  explanation: "The selector returns a new object `{ a, b }` every render. Object.is sees a new reference and triggers re-render, even though a and b are unchanged. This is a common pitfall — use shallow equality or primitive selectors for fine-grained subscriptions."
+  difficulty: 3
+  tags: [concept]
+
+- id: "4.10"
+  question: "A test suite has 100 components that read AuthContext. After migrating to Zustand, how does testing change?"
+  options:
+    A: "Tests still require AuthProvider wrapper — Zustand is Context underneath"
+    B: "Tests call useAuthStore.setState() directly — no provider wrappers needed"
+    C: "Tests require React.StrictMode to work with Zustand"
+    D: "Zustand stores are read-only in test environments"
+  answer: B
+  explanation: "Zustand stores are plain objects with setState. Tests manipulate state directly before rendering, no provider wrappers. This eliminates the boilerplate of wrapping every test in AuthProvider (or multiple providers) and makes test setup declarative."
+  difficulty: 1
+  tags: [scenario, concept]
+
+# Difficulty: 1=recall, 2=comprehension, 3=application
+# Tags: terminology, concept, formula, scenario, comparison, calculation
+# 40% difficulty 1, 40% diff 2, 20% diff 3
+# Exactly 4 options, 1 correct

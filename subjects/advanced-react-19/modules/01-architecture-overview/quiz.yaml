@@ -1,0 +1,119 @@
+- id: "1.1"
+  question: "Which React 19 pillar eliminates the need for useMemo and useCallback in most components?"
+  options:
+    A: "Actions"
+    B: "Transitions"
+    C: "The Compiler (Forget)"
+    D: "Server Components"
+  answer: C
+  explanation: "React Compiler auto-memoizes components and hooks at build time. Actions handle mutations, Transitions handle priority, Server Components handle rendering location. Only the Compiler eliminates memoization boilerplate."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "1.2"
+  question: "A user types into a search field. Results fetch on each keystroke. Which priority classification is correct?"
+  options:
+    A: "Typing is transition, results fetch is urgent"
+    B: "Typing is urgent, results fetch is transition"
+    C: "Both are urgent"
+    D: "Both are transition"
+  answer: B
+  explanation: "User input (typing) is urgent — must respond immediately. Results fetch is a transition — can be interrupted by next keystroke. Wrapping setResults in startTransition prevents jank."
+  difficulty: 2
+  tags: [application]
+
+- id: "1.3"
+  question: "Which API combines pending state, form data, and error handling into a single hook?"
+  options:
+    A: "useTransition"
+    B: "useOptimistic"
+    C: "useActionState"
+    D: "useFormStatus"
+  answer: C
+  explanation: "useActionState merges pending/error/success states into one hook. useFormStatus reads parent form state. useTransition marks non-urgent updates. useOptimistic handles instant UI updates before server confirms."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "1.4"
+  question: "Your team has 200 components wrapped in forwardRef. What is the recommended migration approach?"
+  options:
+    A: "Rewrite all at once before upgrading to React 19"
+    B: "Stay on React 18 until all components are migrated"
+    C: "Upgrade to React 19, then migrate incrementally using codemod"
+    D: "Use a polyfill to avoid the forwardRef deprecation"
+  answer: C
+  explanation: "forwardRef still works in React 19. Upgrade first, then incrementally migrate with npx react-codemod update-ref-as-prop. No need to block the React 19 upgrade on forwardRef migration."
+  difficulty: 2
+  tags: [application]
+
+- id: "1.5"
+  question: "Why does React recommend enabling StrictMode before upgrading to React 19?"
+  options:
+    A: "StrictMode improves bundle size"
+    B: "StrictMode double-invokes code to surface impure logic and stale closures"
+    C: "StrictMode enables the Compiler"
+    D: "StrictMode is required for Actions to work"
+  answer: B
+  explanation: "StrictMode double-invokes reducers, initializers, and effects. This catches bugs from impure code and incorrect cleanup before they reach production. In React 19, double-invocation catches Action and Transition bugs that could cause silent data loss."
+  difficulty: 2
+  tags: [concept]
+
+- id: "1.6"
+  question: "In React 18, state management libraries were used for most cross-component state. In React 19, which pieces are now handled by built-in APIs?"
+  options:
+    A: "Form submission state, initial data loading, UI rendering priorities"
+    B: "All global state is now built-in"
+    C: "Only form state is built-in"
+    D: "No changes — external stores are still needed for everything"
+  answer: A
+  explanation: "Actions (useActionState) handle form submission. Server Components + use() handle initial data loading. Transitions handle rendering priorities. External stores still needed for cross-cutting client-only state, complex derived state, and real-time data."
+  difficulty: 3
+  tags: [comparison]
+
+- id: "1.7"
+  question: "What happens when the React Compiler cannot safely analyze a component?"
+  options:
+    A: "It throws a build error"
+    B: "It skips memoization for that component — conservative fallback"
+    C: "It applies memoization anyway with a runtime safety check"
+    D: "It inlines the component into the parent"
+  answer: B
+  explanation: "The Compiler is conservative. When uncertain (cross-module boundaries, escaped values, non-primitive props from uncontrolled parents), it skips memoization rather than risk incorrect behavior. You keep manual useMemo/useCallback for those cases."
+  difficulty: 3
+  tags: [concept]
+
+- id: "1.8"
+  question: "A team wants to adopt React 19 Compiler. What is the best rollout strategy?"
+  options:
+    A: "Enable Compiler globally on day one"
+    B: "Enable per module with // @reactCompiler, test each, expand"
+    C: "Only use Compiler on new components, never refactor existing"
+    D: "Wait for Compiler to reach stable before adopting React 19"
+  answer: B
+  explanation: "Enable Compiler module by module with the directive comment. Test each module under StrictMode. This isolates any Compiler-related issues and allows rollback per module. The Compiler is safe, but incremental rollout reduces risk surface."
+  difficulty: 2
+  tags: [application]
+
+- id: "1.9"
+  question: "What distinguishes React 19 Transitions from debouncing or throttling?"
+  options:
+    A: "Transitions are synchronous, debouncing is async"
+    B: "Transitions are state-driven and interruptible by urgent updates; debouncing delays execution"
+    C: "Transitions only work with Server Components"
+    D: "Debouncing and Transitions are functionally identical"
+  answer: B
+  explanation: "Debouncing delays execution regardless of urgency. Transitions let React prioritize: urgent updates (typing) proceed immediately, transition updates can be interrupted and discarded. React manages the timeline, not a fixed delay."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "1.10"
+  question: "Which scenario would prevent the Compiler from correctly memoizing a function?"
+  options:
+    A: "Function defined inside a component that only uses props"
+    B: "Function assigned to a ref and called from an effect"
+    C: "Function defined with const handleClick = () => setState(...)"
+    D: "Function passed as prop to an HTML element"
+  answer: B
+  explanation: "Values that escape React's analysis — stored in refs, passed to imperative handles, or used with non-React interop — cannot be safely memoized by the Compiler. Functions using only props and state inside a component are analyzable. The Compiler understands setState, props, and component scope."
+  difficulty: 3
+  tags: [scenario]
