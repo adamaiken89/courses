@@ -1,0 +1,71 @@
+- id: "11.1"
+  question: "How do you trigger a CSS transition in React when state changes?"
+  options:
+    A: "Call animate() function in useEffect"
+    B: "Toggle a CSS class based on state"
+    C: "CSS transitions fire automatically on state change"
+    D: "Use setTimeout to apply styles"
+  answer: B
+  explanation: "State change → conditional className → element gets new class → CSS transition interpolates between old/new property values."
+  difficulty: 1
+  tags: [concept]
+
+- id: "11.2"
+  question: "Why can't CSS animate max-height from 0 to auto?"
+  options:
+    A: "auto is not a numeric value — CSS can't interpolate"
+    B: "Transitions don't work with max-height"
+    C: "CSS only animates opacity"
+    D: "It works — statement is false"
+  answer: A
+  explanation: "CSS transitions require numeric start/end values. auto is not numeric. Use max-height: 500px (larger than actual content) or grid-template-rows transition."
+  difficulty: 2
+  tags: [concept]
+
+- id: "11.3"
+  question: "What's needed for unmount animation in React?"
+  options:
+    A: "Nothing — CSS handles all animations"
+    B: "Exiting state to apply exit animation class, then remove after animation"
+    C: "Use setTimeout only"
+    D: "Use React's onUnmount prop"
+  answer: B
+  explanation: "React removes elements immediately — exit animation never plays. Pattern: set 'exiting' state → apply exit className → onAnimationEnd/delayed cleanup removes element."
+  difficulty: 2
+  tags: [application]
+
+- id: "11.4"
+  question: "Which event fires when a CSS keyframe animation completes?"
+  options:
+    A: "onAnimationEnd"
+    B: "onTransitionEnd"
+    C: "onAnimationComplete"
+    D: "onFinish"
+  answer: A
+  explanation: "onAnimationEnd fires when a CSS animation (@keyframes) finishes. onTransitionEnd fires for CSS transitions. Don't confuse them."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "11.5"
+  question: "Which CSS properties are GPU-composited (safe to animate)?"
+  options:
+    A: "width, height"
+    B: "transform, opacity"
+    C: "margin, padding"
+    D: "font-size, line-height"
+  answer: B
+  explanation: "transform and opacity are composited on GPU — no layout recalc. Width/height/margin/padding trigger layout reflow every frame."
+  difficulty: 1
+  tags: [concept]
+
+- id: "11.6"
+  question: "When should you use Framer Motion over CSS animations?"
+  options:
+    A: "For simple enter/exit transitions"
+    B: "For gesture-driven animations (drag, spring physics)"
+    C: "For hover effects"
+    D: "Never — CSS is always better"
+  answer: B
+  explanation: "CSS for declarative motion (transitions, keyframes). Framer Motion for gesture-driven, physics-based, or shared layout animations that need JavaScript coordination."
+  difficulty: 2
+  tags: [scenario]

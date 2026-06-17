@@ -1,0 +1,119 @@
+- id: "4.1"
+  question: "How does runtime CSS-in-JS apply styles to the DOM?"
+  options:
+    A: "Generates inline styles on each element"
+    B: "Injects <style> tags at runtime with generated class names"
+    C: "Modifies external stylesheet files"
+    D: "Uses CSS Shadow DOM"
+  answer: B
+  explanation: "Runtime CSS-in-JS parses template literals, generates unique class names, and injects corresponding <style> rules into the document head."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "4.2"
+  question: "Approximately how large is the styled-components runtime library (gzip)?"
+  options:
+    A: "1-2 kB"
+    B: "5-8 kB"
+    C: "12-15 kB"
+    D: "50+ kB"
+  answer: C
+  explanation: "styled-components runtime is ~14 kB gzip. This is the style injection engine — not styles themselves. Ships with the app regardless of how many styled components exist."
+  difficulty: 1
+  tags: [concept]
+
+- id: "4.3"
+  question: "In Next.js App Router, a styled-components component needs:"
+  options:
+    A: "Nothing special — works automatically"
+    B: "'use client' directive at the top"
+    C: "A babel plugin only"
+    D: "Custom webpack config only"
+  answer: B
+  explanation: "Runtime CSS-in-JS uses createContext, hooks, and DOM APIs — unavailable in RSC. Every styled component requires 'use client', forcing it into the client bundle."
+  difficulty: 2
+  tags: [concept]
+
+- id: "4.4"
+  question: "What problem occurs when runtime CSS-in-JS is used without SSR configuration?"
+  options:
+    A: "Styles fail to render entirely"
+    B: "FOUC — Flash of Unstyled Content"
+    C: "Server crashes"
+    D: "Reduced TypeScript type checking"
+  answer: B
+  explanation: "Server generates different class names than client (no StyleSheetManager). Initial HTML has no styles → flash until client JS injects them."
+  difficulty: 2
+  tags: [concept]
+
+- id: "4.5"
+  question: "How does ThemeProvider pass theme to components?"
+  options:
+    A: "CSS custom properties on root"
+    B: "React Context"
+    C: "Global singleton"
+    D: "Prop drilling"
+  answer: B
+  explanation: "ThemeProvider wraps React Context. Theme object accessible via props.theme in styled components. Changing theme re-renders all consumers via Context."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "4.6"
+  question: "Why does runtime CSS-in-JS's style tag grow unbounded with prop combinations?"
+  options:
+    A: "Each unique props combination generates a new CSS rule"
+    B: "Old rules are never garbage collected"
+    C: "Styles are duplicated on every render"
+    D: "A and B"
+  answer: D
+  explanation: "styled-components creates new classes per unique prop combination. Old classes remain in the style tag — never removed or deduplicated. Accumulates over session."
+  difficulty: 2
+  tags: [concept]
+
+- id: "4.7"
+  question: "A team uses styled-components for 200 components. Approximately how much of their JS bundle is the CSS runtime?"
+  options:
+    A: "0 kB — all styles are extracted"
+    B: "~14 kB (library) + CSS strings in JS"
+    C: "~200 kB (2 kB per component)"
+    D: "CSS is never in the JS bundle"
+  answer: B
+  explanation: "~14 kB for runtime library. CSS strings per component add more. With CSS Modules, those strings would be in separate CSS files at zero JS cost."
+  difficulty: 2
+  tags: [calculation]
+
+- id: "4.8"
+  question: "When would runtime CSS-in-JS still be the right choice in 2026?"
+  options:
+    A: "Greenfield RSC-first Next.js app"
+    B: "Existing 500-component codebase with styled-components"
+    C: "New component library for 10 external apps"
+    D: "Static site with no dynamic theming"
+  answer: B
+  explanation: "Migration cost of rewriting 500 components outweighs runtime tax. New projects (A, C, D) benefit from zero-cost approaches (CSS Modules, Tailwind, Vanilla Extract)."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "4.9"
+  question: "What is the RUNTIME bundle cost of Emotion vs styled-components?"
+  options:
+    A: "Identical"
+    B: "Emotion ~11 kB, styled-components ~14 kB"
+    C: "styled-components ~7 kB, Emotion ~20 kB"
+    D: "Both ~5 kB"
+  answer: B
+  explanation: "Emotion is slightly smaller (~11 kB gzip) than styled-components (~14 kB). Both face same fundamental runtime cost and RSC incompatibility."
+  difficulty: 1
+  tags: [comparison]
+
+- id: "4.10"
+  question: "Can a React component library built with styled-components be used without styled-components as a dependency?"
+  options:
+    A: "Yes — styles are self-contained"
+    B: "No — ThemeProvider and styled runtime required"
+    C: "Yes — but only in development"
+    D: "No — but Emotion can substitute"
+  answer: B
+  explanation: "Library consumers must install styled-components as a peer dependency. ThemeProvider must wrap their app. This is the main argument against runtime CSS-in-JS for shared libraries."
+  difficulty: 3
+  tags: [scenario]

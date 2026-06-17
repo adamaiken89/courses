@@ -1,0 +1,119 @@
+- id: "6.1"
+  question: "How does Tailwind JIT engine decide which CSS classes to generate?"
+  options:
+    A: "Generates all possible Tailwind utilities"
+    B: "Scans source files for complete utility class name strings"
+    C: "User manually lists classes in config"
+    D: "Generates classes on every HTTP request"
+  answer: B
+  explanation: "JIT scans source files for full class name strings (e.g., 'bg-blue-500 px-4'). Dynamically constructed strings (bg-${color}) may miss detection."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "6.2"
+  question: "What problem does tailwind-merge solve?"
+  options:
+    A: "Merges Tailwind configs from multiple files"
+    B: "Resolves conflicting Tailwind utility classes predictably"
+    C: "Combines Tailwind with CSS Modules"
+    D: "Minifies Tailwind class names"
+  answer: B
+  explanation: "Tailwind utilities have equal specificity. 'px-4 px-6' — CSS source order determines winner. twMerge intelligently resolves conflicts: later explicit override wins."
+  difficulty: 2
+  tags: [concept]
+
+- id: "6.3"
+  question: "What is the bundle size impact of Tailwind CSS (gzip, typical app)?"
+  options:
+    A: "50-100 kB"
+    B: "5-15 kB (purged, JIT-generated)"
+    C: "0 kB — Tailwind has no output"
+    D: "Depends on Tailwind version only"
+  answer: B
+  explanation: "JIT generates only used utilities. Typical Tailwind app outputs 5-15 kB gzip CSS. Plus ~0.5 kB for reset/base styles."
+  difficulty: 1
+  tags: [concept]
+
+- id: "6.4"
+  question: "Which library provides type-safe variant definitions for Tailwind components?"
+  options:
+    A: "clsx"
+    B: "tailwind-merge"
+    C: "cva (class-variance-authority)"
+    D: "tailwind-variants"
+  answer: C
+  explanation: "cva defines variants with TypeScript types. button({ variant: 'primary', size: 'lg' }) returns class string. Invalid variant name = TS error."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "6.5"
+  question: "How do you add custom brand colors in Tailwind v4?"
+  options:
+    A: "tailwind.config.ts → colors"
+    B: "app.css → @theme { --color-brand: #6366f1; }"
+    C: "Inline style prop"
+    D: "Cannot add custom colors — Tailwind only has defaults"
+  answer: B
+  explanation: "Tailwind v4 uses @theme directive in CSS. --color-brand: #6366f1 becomes bg-brand, text-brand, border-brand utilities."
+  difficulty: 2
+  tags: [application]
+
+- id: "6.6"
+  question: "Tailwind classes: 'px-4 py-2 bg-blue-500 text-white rounded-md'. How many CSS rules does JIT generate?"
+  options:
+    A: "1 combined rule"
+    B: "5 separate utility rules (padding-x, padding-y, background, color, border-radius)"
+    C: "Generated per component instance"
+    D: "At least 10 rules"
+  answer: B
+  explanation: "Each Tailwind utility is a separate CSS rule with a single declaration. px-4 = .px-4 { padding-left: 1rem; padding-right: 1rem; }. They compose via multiple classes on one element."
+  difficulty: 2
+  tags: [concept]
+
+- id: "6.7"
+  question: "What's the main readability concern with Tailwind at scale?"
+  options:
+    A: "File size too large"
+    B: "className strings exceeding 10+ utilities become hard to scan"
+    C: "Tailwind has no CSS equivalent"
+    D: "Cannot write media queries"
+  answer: B
+  explanation: "A className string with 15+ utilities (including responsive variants, states, dark mode) becomes visually noisy. Pattern: extract into sub-components or use cva for complex states."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "6.8"
+  question: "Can Tailwind be used in React Server Components?"
+  options:
+    A: "No — requires client-side JS"
+    B: "Yes — class strings are static, zero runtime needed"
+    C: "Yes — but only with 'use client'"
+    D: "No — only works with Pages Router"
+  answer: B
+  explanation: "Tailwind classes are string literals — no runtime, no hooks, no JavaScript execution needed. Fully RSC-compatible in any framework."
+  difficulty: 2
+  tags: [concept]
+
+- id: "6.9"
+  question: "A component has 20+ Tailwind classes with responsive prefixes, dark mode, and hover states. Best refactoring approach?"
+  options:
+    A: "Switch to CSS Modules"
+    B: "Extract sub-components for each section"
+    C: "Add more Tailwind classes"
+    D: "Use inline styles"
+  answer: B
+  explanation: "Extract logical sub-components. Each gets its own className with fewer classes. Also consider cva for variant-heavy components. Not an either/or with Tailwind."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "6.10"
+  question: "What happens when you dynamically construct a class name: className={`bg-${color}-500`}?"
+  options:
+    A: "Always works — Tailwind supports dynamic classes"
+    B: "May fail — JIT can't scan dynamic expressions, class may not be generated"
+    C: "Throws compile error"
+    D: "Generates all possible color variants"
+  answer: B
+  explanation: "JIT scans source files as strings. It reads className='bg-blue-500' but can't evaluate bg-${color}-500. If color='blue' at runtime, the class may not exist. Use full class names or safelist."
+  difficulty: 3
+  tags: [application]

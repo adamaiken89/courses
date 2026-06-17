@@ -1,0 +1,71 @@
+- id: "10.1"
+  question: "Container query vs media query — what does each respond to?"
+  options:
+    A: "Media = viewport, Container = parent element size"
+    B: "Media = element size, Container = viewport"
+    C: "Both respond to viewport but container queries are faster"
+    D: "Container queries need JavaScript"
+  answer: A
+  explanation: "Media queries check viewport dimensions. Container queries check the nearest container element's size."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "10.2"
+  question: "Which CSS property creates a containment context?"
+  options:
+    A: "display: contain"
+    B: "container-type: inline-size"
+    C: "contain: layout"
+    D: "isolation: isolate"
+  answer: B
+  explanation: "container-type: inline-size creates a containment context on inline (width) size. Children can use @container queries against this context."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "10.3"
+  question: "A ProductCard renders in a 4-column grid and a sidebar. How do container queries help?"
+  options:
+    A: "Card adapts to available width without media query props"
+    B: "Card automatically switches to a different component"
+    C: "Nothing — use media queries instead"
+    D: "Container queries only work on images"
+  answer: A
+  explanation: "Card uses @container to detect its own width. In the grid (wide), it renders row layout. In sidebar (narrow), column layout. No variant props needed."
+  difficulty: 2
+  tags: [concept]
+
+- id: "10.4"
+  question: "What does 50cqi represent?"
+  options:
+    A: "50% of container width"
+    B: "50 characters of container text"
+    C: "50% of viewport"
+    D: "50px container inset"
+  answer: A
+  explanation: "cqi = container query inline unit. 50cqi = 50% of the container's inline size (width in horizontal writing mode)."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "10.5"
+  question: "Should container queries replace media queries entirely?"
+  options:
+    A: "Yes — container queries are superior"
+    B: "No — media queries for page layout, container for component adaptation"
+    C: "No — media queries are faster"
+    D: "Yes — browser vendors recommend this"
+  answer: B
+  explanation: "Media queries handle page-level layout (sidebar collapse, grid columns). Container queries handle component-level adaptation. Both needed."
+  difficulty: 2
+  tags: [concept]
+
+- id: "10.6"
+  question: "When would container queries add no value?"
+  options:
+    A: "Component renders in multiple layout contexts"
+    B: "Component always renders at same width"
+    C: "Component uses flexbox internally"
+    D: "Component is a button"
+  answer: B
+  explanation: "If component always has the same container width, container query is unnecessary. Media query or static CSS suffices."
+  difficulty: 2
+  tags: [scenario]

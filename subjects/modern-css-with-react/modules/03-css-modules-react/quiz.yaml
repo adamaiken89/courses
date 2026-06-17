@@ -1,0 +1,119 @@
+- id: "3.1"
+  question: "What does importing a CSS Module file produce?"
+  options:
+    A: "A string of CSS"
+    B: "An object mapping original class names to unique generated names"
+    C: "A StyleSheet object"
+    D: "Nothing — CSS Modules have no import value"
+  answer: B
+  explanation: "CSS Modules compile each file to an exports object: { originalName: 'File_originalName_hash' }. React uses this object for scoped class references."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "3.2"
+  question: "How do you apply a conditional variant in CSS Modules?"
+  options:
+    A: "Inline style — style={{ variant: 'primary' }}"
+    B: "clsx(styles.base, isPrimary && styles.primary)"
+    C: "styles['variant-primary']"
+    D: "CSS Module object spread"
+  answer: B
+  explanation: "CSS Modules export strings. Combine with clsx for conditional class composition — same pattern as plain CSS but using scoped class names."
+  difficulty: 1
+  tags: [application]
+
+- id: "3.3"
+  question: "In Next.js App Router, where can you import a CSS Module?"
+  options:
+    A: "Only in layout.tsx"
+    B: "Any Server or Client component"
+    C: "Only Client components"
+    D: "Only page.tsx files"
+  answer: B
+  explanation: "CSS Modules work in both Server and Client components because they are build-time only — no JavaScript runtime needed, no 'use client' required."
+  difficulty: 2
+  tags: [concept]
+
+- id: "3.4"
+  question: "Two files — Button.module.css and Card.module.css — both define class .base. What happens?"
+  options:
+    A: "Build error — duplicate class names"
+    B: "Last imported wins (cascade)"
+    C: "No conflict — each gets unique hashed name"
+    D: "Runtime error when both render"
+  answer: C
+  explanation: "CSS Modules generate unique class names per file. .base in Button → .Button_base_hash1. .base in Card → .Card_base_hash2. No cascade conflict."
+  difficulty: 1
+  tags: [concept]
+
+- id: "3.5"
+  question: "How do you apply a truly dynamic value (e.g., progress bar width from API) with CSS Modules?"
+  options:
+    A: "Generate CSS Module at runtime"
+    B: "Use inline style prop: style={{ width: `${percent}%` }}"
+    C: "Use composes with dynamic value"
+    D: "CSS Modules cannot handle this — switch to CSS-in-JS"
+  answer: B
+  explanation: "CSS Modules are build-time static. Dynamic runtime values (position, size, color from data) belong in inline style prop. CSS Modules for structural/static classes."
+  difficulty: 2
+  tags: [application]
+
+- id: "3.6"
+  question: "What does CSS Modules `composes` do?"
+  options:
+    A: "Compiles multiple CSS files into one"
+    B: "Applies another class from the same file alongside the current one"
+    C: "Combines two components' styles"
+    D: "Creates a CSS variable reference"
+  answer: B
+  explanation: "composes: heading; in .headingLarge adds .heading class alongside .headingLarge in the DOM. In-file reuse only — avoid cross-file composes."
+  difficulty: 2
+  tags: [terminology]
+
+- id: "3.7"
+  question: "What's the difference between `import './styles.css'` and `import styles from './Component.module.css'`?"
+  options:
+    A: "First imports globally, second imports scoped with object mapping"
+    B: "Both import the same — just different file extension"
+    C: "First is for CSS Modules, second for plain CSS"
+    D: "No difference — both are global"
+  answer: A
+  explanation: "Plain CSS import adds global rules. CSS Module import returns scoped class mapping object. Different syntax, different scoping behavior."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "3.8"
+  question: "You need to style a child that's rendered by a different component. Which CSS Modules approach works?"
+  options:
+    A: "Parent targets child's CSS Module class via :global"
+    B: "Parent passes className prop to child"
+    C: "Use composes from parent's module"
+    D: "All of the above are valid approaches"
+  answer: D
+  explanation: "(A) :global(.child-class) targets child's class globally. (B) Passing className as prop is the React-recommended composition approach. (C) composes only works within same file. A and B are practical."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "3.9"
+  question: "A large app uses CSS Modules. Team finds .module.css files growing repetitive. Which solution aligns with CSS Modules philosophy?"
+  options:
+    A: "Switch to styled-components"
+    B: "Extract shared styles into base CSS Module files and use composes"
+    C: "Use Sass @mixin across modules"
+    D: "Inline all styles"
+  answer: B
+  explanation: "Shared CSS Module base files with composes for reuse — keeps zero runtime, stays within CSS Modules paradigm. Avoids dependency on CSS-in-JS runtime."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "3.10"
+  question: "True or False: CSS Modules cannot be used with React Server Components because they need client-side JavaScript."
+  options:
+    A: "True — CSS Modules require JS to resolve"
+    B: "False — CSS Modules are build-time only, work in RSC"
+    C: "True — only Tailwind works in RSC"
+    D: "False — but only in Next.js"
+  answer: B
+  explanation: "CSS Modules compile to static CSS at build time. No JavaScript executes for style resolution. Fully compatible with RSC in any framework."
+  difficulty: 2
+  tags: [concept]

@@ -1,0 +1,119 @@
+- id: "5.1"
+  question: "When does Vanilla Extract process .css.ts files?"
+  options:
+    A: "At runtime in the browser"
+    B: "At build time during compilation"
+    C: "On every React render"
+    D: "During SSR only"
+  answer: B
+  explanation: "Vanilla Extract reads .css.ts files at build time in Node.js, extracts style objects, and generates static CSS files. No processing happens in the browser."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "5.2"
+  question: "Can Vanilla Extract components be used in React Server Components?"
+  options:
+    A: "No — needs client-side JS"
+    B: "Yes — styles extracted at build, no runtime needed"
+    C: "Yes — but only with 'use client'"
+    D: "No — only works with Pages Router"
+  answer: B
+  explanation: "Vanilla Extract class names are static strings at build time. No hooks, no context, no runtime — fully compatible with RSC without 'use client'."
+  difficulty: 2
+  tags: [concept]
+
+- id: "5.3"
+  question: "How does Vanilla Extract handle dynamic variant props vs styled-components?"
+  options:
+    A: "Cannot handle variants — use inline styles"
+    B: "Uses recipe() which returns class names based on variant object"
+    C: "Same API as styled-components — template literals with prop interpolation"
+    D: "Generates a separate CSS file per variant at runtime"
+  answer: B
+  explanation: "recipe() defines variants as static style objects. At build time, it generates class names for each variant combination. Runtime: recipe({ variant: 'primary' }) returns the pre-generated class string."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "5.4"
+  question: "How do you apply truly dynamic runtime values (e.g., progress percentage) in Vanilla Extract?"
+  options:
+    A: "Inline style prop — style={{ width: `${percent}%` }}"
+    B: "Dynamic recipe variant"
+    C: "Runtime .css.ts re-execution"
+    D: "Cannot — Vanilla Extract is static only"
+  answer: A
+  explanation: "Build-time CSS handles static styles. Runtime-dynamic values (position, dimensions from API) use inline style prop. Same pattern as CSS Modules."
+  difficulty: 2
+  tags: [application]
+
+- id: "5.5"
+  question: "What is Vanilla Extract Sprinkles?"
+  options:
+    A: "A CSS framework like Bootstrap"
+    B: "A runtime animation library"
+    C: "A type-safe atomic CSS generation system"
+    D: "A CSS reset tool"
+  answer: C
+  explanation: "Sprinkles generates typed utility classes for properties like padding, margin, colors — like Tailwind utilities but with TypeScript validation and custom design tokens."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "5.6"
+  question: "What advantage does Vanilla Extract have over CSS Modules for TypeScript codebases?"
+  options:
+    A: "Smaller bundle size"
+    B: "Typed exports — invalid class names are compile errors"
+    C: "Faster build times"
+    D: "No advantage — they are identical"
+  answer: B
+  explanation: "CSS Modules export { [key: string]: string } — any key is valid at TS level. Vanilla Extract exports typed class name strings — missing export = compile error."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "5.7"
+  question: "What happens at build time when Vanilla Extract encounters recipe({ variants: { color: { red: { background: 'red' }, blue: { background: 'blue' } } } })?"
+  options:
+    A: "Nothing — recipes are runtime-only"
+    B: "Generates two CSS classes: red/blue variants"
+    C: "Generates one class with CSS variable"
+    D: "Throws error — recipes not supported"
+  answer: B
+  explanation: "Build time: Vanilla Extract reads recipe definition, generates one unique class per variant value ({ red → .recipe_red_hash, blue → .recipe_blue_hash }). Runtime: recipe({ color: 'red' }) returns combined class string."
+  difficulty: 2
+  tags: [concept]
+
+- id: "5.8"
+  question: "Which zero-runtime CSS-in-JS library was created by Meta (Facebook)?"
+  options:
+    A: "Vanilla Extract"
+    B: "PandaCSS"
+    C: "StyleX"
+    D: "Linaria"
+  answer: C
+  explanation: "StyleX was created by Meta (Facebook) for their own use. It uses a Babel plugin for build-time extraction. Less community adoption than Vanilla Extract or PandaCSS."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "5.9"
+  question: "What is the bundle size impact of Vanilla Extract at runtime?"
+  options:
+    A: "~14 kB (same as styled-components)"
+    B: "~5 kB (minimal runtime)"
+    C: "0 kB — all styles extracted to CSS files"
+    D: "Depends on number of components"
+  answer: C
+  explanation: "Zero runtime. All styles are extracted to static .css files at build time. No JavaScript executes for style resolution in the browser."
+  difficulty: 1
+  tags: [concept]
+
+- id: "5.10"
+  question: "A team building a shared React component library needs: type safety, zero dependency, RSC compatibility, and multi-theme support. Which approach fits?"
+  options:
+    A: "styled-components (ThemeProvider)"
+    B: "Plain CSS (BEM)"
+    C: "Vanilla Extract (theme contracts + recipes)"
+    D: "Inline styles everywhere"
+  answer: C
+  explanation: "Vanilla Extract meets all requirements: typed (TS files), zero runtime (consumers install no JS), RSC-compatible (static class names), and theme contracts with createThemeContract/createTheme."
+  difficulty: 3
+  tags: [scenario]

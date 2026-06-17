@@ -1,0 +1,83 @@
+- id: "14.1"
+  question: "Why is CSS render-blocking a performance concern?"
+  options:
+    A: "CSS files are always large"
+    B: "Browser delays first paint until CSS is downloaded and parsed"
+    C: "CSS blocks JavaScript execution"
+    D: "CSS can't be cached"
+  answer: B
+  explanation: "CSS is a render-blocking resource. Browser won't paint until all CSS is loaded and parsed. Delaying first paint directly increases FCP."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "14.2"
+  question: "What does critical CSS inlining do?"
+  options:
+    A: "Puts all CSS in a single file"
+    B: "Inlines only above-the-fold styles in <head>, defers the rest"
+    C: "Removes all CSS from the page"
+    D: "Converts CSS to inline styles"
+  answer: B
+  explanation: "Extracts styles needed for initial viewport content, inlines them in <head> for immediate paint. Remaining CSS loads asynchronously."
+  difficulty: 1
+  tags: [concept]
+
+- id: "14.3"
+  question: "Which CSS approach automatically code-splits per lazy-loaded component?"
+  options:
+    A: "Runtime CSS-in-JS"
+    B: "CSS Modules"
+    C: "Tailwind (single file)"
+    D: "Sass (single file)"
+  answer: B
+  explanation: "CSS Modules bundle tools generate separate CSS per component/lazy chunk. Loads only when component loads. Runtime CSS-in-JS and Tailwind single file load all at once."
+  difficulty: 2
+  tags: [concept]
+
+- id: "14.4"
+  question: "What does content-visibility: auto do?"
+  options:
+    A: "Makes content invisible"
+    B: "Skips rendering of off-screen elements"
+    C: "Hides content for search engines"
+    D: "Automatically generates CSS"
+  answer: B
+  explanation: "Browser only renders elements near viewport. Off-screen elements skip rendering until scrolled near. contain-intrinsic-size reserves placeholder space."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "14.5"
+  question: "Which CSS approaches contribute ZERO CSS to the JavaScript bundle?"
+  options:
+    A: "Plain CSS, CSS Modules, Tailwind, Vanilla Extract"
+    B: "Runtime CSS-in-JS only"
+    C: "All approaches include CSS in JS bundle"
+    D: "Only plain CSS has zero JS bundle"
+  answer: A
+  explanation: "Plain CSS, CSS Modules, Tailwind, and Vanilla Extract all output separate .css files. Runtime CSS-in-JS keeps CSS strings in the JS bundle."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "14.6"
+  question: "How do you avoid layout shift (CLS) when images load?"
+  options:
+    A: "Set explicit width/height attributes on <img>"
+    B: "Use CSS display: none initially"
+    C: "Load images with JavaScript after paint"
+    D: "CLS is unavoidable"
+  answer: A
+  explanation: "Set width and height attributes or CSS aspect-ratio. Browser reserves the space before image loads, preventing layout shift when image arrives."
+  difficulty: 1
+  tags: [application]
+
+- id: "14.7"
+  question: "Tailwind JIT output for a 10-page app is typically:"
+  options:
+    A: "50-100 kB — all utilities ever generated"
+    B: "5-15 kB gzip — only used utilities"
+    C: "0 kB — Tailwind has no CSS output"
+    D: "Same as authored Tailwind classes size"
+  answer: B
+  explanation: "JIT generates only utilities found in source files. 5-15 kB gzip is typical for most apps. Much smaller than hand-written CSS with similar coverage."
+  difficulty: 2
+  tags: [concept]

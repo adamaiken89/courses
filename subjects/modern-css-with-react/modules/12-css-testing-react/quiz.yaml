@@ -1,0 +1,83 @@
+- id: "12.1"
+  question: "What do visual regression tests compare?"
+  options:
+    A: "CSS property values"
+    B: "Component screenshots against golden baselines"
+    C: "Class name strings"
+    D: "Bundle size"
+  answer: B
+  explanation: "VRT captures screenshots of components and compares to stored baselines. Any pixel difference fails the test."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "12.2"
+  question: "When a visual regression test fails, what's the correct response?"
+  options:
+    A: "Update golden snapshot if the visual change is intentional"
+    B: "Revert the code change"
+    C: "Ignore — tests are flaky"
+    D: "Delete the snapshot"
+  answer: A
+  explanation: "Review the diff. If intentional (design change), update baseline. If unintentional (bug caused visual change), fix the code."
+  difficulty: 2
+  tags: [concept]
+
+- id: "12.3"
+  question: "What should you NOT test in CSS unit tests?"
+  options:
+    A: "Conditional class merging logic"
+    B: "Variant selection (correct class for variant)"
+    C: "Browser rendering of display: flex"
+    D: "twMerge conflict resolution"
+  answer: C
+  explanation: "Trust the browser's CSS engine. Testing that display: flex works is testing the browser, not your code. Test your component's variant logic and class merging."
+  difficulty: 2
+  tags: [concept]
+
+- id: "12.4"
+  question: "Which tool provides automated accessibility audits?"
+  options:
+    A: "Playwright only"
+    B: "axe-core"
+    C: "Tailwind CSS"
+    D: "clsx"
+  answer: B
+  explanation: "axe-core automates accessibility checks: contrast ratios, ARIA roles, keyboard navigation, focus indicators. Integrates with Playwright or Cypress."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "12.5"
+  question: "How do you test responsive breakpoint behavior?"
+  options:
+    A: "Assert grid-template-columns at different viewport sizes"
+    B: "Take screenshots at every breakpoint"
+    C: "Mock window.innerWidth"
+    D: "Responsive behavior is untestable"
+  answer: A
+  explanation: "Set viewport size with page.setViewportSize(), assert CSS property values like grid-template-columns or flex-direction at each breakpoint."
+  difficulty: 2
+  tags: [application]
+
+- id: "12.6"
+  question: "A Button changes primary bg from blue to green. What tests catch this?"
+  options:
+    A: "Unit test — expect(BUTTON.bg).toBe('green')"
+    B: "Visual regression — screenshot comparison shows diff"
+    C: "TypeScript — color type changed"
+    D: "Bundle analysis — CSS file size changed"
+  answer: B
+  explanation: "VRT catches the visual change automatically. Unit test testing specific color values would need manual update — VRT surfaces ALL visual diffs regardless of which property changed."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "12.7"
+  question: "Why should you NOT test generated CSS Module class names?"
+  options:
+    A: "Class names are hashed — change with every build"
+    B: "They are never visible to users"
+    C: "CSS Modules don't generate class names"
+    D: "They are not strings"
+  answer: A
+  explanation: "CSS Module class names include content hashes that change when CSS changes. Testing the exact hash is brittle. Test behavior or visual output instead."
+  difficulty: 2
+  tags: [concept]

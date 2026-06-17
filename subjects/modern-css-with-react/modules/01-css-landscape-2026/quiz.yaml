@@ -1,0 +1,119 @@
+- id: "1.1"
+  question: "Which CSS approach for React has ZERO runtime cost in the browser?"
+  options:
+    A: "styled-components"
+    B: "Emotion"
+    C: "CSS Modules"
+    D: "Runtime CSS-in-JS"
+  answer: C
+  explanation: "CSS Modules are compiled at build time. Generated CSS file is loaded as static asset — no JavaScript runtime executes to apply styles."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "1.2"
+  question: "Your Next.js App Router app uses React Server Components. Which approach requires `'use client'` for every styled component?"
+  options:
+    A: "CSS Modules"
+    B: "Tailwind CSS"
+    C: "styled-components"
+    D: "Vanilla Extract"
+  answer: C
+  explanation: "Runtime CSS-in-JS (styled-components, Emotion) injects styles via JavaScript in browser — incompatible with RSC's server-only execution. Must use 'use client'."
+  difficulty: 2
+  tags: [concept]
+
+- id: "1.3"
+  question: "A teammate says 'I need CSS-in-JS to make styles dynamic based on props.' What's the correct response?"
+  options:
+    A: "True — only CSS-in-JS can read React props"
+    B: "False — class composition with clsx achieves the same"
+    C: "True — but only styled-components supports this"
+    D: "False — inline styles are the only alternative"
+  answer: B
+  explanation: "Dynamic styles in React = conditional class toggling. clsx(styles.base, props.variant && styles[props.variant]) works with any CSS approach and costs zero runtime."
+  difficulty: 2
+  tags: [misconception]
+
+- id: "1.4"
+  question: "A team has 50 React components, Sass + BEM, migrating to Next.js App Router. They want to keep existing investment. Which approach fits best?"
+  options:
+    A: "Rewrite everything in Tailwind"
+    B: "Keep Sass for migrated pages, CSS Modules for new RSC components"
+    C: "Switch to styled-components for SSR"
+    D: "Convert all Sass to Vanilla Extract"
+  answer: B
+  explanation: "Incremental migration preserves existing Sass work. New RSC components use CSS Modules (zero-cost, RSC-compatible). Avoids full rewrite risk."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "1.5"
+  question: "Which approach is seeing growth in 2026 because it gives CSS-in-JJ syntax with zero runtime?"
+  options:
+    A: "Styled-components"
+    B: "Plain CSS"
+    C: "Vanilla Extract"
+    D: "Sass"
+  answer: C
+  explanation: "Vanilla Extract reads .css.ts files at build time and outputs static CSS. TypeScript-first, zero runtime, RSC-compatible."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "1.6"
+  question: "What problem does the native `@scope` CSS rule solve?"
+  options:
+    A: "Variable scoping in CSS"
+    B: "Component-level CSS scoping without tooling"
+    C: "Scoped animations"
+    D: "Scoped font loading"
+  answer: B
+  explanation: "@scope(.card) { ... } limits CSS rules to elements matching the scope root and its descendants — native scoping without CSS Modules or naming conventions."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "1.7"
+  question: "Approach A: 0 kB runtime, RSC-compatible, no auto-scoping. Approach B: 0 kB runtime, RSC-compatible, auto-scoped. Identify A and B."
+  options:
+    A: "A = Plain CSS, B = Tailwind"
+    B: "A = Plain CSS, B = CSS Modules"
+    C: "A = CSS Modules, B = Plain CSS"
+    D: "A = Tailwind, B = Plain CSS"
+  answer: B
+  explanation: "Both have zero runtime. Plain CSS lacks auto-scoping (global by default). CSS Modules auto-generate unique class names. Tailwind has ~0.5 kB runtime for resets."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "1.8"
+  question: "Which decision axis matters MOST for choosing a CSS approach in 2026 React apps?"
+  options:
+    A: "Syntax preference"
+    B: "RSC / Server Component compatibility"
+    C: "Number of colors available"
+    D: "File extension"
+  answer: B
+  explanation: "RSC compatibility cascades into runtime cost, bundle strategy, and component architecture. 2026 React is server-first; approaches that require client JS for styling lose most RSC benefits."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "1.9"
+  question: "How does zero-runtime CSS-in-JS differ from runtime CSS-in-JS in bundle impact?"
+  options:
+    A: "Both add the same runtime"
+    B: "Zero-runtime extracts styles to separate CSS files at build time; runtime injects via JS"
+    C: "Runtime is smaller because it compresses styles"
+    D: "Zero-runtime only works in development"
+  answer: B
+  explanation: "Runtime CSS-in-JS keeps style strings in JS bundle and injects via script. Zero-runtime generates static .css files during build, loaded separately — styles never touch JS bundle."
+  difficulty: 1
+  tags: [concept]
+
+- id: "1.10"
+  question: "You're building a React component library consumed by 5 internal apps. Which approach is most appropriate?"
+  options:
+    A: "styled-components (ThemeProvider for all apps)"
+    B: "Tailwind (each app uses same config)"
+    C: "Vanilla Extract (zero runtime, typed, CSS custom properties for theming)"
+    D: "Global Sass (single stylesheet for all)"
+  answer: C
+  explanation: "Component libraries should impose zero runtime cost on consumers. Vanilla Extract extracts at build time, enforces type safety, and CSS custom properties let consumers theme without dependency on a specific JS library."
+  difficulty: 3
+  tags: [scenario]

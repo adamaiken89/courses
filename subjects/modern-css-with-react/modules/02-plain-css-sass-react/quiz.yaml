@@ -1,0 +1,119 @@
+- id: "2.1"
+  question: "In React, importing a CSS file in ComponentA.tsx affects:"
+  options:
+    A: "Only ComponentA"
+    B: "ComponentA and its children"
+    C: "The entire page/document"
+    D: "Only sibling components"
+  answer: C
+  explanation: "CSS in React is globally scoped regardless of which import triggers the load. Any CSS import affects the entire document."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "2.2"
+  question: "What does BEM's double underscore (__) represent?"
+  options:
+    A: "A modifier variant"
+    B: "An element (child of block)"
+    C: "A nested block"
+    D: "A CSS pseudo-class"
+  answer: B
+  explanation: "BEM convention: block__element. Example: button__icon means 'icon element inside button block'. block--modifier for variants."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "2.3"
+  question: "Which Sass feature creates invisible cross-component coupling in React?"
+  options:
+    A: "Mixins"
+    B: "Variables"
+    C: "@extend"
+    D: "Nesting"
+  answer: C
+  explanation: "@extend moves selectors to the extended rule's location. If Component A extends a placeholder from Component B's stylesheet, removing B breaks A. Styles become non-local."
+  difficulty: 2
+  tags: [concept]
+
+- id: "2.4"
+  question: "A Sass variable $color-primary: #0366d6 is defined. How does it appear in the browser's final CSS?"
+  options:
+    A: "As $color-primary preserved in CSS"
+    B: "As var(--color-primary)"
+    C: "As the compiled value #0366d6"
+    D: "Undefined — Sass doesn't compile"
+  answer: C
+  explanation: "Sass variables are compile-time only. They get replaced with their literal value during build. Browser sees #0366d6, not $color-primary."
+  difficulty: 1
+  tags: [concept]
+
+- id: "2.5"
+  question: "In Next.js App Router, where should global CSS be imported?"
+  options:
+    A: "Any page.tsx"
+    B: "Any component.tsx"
+    C: "Only root layout.tsx"
+    D: "Only app/global.css"
+  answer: C
+  explanation: "App Router restricts global CSS imports to the root layout. Per-page global CSS is not supported — component CSS must be scoped (CSS Modules) or utility-based (Tailwind)."
+  difficulty: 2
+  tags: [concept]
+
+- id: "2.6"
+  question: "Which scenario is a GOOD fit for plain CSS/Sass in React?"
+  options:
+    A: "Component library consumed by 10 external apps"
+    B: "Large team (30 devs) building new features daily"
+    C: "Legacy codebase with existing Sass design tokens"
+    D: "RSC-first greenfield Next.js app"
+  answer: C
+  explanation: "Legacy codebases with Sass investment benefit from incremental migration. New apps, large teams, library distribution, and RSC apps benefit from scoped CSS approaches."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "2.7"
+  question: "CSS specificity: .card .header .title .icon { color: blue; }. What specificity value is this?"
+  options:
+    A: "0,1,0,0"
+    B: "0,4,0,0"
+    C: "0,0,4,0"
+    D: "0,1,4,0"
+  answer: C
+  explanation: "Four classes = 0,0,4,0 (0 inline, 0 IDs, 4 classes, 0 elements). Deep nesting generates high specificity that later rules struggle to override without !important."
+  difficulty: 2
+  tags: [calculation]
+
+- id: "2.8"
+  question: "You need runtime theme switching (light/dark). Can Sass variables handle this alone?"
+  options:
+    A: "Yes — Sass compiles to CSS, browser reads variables"
+    B: "No — Sass compiles away, cannot change at runtime"
+    C: "Yes — use @media prefers-color-scheme"
+    D: "No — Sass only works in development"
+  answer: B
+  explanation: "Sass variables are replaced with static values at build time. Runtime theme switching needs CSS custom properties (var(--color-bg)) which browser evaluates live."
+  difficulty: 2
+  tags: [concept]
+
+- id: "2.9"
+  question: "A dev writes button { padding: 8px 16px; } in a global stylesheet. Which problem occurs first at scale?"
+  options:
+    A: "Performance — selector is too specific"
+    B: "Naming collision — another .button rule overrides unexpectedly"
+    C: "Syntax error — padding shorthand not supported"
+    D: "React re-renders on every style change"
+  answer: B
+  explanation: "Global .button class affects every component rendering a button. Another component's .button style overrides via cascade order. No isolation means collisions are inevitable with scale."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "2.10"
+  question: "What's the recommended nesting depth limit for Sass in React components?"
+  options:
+    A: "No limit — use as many levels as component tree"
+    B: "Maximum 1 level per component"
+    C: "Maximum 3 levels per component"
+    D: "Maximum 5 levels per component"
+  answer: B
+  explanation: "Sass nesting reflects CSS specificity, not component hierarchy. One level per component keeps specificity low. Exceeding 3 levels indicates you need a child component, not deeper nesting."
+  difficulty: 2
+  tags: [concept]

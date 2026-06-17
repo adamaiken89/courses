@@ -1,0 +1,83 @@
+- id: "13.1"
+  question: "What does clsx do?"
+  options:
+    A: "Resolves conflicting Tailwind classes"
+    B: "Builds class strings from conditional values"
+    C: "Generates CSS Module types"
+    D: "Minifies CSS class names"
+  answer: B
+  explanation: "clsx takes strings, arrays, objects, and boolean conditions, returning a single className string. 'btn' && 'active' → 'btn active' or 'btn'."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "13.2"
+  question: "clsx vs classnames — which is preferred for new projects?"
+  options:
+    A: "classnames — it's older and more stable"
+    B: "clsx — smaller (~228 B vs ~428 B), same functionality"
+    C: "Both — use interchangeably"
+    D: "Neither — always use twMerge"
+  answer: B
+  explanation: "clsx is ~200 B smaller with the same API. classnames is legacy. For new projects, clsx is the standard."
+  difficulty: 1
+  tags: [comparison]
+
+- id: "13.3"
+  question: "What problem does twMerge solve that clsx doesn't?"
+  options:
+    A: "Merging objects"
+    B: "Resolving conflicting Tailwind utility classes"
+    C: "Booleans in class strings"
+    D: "Array class inputs"
+  answer: B
+  explanation: "clsx concatenates — 'px-4 px-6' remains both classes. twMerge detects conflicts and keeps only the last (intended) value. Different purposes."
+  difficulty: 2
+  tags: [concept]
+
+- id: "13.4"
+  question: "When should twMerge be used?"
+  options:
+    A: "Every className in the app"
+    B: "Component APIs that accept consumer className overrides"
+    C: "Only with styled-components"
+    D: "Never — clsx is sufficient"
+  answer: B
+  explanation: "twMerge at the component boundary where consumer className merges with defaults. Internal components don't need it. Adds 6 kB — don't use without need."
+  difficulty: 2
+  tags: [application]
+
+- id: "13.5"
+  question: "cva provides what feature?"
+  options:
+    A: "CSS variable management"
+    B: "Type-safe component variant definitions"
+    C: "CSS Module compilation"
+    D: "Tailwind config generation"
+  answer: B
+  explanation: "cva defines variants with TypeScript types. Invalid variant name → compile error. Useful for multi-variant components."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "13.6"
+  question: "A component needs: variant prop (3 values) + size prop (3 values) + consumer className override. What's the tool stack?"
+  options:
+    A: "cva + twMerge"
+    B: "clsx only"
+    C: "classnames + twMerge"
+    D: "Inline conditional operators"
+  answer: A
+  explanation: "cva defines variants (type-safe). twMerge merges variant class string with consumer className. clsx could also be needed for additional runtime conditions."
+  difficulty: 2
+  tags: [application]
+
+- id: "13.7"
+  question: "Bundle cost of clsx + twMerge + cva together?"
+  options:
+    A: "~7.5 kB gzip"
+    B: "~30 kB gzip"
+    C: "~1 kB gzip"
+    D: "~15 kB gzip"
+  answer: A
+  explanation: "clsx (228 B) + twMerge (6 kB) + cva (1.3 kB) = ~7.5 kB gzip total. Modest cost for significant DX improvement."
+  difficulty: 2
+  tags: [calculation]

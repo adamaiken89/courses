@@ -1,0 +1,95 @@
+- id: "15.1"
+  question: "Which CSS approach is best for a shared component library consumed by apps with different frameworks?"
+  options:
+    A: "styled-components (ThemeProvider)"
+    B: "CSS Modules + CSS custom properties"
+    C: "Tailwind (requires consumer to use Tailwind)"
+    D: "Global Sass"
+  answer: B
+  explanation: "CSS Modules scope styles, CSS custom properties enable theming. Zero dependencies on consumer. Works with React, Vue, Angular — any framework that supports CSS."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "15.2"
+  question: "In the capstone architecture, how do consumers customize component colors?"
+  options:
+    A: "Pass theme object to ThemeProvider"
+    B: "Override CSS custom properties in their stylesheet"
+    C: "Pass color prop to every component"
+    D: "Modify library source code"
+  answer: B
+  explanation: "Library exposes --ds-color-* variables. Consumer overrides: :root { --ds-color-primary: #purple; }. No React code changes."
+  difficulty: 2
+  tags: [application]
+
+- id: "15.3"
+  question: "Why does the capstone use cva + twMerge instead of just cva?"
+  options:
+    A: "cva doesn't work without twMerge"
+    B: "twMerge lets consumers override variant classes via className prop"
+    C: "cva generates conflicting classes"
+    D: "twMerge replaces cva entirely"
+  answer: B
+  explanation: "cva handles variant selection. twMerge merges variant class string with consumer's className, resolving conflicts predictably."
+  difficulty: 2
+  tags: [concept]
+
+- id: "15.4"
+  question: "How does the capstone Card component respond to narrow containers?"
+  options:
+    A: "Accepts a variant prop"
+    B: "Uses @container query to detect width"
+    C: "Uses React Context for width"
+    D: "ResizeObserver hook"
+  answer: B
+  explanation: "container-type: inline-size on .card + @container (max-width: 300px) reduces padding. No JavaScript, no prop — native CSS responsiveness."
+  difficulty: 1
+  tags: [application]
+
+- id: "15.5"
+  question: "What would change if the library targeted internal use only (one team, one framework)?"
+  options:
+    A: "Nothing — same architecture"
+    B: "Could use Tailwind — no cross-framework concern"
+    C: "Must still avoid all dependencies"
+    D: "Switch to inline styles"
+  answer: B
+  explanation: "Internal single-framework library removes cross-compatibility constraint. Tailwind, Vanilla Extract, or styled-components all viable."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "15.6"
+  question: "Capstone testing approach includes:"
+  options:
+    A: "Unit tests for variant logic only"
+    B: "VRT for visual regression + a11y audit"
+    C: "No tests — trust the CSS"
+    D: "Only TypeScript compilation checks"
+  answer: B
+  explanation: "VRT (Playwright/Chromatic) for visual diffs. axe-core for a11y. Unit tests for variant/class merging. Integration tests for responsive behavior."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "15.7"
+  question: "What makes the capstone's CSS approach 'RSC-compatible'?"
+  options:
+    A: "It uses 'use client' on every component"
+    B: "CSS Modules are build-time — no JavaScript for styles"
+    C: "It avoids CSS entirely"
+    D: "Components are server-only"
+  answer: B
+  explanation: "CSS Modules produce static CSS files. No runtime style injection, no hooks, no context. Components can be Server or Client components freely."
+  difficulty: 2
+  tags: [concept]
+
+- id: "15.8"
+  question: "If you needed Vue AND React support for the library, which approach becomes problematic?"
+  options:
+    A: "CSS Modules"
+    B: "CSS custom properties"
+    C: "cva (class-variance-authority)"
+    D: "Container queries"
+  answer: C
+  explanation: "cva is a JavaScript library — only available in JS/TS projects. CSS Modules and custom properties work universally. Container queries are CSS-native."
+  difficulty: 3
+  tags: [scenario]
