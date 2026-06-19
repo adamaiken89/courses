@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "What is a supergraph in Apollo Federation?"
+    options:
+      - label: A
+        text: "A single GraphQL schema that aggregates subgraph schemas into one unified endpoint"
+      - label: B
+        text: "A database that stores all GraphQL types"
+      - label: C
+        text: "A monitoring tool for GraphQL performance"
+      - label: D
+        text: "A client-side cache for federated queries"
+    correctOption: A
+    explanation: "Supergraph is the composed schema from all subgraphs. Router exposes supergraph as single endpoint. Clients query it directly, unaware of subgraph boundaries."
+
+  - id: 2
+    type: recall
+    question: "Which language is the Apollo Router written in?"
+    options:
+      - label: A
+        text: "Node.js / TypeScript"
+      - label: B
+        text: "Rust"
+      - label: C
+        text: "Go"
+      - label: D
+        text: "Python"
+    correctOption: B
+    explanation: "Apollo Router is built in Rust for high performance (~50x faster than Gateway). Apollo Gateway is the Node.js/TypeScript alternative."
+
+  - id: 3
+    type: application
+    question: "Two subgraphs define `User.email`. Subgraph A says `email: String!`. Subgraph B says `email: String`. What happens during composition?"
+    options:
+      - label: A
+        text: "Composition succeeds, merges as `String!` (non-null wins)"
+      - label: B
+        text: "Composition succeeds, merges as `String` (nullable wins)"
+      - label: C
+        text: "Composition fails — type mismatch (String! ≠ String)"
+      - label: D
+        text: "Composition succeeds, router picks one at runtime"
+    correctOption: C
+    explanation: "Nullable vs non-null is a type difference. Composition requires exact type match. Safe failure guards against runtime null pointer errors."
+
+  - id: 4
+    type: recall
+    question: "What is the purpose of the @shareable directive?"
+    options:
+      - label: A
+        text: "Marks a field as accessible to all users"
+      - label: B
+        text: "Indicates a field can be resolved by multiple subgraphs"
+      - label: C
+        text: "Shares the field's resolver logic across services"
+      - label: D
+        text: "Copies the field value to all subgraphs"
+    correctOption: B
+    explanation: "@shareable signals router that multiple subgraphs can resolve this field. Router picks one at query time. Reduces cross-subgraph calls."
+
+  - id: 5
+    type: multi-step
+    question: "During migration, Products subgraph has `Product.name`. Search subgraph needs it temporarily with @override(from: \"search\"). What is the correct migration sequence?"
+    options:
+      - label: A
+        text: "Remove name from Products → add name to Search with @override → deploy"
+      - label: B
+        text: "Add name to Search with @override(from: \"search\") → deploy → remove name from Products"
+      - label: C
+        text: "Add @shareable to both → deploy → add @override → deploy → remove from Products"
+      - label: D
+        text: "Duplicate name in both subgraphs → let composition merge automatically"
+    correctOption: B
+    explanation: "@override enables gradual migration. Add field to Search with @override first (Search's version wins). After verifying Search resolves correctly, remove the field from Products. No breaking intermediate state."
+
+  - id: 6
+    type: recall
+    question: "Which directive hides a field from the supergraph schema?"
+    options:
+      - label: A
+        text: "@private"
+      - label: B
+        text: "@inaccessible"
+      - label: C
+        text: "@hidden"
+      - label: D
+        text: "@internal"
+    correctOption: B
+    explanation: "@inaccessible keeps field in subgraph schema but removes from composed supergraph schema. Useful for fields needed by other subgraphs but not client-facing."
+
+  - id: 7
+    type: application
+    question: "A company has 3 engineers, 12 GraphQL types, and <50 req/s. Should they adopt Apollo Federation?"
+    options:
+      - label: A
+        text: "Yes — federation prepares them for future scalability"
+      - label: B
+        text: "No — operational overhead exceeds benefit for small team"
+      - label: C
+        text: "Yes — federation simplifies deployment"
+      - label: D
+        text: "No — federation only works with Apollo GraphOS"
+    correctOption: B
+    explanation: "3 engineers on 12 types = monolith fits. Federation adds deployment pipelines, schema coordination, distributed tracing. Start monolith, extract subgraphs when team or schema scales."
+
+  - id: 8
+    type: application
+    question: "An order subgraph needs `Product.price` at time of purchase. How should it model this?"
+    options:
+      - label: A
+        text: "Reference live price via @key on Product"
+      - label: B
+        text: "Store snapshot `priceAtPurchase` on OrderItem"
+      - label: C
+        text: "Query Products subgraph for price on every order read"
+      - label: D
+        text: "Cache Product.price locally in Orders DB"
+    correctOption: B
+    explanation: "Live price changes after order. Snapshot preserves order total. @key reference to live price would change historical order values. Snapshot = historical accuracy."
+
+  - id: 9
+    type: multi-step
+    question: "A developer runs `rover subgraph check` and it fails. What should they do?"
+    options:
+      - label: A
+        text: "Override check with --force flag and deploy anyway"
+      - label: B
+        text: "Fix schema to maintain backward compatibility, re-run check"
+      - label: C
+        text: "Ignore — check is advisory only"
+      - label: D
+        text: "Remove all subgraph schemas and re-compose from scratch"
+    correctOption: B
+    explanation: "Check detects breaking changes. Failure means new schema would break existing queries. Fix schema (make compatible), re-run check, then publish. CI should enforce check pass before deploy."
+
+  - id: 10
+    type: recall
+    question: "What design principle should guide subgraph boundary definition?"
+    options:
+      - label: A
+        text: "Database table boundaries — one subgraph per database"
+      - label: B
+        text: "DDD bounded contexts — each subgraph owns one domain concept"
+      - label: C
+        text: "Team size — one subgraph per 5 engineers"
+      - label: D
+        text: "HTTP method — one subgraph per CRUD operation"
+    correctOption: B
+    explanation: "Subgraph boundaries follow domain boundaries (bounded contexts), not database or HTTP structure. Users subgraph owns identity, Products owns catalog, Orders owns sales — each a coherent domain."

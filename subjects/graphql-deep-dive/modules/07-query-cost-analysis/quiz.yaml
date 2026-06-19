@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "What is the primary purpose of depth limiting in GraphQL?"
+    options:
+      - label: A
+        text: "Prevent SQL injection attacks"
+      - label: B
+        text: "Reject deeply nested queries that cause exponential resource usage"
+      - label: C
+        text: "Reduce network payload size"
+      - label: D
+        text: "Enforce authentication on nested fields"
+    correctOption: B
+    explanation: "Depth limiting caps the maximum nesting depth. Without it, deeply nested queries produce exponential node counts (b^d), overwhelming the server."
+
+  - id: 2
+    type: recall
+    question: "In complexity scoring, what do multipliers represent?"
+    options:
+      - label: A
+        text: "Number of database queries per field"
+      - label: B
+        text: "Arguments that scale the cost linearly with their value"
+      - label: C
+        text: "Server CPU cores needed"
+      - label: D
+        text: "Number of nested fields under the parent"
+    correctOption: B
+    explanation: "Multipliers reference pagination or limit arguments. A field with weight 3 and multiplier 'first' where first=50 has cost 3 x 50 = 150."
+
+  - id: 3
+    type: application
+    question: "Field `search(term: String!, limit: Int)` has complexity weight 4 with multiplier `limit`. Client sends `limit: 200`. What is the field's cost?"
+    options:
+      - label: A
+        text: "4"
+      - label: B
+        text: "50"
+      - label: C
+        text: "200"
+      - label: D
+        text: "800"
+    correctOption: D
+    explanation: "Cost = weight x multiplier value = 4 x 200 = 800."
+
+  - id: 4
+    type: application
+    question: "API uses cost-based rate limiting. Client has budget 5,000/min. Each request costs 200. How many requests before rate limited?"
+    options:
+      - label: A
+        text: "25"
+      - label: B
+        text: "50"
+      - label: C
+        text: "200"
+      - label: D
+        text: "Unlimited — budget resets per query"
+    correctOption: A
+    explanation: "5,000 / 200 = 25 requests per minute. After 25, budget exhausted until reset."
+
+  - id: 5
+    type: multi-step
+    question: "Query: `{ feed(first: 100) { items { comments(first: 10) { text } } } }`. Feed weight=5 (multiplier: first), Comments weight=2 (multiplier: first). Total cost?"
+    options:
+      - label: A
+        text: "500"
+      - label: B
+        text: "700"
+      - label: C
+        text: "2,500"
+      - label: D
+        text: "5,000"
+    correctOption: C
+    explanation: "Feed: 5 x 100 = 500. Comments per feed item: 2 x 10 = 20, times 100 items = 2,000. Total = 500 + 2,000 = 2,500."
+
+  - id: 6
+    type: application
+    question: "Which scenario is cost analysis better at preventing than query timeouts?"
+    options:
+      - label: A
+        text: "Query that hangs due to DB lock contention"
+      - label: B
+        text: "Query with high complexity value that triggers expensive joins before returning quickly"
+      - label: C
+        text: "Slow network connection between server and client"
+      - label: D
+        text: "Query with syntax error"
+    correctOption: B
+    explanation: "Cost analysis rejects high-complexity queries before execution. Timeouts only catch queries that actually take too long. An expensive but fast query slips past timeouts."
+
+  - id: 7
+    type: recall
+    question: "How do persisted queries differ from cost analysis?"
+    options:
+      - label: A
+        text: "Persisted queries use an allowlist; cost analysis computes budget at runtime"
+      - label: B
+        text: "Persisted queries are faster to execute"
+      - label: C
+        text: "Cost analysis requires a build-time registration pipeline"
+      - label: D
+        text: "They are identical concepts with different names"
+    correctOption: A
+    explanation: "Persisted queries pre-register approved query shapes (allowlist). Cost analysis computes complexity at runtime and rejects expensive queries. PQ has no runtime overhead but requires build pipeline."
+
+  - id: 8
+    type: multi-step
+    question: "Persisted query hash matches a query that calls adminDashboard (marked @trusted). Client sends hash without auth header. What happens?"
+    options:
+      - label: A
+        text: "Query executes — persisted queries bypass auth"
+      - label: B
+        text: "Query rejected — persisted queries do not skip auth checks"
+      - label: C
+        text: "Only the trusted fields execute; non-trusted fields are skipped"
+      - label: D
+        text: "Server crashes — invalid state"
+    correctOption: B
+    explanation: "Persisted queries replace cost analysis, not authentication. Auth checks apply regardless of query delivery method. The @trusted directive would skip cost analysis, not auth."
+
+  - id: 9
+    type: application
+    question: "Internal admin tool needs unlimited query complexity. Best approach?"
+    options:
+      - label: A
+        text: "Increase the global max complexity for all clients"
+      - label: B
+        text: "Header-based bypass keyed on internal network or API key role"
+      - label: C
+        text: "Disable cost analysis entirely"
+      - label: D
+        text: "Use persisted queries only for internal tools"
+    correctOption: B
+    explanation: "Header or API-key-based bypass lets trusted clients skip cost analysis while protecting public clients. Global changes weaken security for everyone."
+
+  - id: 10
+    type: recall
+    question: "Which npm libraries provide depth limiting and complexity estimation for GraphQL?"
+    options:
+      - label: A
+        text: "graphql-depth-limit and graphql-query-complexity"
+      - label: B
+        text: "graphql-shield and graphql-rate-limit"
+      - label: C
+        text: "express-graphql and apollo-server"
+      - label: D
+        text: "graphql-cost-analysis and graphql-depth-check"
+    correctOption: A
+    explanation: "graphql-depth-limit validates max nesting depth. graphql-query-complexity estimates per-query cost with configurable estimators. Both integrate as Apollo validation rules."

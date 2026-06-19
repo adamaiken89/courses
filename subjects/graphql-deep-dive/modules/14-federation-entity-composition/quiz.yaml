@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "What does @key(fields: 'id') declare about a type?"
+    options:
+      - label: A
+        text: "The type is a value type with no cross-subgraph identity"
+      - label: B
+        text: "The type is an entity whose identity spans multiple subgraphs, keyed by 'id'"
+      - label: C
+        text: "The field 'id' is only used for caching"
+      - label: D
+        text: "The type is private to this subgraph"
+    correctOption: B
+    explanation: "@key marks type as entity — identity crosses subgraph boundaries. Key fields uniquely identify entity across all subgraphs that extend it."
+
+  - id: 2
+    type: recall
+    question: "What is the purpose of @external on a field?"
+    options:
+      - label: A
+        text: "Marks field as publicly accessible via supergraph"
+      - label: B
+        text: "Indicates field is resolved by another subgraph"
+      - label: C
+        text: "Exports field to external services"
+      - label: D
+        text: "Marks field for deprecation"
+    correctOption: B
+    explanation: "@external tells composition: 'this field's definition lives in another subgraph; I only reference it.' Required for fields used in @requires or @provides that aren't owned locally."
+
+  - id: 3
+    type: application
+    question: "Shipping subgraph defines `Product.shippingCost @requires(fields: 'weight')`. What must router do before calling Shipping for this field?"
+    options:
+      - label: A
+        text: "Check if weight is in cache — if not, fetch from Products subgraph first"
+      - label: B
+        text: "Call Shipping with just the product SKU"
+      - label: C
+        text: "Ignore @requires and let Shipping figure it out"
+      - label: D
+        text: "Pre-fetch all Product fields from all subgraphs"
+    correctOption: A
+    explanation: "@requires creates dependency. Router must ensure 'weight' is fetched (from Products or cache) before calling Shipping subgraph. Passes weight in entity representation to shipping's __resolveReference."
+
+  - id: 4
+    type: recall
+    question: "Which resolver must every subgraph implement for entity types it extends?"
+    options:
+      - label: A
+        text: "__resolveType"
+      - label: B
+        text: "__resolveReference"
+      - label: C
+        text: "__resolveEntity"
+      - label: D
+        text: "__extendEntity"
+    correctOption: B
+    explanation: "__resolveReference takes entity representation ({__typename, key fields}) and returns full entity. Router calls it to resolve extended fields in dependent subgraphs."
+
+  - id: 5
+    type: multi-step
+    question: "Client queries `user(id: 5) { name payments { amount } }`. User.name in Accounts, User.payments in Payments. What does router send to Payments subgraph?"
+    options:
+      - label: A
+        text: "query { user(id: 5) { payments { amount } } }"
+      - label: B
+        text: "query { _entities(representations: [{__typename: 'User', id: '5'}]) { ... on User { payments { amount } } } }"
+      - label: C
+        text: "query { payments(userId: 5) { amount } }"
+      - label: D
+        text: "query { resolveReference(type: 'User', id: '5') { payments { amount } } }"
+    correctOption: B
+    explanation: "Router sends `_entities` query with entity representation array. Representation includes __typename and key fields. Payments subgraph's __resolveReference uses representation to fetch data."
+
+  - id: 6
+    type: recall
+    question: "What distinguishes a value type from an entity type in federation?"
+    options:
+      - label: A
+        text: "Value types have @key; entity types do not"
+      - label: B
+        text: "Value types lack @key; entity types have @key"
+      - label: C
+        text: "Value types are mutable; entity types are immutable"
+      - label: D
+        text: "Value types are defined in multiple subgraphs; entity types in one"
+    correctOption: B
+    explanation: "Entity types have @key and span subgraphs. Value types lack @key — they're owned by single subgraph, embedded in entities."
+
+  - id: 7
+    type: application
+    question: "Reviews subgraph has local copy of Product.name and uses @provides(fields: 'name'). What is the benefit?"
+    options:
+      - label: A
+        text: "Router skips calling Products subgraph for name when querying reviews"
+      - label: B
+        text: "Product.name becomes writable from Reviews subgraph"
+      - label: C
+        text: "Reviews subgraph automatically syncs name changes from Products"
+      - label: D
+        text: "Router caches Product.name permanently"
+    correctOption: A
+    explanation: "@provides tells router: 'I can resolve this field without calling the owning subgraph.' Router optimizes plan — no extra subgraph hop for provided fields."
+
+  - id: 8
+    type: multi-step
+    question: "Accounts subgraph has User.id. Reviews has User @key(fields: 'id'). Payments has User @key(fields: 'id') @key(fields: 'email'). What does 'User' entity look like after composition?"
+    options:
+      - label: A
+        text: "User merged with all fields, Accounts as primary owner"
+      - label: B
+        text: "User merged with all fields, each subgraph resolves its fields independently"
+      - label: C
+        text: "Composition fails — duplicate @key"
+      - label: D
+        text: "User split into three separate types"
+    correctOption: B
+    explanation: "Each subgraph extends User with its own fields. All @key definitions merge. Router resolves each subgraph's fields via independent __resolveReference calls. No single 'primary owner' — subgraphs are peers."
+
+  - id: 9
+    type: application
+    question: "A subgraph defines @requires that chains across 4 fields from 3 different subgraphs. What is the performance implication?"
+    options:
+      - label: A
+        text: "No impact — router parallelizes all requests"
+      - label: B
+        text: "Sequential subgraph calls increase latency — each requires field must be fetched before dependent field resolves"
+      - label: C
+        text: "Only first subgraph call matters; subsequent fields are cached"
+      - label: D
+        text: "Federation 2 eliminates @requires overhead automatically"
+    correctOption: B
+    explanation: "@requires creates sequential dependency chain. Router must fetch fields in order: subgraph A → subgraph B (needs A's data) → subgraph C (needs B's data). Each hop = network round-trip. Design @requires chains shallow."
+
+  - id: 10
+    type: recall
+    question: "What happens in the entity representation sent to __resolveReference?"
+    options:
+      - label: A
+        text: "Full GraphQL query string"
+      - label: B
+        text: "Object with __typename and key fields (plus any @requires fields)"
+      - label: C
+        text: "HTTP headers only"
+      - label: D
+        text: "The entire supergraph schema"
+    correctOption: B
+    explanation: "Entity representation = {__typename: 'TypeName', keyField1: value1, ...}. If @requires declared, router includes required fields too. Minimal payload identifying which entity to resolve."

@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "Which directive enforces that only authenticated users can access a field?"
+    options:
+      - label: A
+        text: "@requiresScopes"
+      - label: B
+        text: "@authenticated"
+      - label: C
+        text: "@authorized"
+      - label: D
+        text: "@private"
+    correctOption: B
+    explanation: "@authenticated rejects unauthenticated requests at router level. @requiresScopes additionally checks specific OAuth scopes."
+
+  - id: 2
+    type: multi-step
+    question: "Router validates JWT and forwards X-Auth-User-Id header to subgraphs. Should subgraphs also validate the JWT?"
+    options:
+      - label: A
+        text: "No — router validation is sufficient"
+      - label: B
+        text: "Yes — defense in depth; subgraphs may be accessed directly"
+      - label: C
+        text: "No — JWT validation is expensive and adds latency"
+      - label: D
+        text: "Only if subgraph contains sensitive PII data"
+    correctOption: B
+    explanation: "Defense in depth principle. Subgraphs might be accessed directly (debugging, migration, internal tool). Router misconfiguration could skip validation. JWT validation in each subgraph is cheap insurance against data exposure."
+
+  - id: 3
+    type: application
+    question: "A dashboard query reads user profiles (Accounts subgraph) and analytics data (Analytics subgraph). Analytics is down. What error mode should the router use?"
+    options:
+      - label: A
+        text: "Strict — fail entire query"
+      - label: B
+        text: "Partial — return user data, null for analytics"
+      - label: C
+        text: "Retry — wait for Analytics and retry 3 times"
+      - label: D
+        text: "Cache — return stale analytics data"
+    correctOption: B
+    explanation: "Dashboard partial data is useful. User sees profile (from Accounts) and empty analytics section (null). Strict mode would show nothing — worse UX. For transactional queries (payment), strict mode preferred."
+
+  - id: 4
+    type: recall
+    question: "Which of the following is a BREAKING change in a federated schema?"
+    options:
+      - label: A
+        text: "Adding a new field to an existing type"
+      - label: B
+        text: "Removing an enum value"
+      - label: C
+        text: "Adding an optional argument to a field"
+      - label: D
+        text: "Adding a new type"
+    correctOption: B
+    explanation: "Removing enum value breaks client code that switches on that value. Adding field/type/optional argument: backward compatible. rover subgraph check catches breaking changes."
+
+  - id: 5
+    type: application
+    question: "A 5-year-old monolith GraphQL API needs federation migration. Which migration approach minimizes risk?"
+    options:
+      - label: A
+        text: "Rewrite entire API as federated subgraphs in a 3-month project"
+      - label: B
+        text: "Strangler fig: add router, extract subgraphs one by one, no client changes"
+      - label: C
+        text: "Run monolith and federation in parallel, A/B test clients"
+      - label: D
+        text: "Migrate database first, then GraphQL layer"
+    correctOption: B
+    explanation: "Strangler fig: router front, monolith as subgraph initially, extract capabilities gradually. No big rewrite, no client changes, rollback per extraction. Dual-write for data consistency during migration."
+
+  - id: 6
+    type: recall
+    question: "What does `rover subgraph check` do?"
+    options:
+      - label: A
+        text: "Deploys the subgraph to production"
+      - label: B
+        text: "Validates subgraph schema for backward compatibility with supergraph"
+      - label: C
+        text: "Checks subgraph server health"
+      - label: D
+        text: "Generates TypeScript types from subgraph schema"
+    correctOption: B
+    explanation: "subgraph check validates backward compatibility — ensures schema change doesn't break existing queries. Runs in CI to block breaking changes from reaching production."
+
+  - id: 7
+    type: application
+    question: "A router handles 10,000 req/s. Query planning takes 1ms per query. What optimization should be prioritized?"
+    options:
+      - label: A
+        text: "Reduce query planning to 0 — use persisted queries only"
+      - label: B
+        text: "Cache query plans by query shape"
+      - label: C
+        text: "Increase subgraph count to reduce plan complexity"
+      - label: D
+        text: "Switch from Router to Gateway for faster planning"
+    correctOption: B
+    explanation: "10,000 req/s × 1ms planning = 10s CPU per second (1000% CPU). Caching plans eliminates repeated planning overhead for identical queries. Persisted queries also help but cache is simpler first step."
+
+  - id: 8
+    type: multi-step
+    question: "During phase 3 of strangler fig migration, writes go to both monolith and new Accounts subgraph. What is the rollback plan if Accounts subgraph fails?"
+    options:
+      - label: A
+        text: "Restore monolith-only deployment from backup"
+      - label: B
+        text: "Switch Router config back — User queries route to monolith; stop dual-write to Accounts"
+      - label: C
+        text: "Repair Accounts subgraph in place while it serves traffic"
+      - label: D
+        text: "Revert all code changes from the last sprint"
+    correctOption: B
+    explanation: "Router config change redirects traffic. No data loss because monolith continued receiving writes. Dual-write ensures monolith data stays current. Rollback is a config flip — no redeployment needed."
+
+  - id: 9
+    type: recall
+    question: "What is the minimum test coverage for a federated graph?"
+    options:
+      - label: A
+        text: "Unit tests for every resolver"
+      - label: B
+        text: "Subgraph contract tests + one integration test per cross-subgraph query + schema check in CI"
+      - label: C
+        text: "End-to-end tests covering every possible query"
+      - label: D
+        text: "Load tests only — correctness isn't the concern"
+    correctOption: B
+    explanation: "Contract tests ensure each subgraph satisfies entity contracts. Integration tests catch cross-subgraph issues. Schema check in CI prevents breaking changes. Full E2E coverage is impractical; this minimum catches majority of federation-specific bugs."
+
+  - id: 10
+    type: application
+    question: "10 teams use shared dev supergraph. Team A's schema change breaks Team B's queries. What workflow prevents this?"
+    options:
+      - label: A
+        text: "Team A tests locally before pushing"
+      - label: B
+        text: "CI runs rover subgraph check on Team A's schema against dev supergraph before merge"
+      - label: C
+        text: "Team B pins their schema version"
+      - label: D
+        text: "Lock the supergraph schema — require weekly review for changes"
+    correctOption: B
+    explanation: "CI check catches breaking changes before merge. Team A's PR fails check if schema change breaks existing operations. Team B's queries are protected. This is supergraph-first governance: changes validated against real production operations, not just schema."

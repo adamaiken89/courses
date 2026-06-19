@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "How does GraphQL execution differ between queries and mutations?"
+    options:
+      - label: A
+        text: "Queries run in series, mutations in parallel"
+      - label: B
+        text: "Queries run in parallel, mutations in series"
+      - label: C
+        text: "Both run in parallel"
+      - label: D
+        text: "Both run in series"
+    correctOption: B
+    explanation: "Queries execute fields in parallel (no side effects). Mutations execute top-level fields serially to guarantee order for side-effect-dependent operations."
+
+  - id: 2
+    type: recall
+    question: "What directive enforces exactly-one-field-set on input types?"
+    options:
+      - label: A
+        text: "@oneOf"
+      - label: B
+        text: "@unique"
+      - label: C
+        text: "@exclusive"
+      - label: D
+        text: "@union"
+    correctOption: A
+    explanation: "@oneOf (GraphQL spec 2024+) validates that exactly one field is set on the input. Useful for mutually exclusive options."
+
+  - id: 3
+    type: application
+    question: "Mutation `createOrder` must not create duplicate if client retries. What mechanism?"
+    options:
+      - label: A
+        text: "HTTP POST is idempotent by default"
+      - label: B
+        text: "Idempotency key — check before creating"
+      - label: C
+        text: "Rate limiting prevents retries"
+      - label: D
+        text: "Database unique constraint on order ID"
+    correctOption: B
+    explanation: "Idempotency key stored in input. Resolver checks if key was processed before creating. HTTP POST is not idempotent. Rate limiting doesn't prevent duplicates."
+
+  - id: 4
+    type: application
+    question: "Mutation creates a user. Email is duplicate. Where does this error belong?"
+    options:
+      - label: A
+        text: "Top-level GraphQL errors[]"
+      - label: B
+        text: "Payload errors[] field"
+      - label: C
+        text: "HTTP 409 status code"
+      - label: D
+        text: "Throw an exception"
+    correctOption: B
+    explanation: "Business logic error (duplicate) belongs in the payload's errors[] field alongside partial data. Top-level errors are for system failures."
+
+  - id: 5
+    type: recall
+    question: "What is the purpose of a mutation payload type?"
+    options:
+      - label: A
+        text: "Reduce response size"
+      - label: B
+        text: "Return entity + errors + query root + future-extensible fields"
+      - label: C
+        text: "Bypass resolver chain"
+      - label: D
+        text: "Make mutations cacheable"
+    correctOption: B
+    explanation: "Payload pattern bundles the entity, field-level errors, optional query root for chaining, and allows future fields without breaking changes."
+
+  - id: 6
+    type: application
+    question: "Mutation `mutation { a: createUser(...) b: createUser(...) }`. 10 users each. Execution order?"
+    options:
+      - label: A
+        text: "Both execute simultaneously"
+      - label: B
+        text: "a completes, then b starts"
+      - label: C
+        text: "b completes, then a starts"
+      - label: D
+        text: "Server chooses order"
+    correctOption: B
+    explanation: "Top-level mutation fields execute serially left-to-right. a runs to completion before b starts."
+
+  - id: 7
+    type: multi-step
+    question: "BatchCreateUsers mutation receives 3 users. 1st succeeds, 2nd fails (duplicate email), 3rd succeeds. Payload shape?"
+    options:
+      - label: A
+        text: "users: [User], errors: [UserError] with all results"
+      - label: B
+        text: "users: [User, null, User], errors: null"
+      - label: C
+        text: "data: null, all in errors[]"
+      - label: D
+        text: "HTTP 400"
+    correctOption: A
+    explanation: "Partial success: users array contains 2 successful users, errors array contains 1 error for the duplicate. Both fields present simultaneously."
+
+  - id: 8
+    type: recall
+    question: "Can a mutation's input type be an interface or union?"
+    options:
+      - label: A
+        text: "Yes — any type can be an input"
+      - label: B
+        text: "No — input types must be explicit input keyword types"
+      - label: C
+        text: "Only interfaces"
+      - label: D
+        text: "Only unions"
+    correctOption: B
+    explanation: "Input types are defined with `input` keyword. Interfaces and unions cannot be input types. @oneOf is the closest alternative."
+
+  - id: 9
+    type: application
+    question: "UpdateProfile mutation returns User. In v2, you need to return validation warnings. What's the cleanest migration?"
+    options:
+      - label: A
+        text: "Add optional warnings field to User type"
+      - label: B
+        text: "Change mutation to return a new UpdateProfilePayload type"
+      - label: C
+        text: "Add errors to top-level extensions"
+      - label: D
+        text: "Create new mutation updateProfileV2"
+    correctOption: B
+    explanation: "Payload type is extensible — add warnings field without breaking existing clients. Polluting User type or creating v2 mutations are worse patterns."
+
+  - id: 10
+    type: multi-step
+    question: "Mutation resolver throws GraphQLError('Not authorized') on purpose. What happens to other mutation fields executing sequentially after this one?"
+    options:
+      - label: A
+        text: "They still execute — errors are field-level"
+      - label: B
+        text: "They are skipped — mutation execution stops on error"
+      - label: C
+        text: "They execute in parallel anyway"
+      - label: D
+        text: "Depends on error code"
+    correctOption: B
+    explanation: "If a mutation resolver throws, subsequent top-level mutation fields in the same request are not executed. This is because mutations are ordered and one failure typically invalidates the chain."

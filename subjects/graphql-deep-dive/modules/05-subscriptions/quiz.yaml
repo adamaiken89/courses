@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "Which function returns an async iterable for subscription resolvers?"
+    options:
+      - label: A
+        text: "pubsub.publish()"
+      - label: B
+        text: "pubsub.asyncIterator()"
+      - label: C
+        text: "pubsub.subscribe()"
+      - label: D
+        text: "pubsub.createStream()"
+    correctOption: B
+    explanation: "asyncIterator(triggerNames) returns AsyncIterator that yields events when publish() is called on those triggers."
+
+  - id: 2
+    type: recall
+    question: "What is key difference between graphql-ws and legacy subscriptions-transport-ws?"
+    options:
+      - label: A
+        text: "graphql-ws uses JSON only; legacy uses Protobuf"
+      - label: B
+        text: "graphql-ws removes mandatory connection_init handshake"
+      - label: C
+        text: "graphql-ws requires HTTP/2"
+      - label: D
+        text: "graphql-ws is REST-based"
+    correctOption: B
+    explanation: "graphql-ws makes connection_init optional. First message can be subscribe directly. Fewer round trips to establish subscription."
+
+  - id: 3
+    type: application
+    question: "Subscription resolver returns different values for clients subscribing to same channel with different filters. Where does filtering run?"
+    options:
+      - label: A
+        text: "In the subscribe function — create separate iterators per filter"
+      - label: B
+        text: "In the resolve function — return null to skip event"
+      - label: C
+        text: "Client-side — server sends all events"
+      - label: D
+        text: "In the pub/sub system — filter per subscriber"
+    correctOption: B
+    explanation: "Filtering in resolve is efficient: one iterator per channel, resolve per subscriber decides if event passes. Returning null skips that subscriber."
+
+  - id: 4
+    type: recall
+    question: "What triggers an async iterator yield in subscription flow?"
+    options:
+      - label: A
+        text: "Client sends message on WebSocket"
+      - label: B
+        text: "pubsub.publish() is called with matching trigger name"
+      - label: C
+        text: "Subscription query is validated"
+      - label: D
+        text: "Server restarts"
+    correctOption: B
+    explanation: "publish(triggerName, payload) pushes event to all async iterators listening on that trigger name. Each iterator yields the payload."
+
+  - id: 5
+    type: application
+    question: "Server has 1000 subscribers on same channel. Server publishes event. How many resolve calls execute?"
+    options:
+      - label: A
+        text: "Zero — subscribe returns iterator, resolve not called"
+      - label: B
+        text: "One — one resolve for the publisher"
+      - label: C
+        text: "1000 — one per subscriber"
+      - label: D
+        text: "Depends on filter logic"
+    correctOption: C
+    explanation: "Each subscriber's resolve function executes independently. If any resolve returns null, that subscriber receives no event data."
+
+  - id: 6
+    type: multi-step
+    question: "Client connects via graphql-ws, subscribes to notificationReceived. Server publishes 10 events per second but client processes max 5 per second. Which back-pressure strategy prevents unbounded memory growth?"
+    options:
+      - label: A
+        text: "Increase server event rate to overwhelm client faster"
+      - label: B
+        text: "Bounded buffer with drop-oldest policy"
+      - label: C
+        text: "Disconnect slow clients"
+      - label: D
+        text: "Both B and C are valid strategies"
+    correctOption: D
+    explanation: "Bounded buffer controls memory (drop oldest when full). Disconnecting slow clients protects server resources. Strategy depends on app requirements (at-least-once vs latest-value)."
+
+  - id: 7
+    type: recall
+    question: "In graphql-ws, how does client send authentication token?"
+    options:
+      - label: A
+        text: "HTTP Authorization header on connection"
+      - label: B
+        text: "connection_init message payload"
+      - label: C
+        text: "First subscribe message parameters"
+      - label: D
+        text: "URL query parameter"
+    correctOption: B
+    explanation: "connection_init payload carries auth token. Server onConnect handler validates it before allowing subscription messages."
+
+  - id: 8
+    type: application
+    question: "App needs real-time notifications but client never sends data over the connection. Which transport is simpler?"
+    options:
+      - label: A
+        text: "WebSocket — bidirectional is future-proof"
+      - label: B
+        text: "SSE (Server-Sent Events) — simpler for server-to-client only"
+      - label: C
+        text: "Polling every 1 second"
+      - label: D
+        text: "Long polling"
+    correctOption: B
+    explanation: "SSE is optimized for unidirectional streams. Works over HTTP/2, built-in reconnect, no WebSocket infrastructure needed. WebSocket adds complexity (upgrade, ping/pong, reconnection logic) without benefit if client never sends data."
+
+  - id: 9
+    type: multi-step
+    question: "Mutation resolver publishes event. Subscription resolver asyncIterator yields. But one subscriber receives stale data logged before their subscription started. What causes this?"
+    options:
+      - label: A
+        text: "Pub/sub is broken — events delivered out of order"
+      - label: B
+        text: "Persisted query cache mismatch"
+      - label: C
+        text: "No replay protection — pub/sub delivers all events on channel"
+      - label: D
+        text: "WebSocket reconnected and replayed old events"
+    correctOption: D
+    explanation: "On reconnect, server may replay buffered events. Client should track last event id and skip older events, or server should only send events after subscription timestamp."
+
+  - id: 10
+    type: application
+    question: "Which deployment consideration matters for WebSocket subscriptions but NOT for SSE?"
+    options:
+      - label: A
+        text: "Load balancer must support sticky sessions or shared pub/sub"
+      - label: B
+        text: "TLS/SSL termination"
+      - label: C
+        text: "CORS configuration"
+      - label: D
+        text: "Request payload size limits"
+    correctOption: A
+    explanation: "WebSocket persistence means connection sticks to one server. Load balancer must route subsequent messages to same server, or use shared pub/sub (Redis). SSE also benefits from sticky sessions but HTTP/2 multiplexing reduces need."

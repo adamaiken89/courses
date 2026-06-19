@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "Why is cache invalidation harder in GraphQL than in REST?"
+    options:
+      - label: A
+        text: "GraphQL responses are compressed, making key extraction slower"
+      - label: B
+        text: "GraphQL has 1:n mapping: one mutation affects many query shapes with different cache keys"
+      - label: C
+        text: "GraphQL does not support HTTP cache headers"
+      - label: D
+        text: "REST uses POST while GraphQL uses GET"
+    correctOption: B
+    explanation: "REST has 1:1 mapping (PUT /users/1 ⇄ GET /users/1). GraphQL — user data appears across many query shapes (user profile, posts, feed, search). One mutation can invalidate dozens of unrelated cache keys."
+
+  - id: 2
+    type: recall
+    question: "What is the primary purpose of cache tags in GraphQL?"
+    options:
+      - label: A
+        text: "To label cache entries with TTL values"
+      - label: B
+        text: "To associate cache entries with domain entities for targeted invalidation"
+      - label: C
+        text: "To group queries by client ID"
+      - label: D
+        text: "To compress cached responses"
+    correctOption: B
+    explanation: "Cache tags (e.g., User:42, Post:99) let you associate multiple cache entries with a domain entity. On mutation, invalidate all entries tagged with that entity — solving the 1:n mapping problem."
+
+  - id: 3
+    type: application
+    question: "A mutation updates a user's email address. Using Apollo CacheControl tags, which tags should the mutation produce for invalidation?"
+    options:
+      - label: A
+        text: "Just User:{id}"
+      - label: B
+        text: "User:{id}, plus any cache entries that display user email (e.g., admin panel, notifications)"
+      - label: C
+        text: "Invalidate the entire cache"
+      - label: D
+        text: "No invalidation needed — let TTL handle it"
+    correctOption: B
+    explanation: "User email appears in user profile (User:{id}) and potentially in admin panels, notification views, etc. Tag all affected types. However, 'invalidate all' is too aggressive. Identify the specific tags from the data model."
+
+  - id: 4
+    type: application
+    question: "Which invalidation strategy best suits a stock prices API where 1-second delay costs money?"
+    options:
+      - label: A
+        text: "Fixed 60-second TTL only"
+      - label: B
+        text: "Webhook-based invalidation from market data feed"
+      - label: C
+        text: "Stale-while-revalidate with 5-minute stale window"
+      - label: D
+        text: "No cache at all — always serve from source"
+    correctOption: B
+    explanation: "Stock prices need sub-second freshness. Webhooks push price changes to cache immediately. TTL alone (A) is too slow. SWR (C) serves stale data. No cache (D) loses performance. Webhooks + very short TTL as safety net is the right combo."
+
+  - id: 5
+    type: recall
+    question: "What happens in stale-while-revalidate when a request arrives within the max-age window?"
+    options:
+      - label: A
+        text: "Request blocks while cache refreshes"
+      - label: B
+        text: "Cached (fresh) data returned immediately"
+      - label: C
+        text: "Stale data returned, background refresh triggers"
+      - label: D
+        text: "Request fails with 504"
+    correctOption: B
+    explanation: "Within max-age, data is considered fresh. Return immediately. SWR only activates between max-age and stale-while-revalidate window."
+
+  - id: 6
+    type: multi-step
+    question: "A fleet of 5 servers serves GraphQL. One server handles a mutation updating User:1. Using Redis Pub/Sub invalidation, what is the sequence of events?"
+    options:
+      - label: A
+        text: "Server A updates DB, Server A deletes local cache, servers B-E learn from TTL expiry"
+      - label: B
+        text: "Server A updates DB, publishes to channel, all subscribers delete matching cache entries"
+      - label: C
+        text: "Server A updates DB, all servers poll DB every second for changes"
+      - label: D
+        text: "Server A updates DB, broadcasts HTTP request to all servers to purge"
+    correctOption: B
+    explanation: "Pub/Sub flow: mutation DB write → publish invalidation message → all subscribed servers receive and evict matching keys. No polling, no direct HTTP coupling. Race condition window exists between publish and receive."
+
+  - id: 7
+    type: application
+    question: "A cache warming script runs every 10 minutes and executes 100 query shapes. Only 3 shapes are ever requested by users. What is the primary downside?"
+    options:
+      - label: A
+        text: "Users see stale data from warmed queries"
+      - label: B
+        text: "97% of warming effort is wasted, potentially evicting hot data"
+      - label: C
+        text: "Warming script causes database deadlocks"
+      - label: D
+        text: "Warmed queries bypass authentication"
+    correctOption: B
+    explanation: "Warming 97 unused queries wastes compute and fills cache with cold data, potentially evicting actually requested entries. Warming should be data-driven: only warm queries with proven demand from analytics."
+
+  - id: 8
+    type: recall
+    question: "What is the key limitation of Redis Pub/Sub for cache invalidation?"
+    options:
+      - label: A
+        text: "Too slow for real-time use"
+      - label: B
+        text: "Fire-and-forget: messages are lost if subscriber is disconnected"
+      - label: C
+        text: "Only works with a single Redis instance"
+      - label: D
+        text: "Cannot publish complex payloads"
+    correctOption: B
+    explanation: "Redis Pub/Sub is fire-and-forget. If a subscriber disconnects between publish and delivery, the message is lost. The stale cache entry survives until TTL. Use Redis Streams or a message queue (RabbitMQ, Kafka) for reliable delivery."
+
+  - id: 9
+    type: multi-step
+    question: "A cache entry has fixed TTL of 60s. At 1000 req/s, what happens at the 60-second mark?"
+    options:
+      - label: A
+        text: "All 1000 requests hit the database simultaneously — cache stampede"
+      - label: B
+        text: "Cache refreshes gradually as requests arrive"
+      - label: C
+        text: "The first request refreshes the cache, the remaining 999 get fresh data"
+      - label: D
+        text: "CDN absorbs the load, preventing stampede"
+    correctOption: A
+    explanation: "With exact TTL expiry, all 1000 concurrent requests see a cache miss simultaneously. The database gets hammered with 1000 identical queries. Solution: add jitter to TTL (randomize within range), use mutex locks (one request refreshes, others wait), or use SWR."
+
+  - id: 10
+    type: application
+    question: "Which combination of invalidation strategies provides the best balance of freshness, reliability, and performance for a social media feed API?"
+    options:
+      - label: A
+        text: "Fixed TTL of 5 minutes only"
+      - label: B
+        text: "Webhook invalidation only"
+      - label: C
+        text: "Tag-based invalidation (Redis sets) + short per-type TTL + SWR for feed queries"
+      - label: D
+        text: "No cache — always read from database"
+    correctOption: C
+    explanation: "Tags provide precise invalidation for known data changes. TTL acts as safety net for edge cases. SWR ensures feed queries never block on refresh. Webhook-only (B) fails if webhook delivery fails. TTL-only (A) is too slow. No cache (D) sacrifices performance."

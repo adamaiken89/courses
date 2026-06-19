@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "What character prefix denotes a variable in GraphQL?"
+    options:
+      - label: A
+        text: "@"
+      - label: B
+        text: "$"
+      - label: C
+        text: "&"
+      - label: D
+        text: ":"
+    correctOption: B
+    explanation: "$ prefix declares and references variables. @ is for directives. : is for type annotations. & is not used."
+
+  - id: 2
+    type: recall
+    question: "How do you request the same field twice with different arguments?"
+    options:
+      - label: A
+        text: "Use fragments"
+      - label: B
+        text: "Use aliases"
+      - label: C
+        text: "Use variables"
+      - label: D
+        text: "Cannot — fields must be unique"
+    correctOption: B
+    explanation: "Aliases rename fields: `first: users(limit: 5)` and `all: users(limit: 100)` can coexist."
+
+  - id: 3
+    type: application
+    question: "Query `query GetUser($id: ID!) { user(id: $id) { name } }`. Variable values sent separately. What advantage?"
+    options:
+      - label: A
+        text: "Smaller HTTP requests"
+      - label: B
+        text: "Query text is cacheable separately from variable values"
+      - label: C
+        text: "Variables are optional"
+      - label: D
+        text: "Server re-validates types per execution"
+    correctOption: B
+    explanation: "Persisted queries rely on static query text being cached server-side. Variables change per call without invalidating the query cache."
+
+  - id: 4
+    type: application
+    question: "Interface Searchable with shared field `title`. Types: Article and Video each have unique fields. How to query both with shared + unique fields in one query?"
+    options:
+      - label: A
+        text: "Query title only — cannot access type-specific fields"
+      - label: B
+        text: "Query title + inline fragments on Article and Video"
+      - label: C
+        text: "Query title + separate queries for each type"
+      - label: D
+        text: "Use @skip to toggle fields"
+    correctOption: B
+    explanation: "Query shared field (title) directly on interface, then use inline fragments `... on Article { ... }` and `... on Video { ... }` for type-specific fields."
+
+  - id: 5
+    type: recall
+    question: "What does @skip(if: true) do?"
+    options:
+      - label: A
+        text: "Includes the field"
+      - label: B
+        text: "Excludes the field"
+      - label: C
+        text: "Throws an error"
+      - label: D
+        text: "Returns null for the field"
+    correctOption: B
+    explanation: "@skip(if: true) excludes the field from the response. @include(if: true) includes it. They are logical opposites."
+
+  - id: 6
+    type: application
+    question: "Query: `query { user(id: \"1\") { name posts { title } } }`. Server responses with errors array containing 3 errors. What does data look like?"
+    options:
+      - label: A
+        text: "data is null"
+      - label: B
+        text: "data.user is null"
+      - label: C
+        text: "data.user.posts elements may be null where errors occurred"
+      - label: D
+        text: "data.user.name is null"
+    correctOption: C
+    explanation: "Errors resolve at the field level. If 3 posts errored, those 3 elements would be null. Other fields resolve normally."
+
+  - id: 7
+    type: multi-step
+    question: "Fragment `fragment X on User { name email }`. Query: `query { user(id: \"1\") { ...X posts { title } } }`. Where is `X` expanded?"
+    options:
+      - label: A
+        text: "Server-side during execution"
+      - label: B
+        text: "Client-side before sending"
+      - label: C
+        text: "Both — server validates and expands"
+      - label: D
+        text: "Neither — fragment is a reference"
+    correctOption: C
+    explanation: "Server validates fragment type-consistency and expands it into the selection set during execution. The response includes the expanded fields."
+
+  - id: 8
+    type: recall
+    question: "Which operation types does GraphQL support?"
+    options:
+      - label: A
+        text: "query, mutation"
+      - label: B
+        text: "query, mutation, subscription"
+      - label: C
+        text: "get, post, subscribe"
+      - label: D
+        text: "select, insert, watch"
+    correctOption: B
+    explanation: "Three operation types: query (read), mutation (write), subscription (event stream)."
+
+  - id: 9
+    type: application
+    question: "Client must show a dashboard with user count, recent orders, and top products. All three available under single Query root. How many round trips?"
+    options:
+      - label: A
+        text: "Three — each is a separate entry point"
+      - label: B
+        text: "One — all under a single query"
+      - label: C
+        text: "Depends on network conditions"
+      - label: D
+        text: "Two — resolve parallelizable fields"
+    correctOption: B
+    explanation: "All three fields can be selected in one query. GraphQL executes resolvers in parallel where dependencies allow. One round trip replaces three REST calls."
+
+  - id: 10
+    type: multi-step
+    question: "Query: `query GetUser { a: user(id: \"1\") { name } b: user(id: \"2\") { name } }`. Response shape?"
+    options:
+      - label: A
+        text: "{ data: { a: { name: \"Alice\" }, b: { name: \"Bob\" } } }"
+      - label: B
+        text: "{ data: { users: [{ name: \"Alice\" }, { name: \"Bob\" }] } }"
+      - label: C
+        text: "{ data: { user: [{ name: \"Alice\" }, { name: \"Bob\" }] } }"
+      - label: D
+        text: "Error — duplicate user field"
+    correctOption: A
+    explanation: "Aliases rename fields in response. Both resolvers run independently. No array — each alias is a separate key in the response object."

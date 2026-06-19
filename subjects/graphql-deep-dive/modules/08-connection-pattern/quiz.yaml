@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "Which fields are required in the Relay Connection PageInfo type?"
+    options:
+      - label: A
+        text: "hasNextPage, hasPreviousPage"
+      - label: B
+        text: "hasNextPage, hasPreviousPage, startCursor, endCursor"
+      - label: C
+        text: "nextPage, previousPage"
+      - label: D
+        text: "hasNextPage, totalCount, startCursor"
+    correctOption: B
+    explanation: "PageInfo requires four fields per Relay spec: hasNextPage, hasPreviousPage, startCursor, endCursor. The cursor fields are nullable (may be null for empty connections)."
+
+  - id: 2
+    type: recall
+    question: "What does fetching 'first + 1' items achieve in cursor pagination?"
+    options:
+      - label: A
+        text: "Improves query performance"
+      - label: B
+        text: "Determines hasNextPage without a separate COUNT query"
+      - label: C
+        text: "Reserves items for the next request"
+      - label: D
+        text: "Prevents SQL injection"
+    correctOption: B
+    explanation: "Fetch one extra item. If we get first + 1 results, there are more pages. Discard the extra. Avoids a separate expensive COUNT query for hasNextPage."
+
+  - id: 3
+    type: application
+    question: "Offset pagination: page 3, limit 10. Two items inserted before page 2 loads. What happens?"
+    options:
+      - label: A
+        text: "No change — offsets are stable"
+      - label: B
+        text: "Page 3 now shows items 32-41, skipping items 21-22"
+      - label: C
+        text: "Items inserted after page 3 have no effect"
+      - label: D
+        text: "Server returns error"
+    correctOption: B
+    explanation: "Offsets shift when items are inserted earlier in the list. Item 22 becomes item 24, causing page 3 (offset 20-30) to skip the original items 21-22."
+
+  - id: 4
+    type: application
+    question: "Cursor points to user.id=42. New user with id=41 is inserted. Cursor still returns data starting from where?"
+    options:
+      - label: A
+        text: "User 42 — ID-based cursor is stable"
+      - label: B
+        text: "User 43 — everything shifted"
+      - label: C
+        text: "User 41 — cursor resets to first item"
+      - label: D
+        text: "Empty — cursor invalidated"
+    correctOption: A
+    explanation: "ID-based cursor (`WHERE id > 42`) is unaffected by inserts before the cursor. New user 41 goes before 42, so pagination remains stable."
+
+  - id: 5
+    type: recall
+    question: "Which arguments does the Relay Connection spec define for forward pagination?"
+    options:
+      - label: A
+        text: "page, limit"
+      - label: B
+        text: "first, after"
+      - label: C
+        text: "last, before"
+      - label: D
+        text: "skip, take"
+    correctOption: B
+    explanation: "Forward pagination uses `first` (how many) and `after` (cursor to start after). Backward uses `last` and `before`."
+
+  - id: 6
+    type: multi-step
+    question: "Backward pagination: `last: 10, before: 'cursor_100'`. DB query sorts DESC, fetches 11 rows, gets 11 rows. What happens next?"
+    options:
+      - label: A
+        text: "Return all 11 — hasPreviousPage is true"
+      - label: B
+        text: "Discard last item, reverse remaining 10, return with hasPreviousPage=true"
+      - label: C
+        text: "Discard first item (oldest), return 10 in ASC order"
+      - label: D
+        text: "Return error — too many items"
+    correctOption: B
+    explanation: "Fetch last + 1 items DESC. 11 rows > 10 → hasPreviousPage=true. Keep first 10 (closest to before cursor), reverse to ASC order, return as edges."
+
+  - id: 7
+    type: application
+    question: "Schema: `users(first: Int, after: String): UserConnection`. Client needs total user count. Best approach?"
+    options:
+      - label: A
+        text: "Add totalCount field to UserConnection, can be approximate for large datasets"
+      - label: B
+        text: "Compute totalCount from edges array length"
+      - label: C
+        text: "Make separate count endpoint"
+      - label: D
+        text: "Use pageInfo to infer total count"
+    correctOption: A
+    explanation: "Add totalCount to the Connection. Use approximate count for large datasets (EXPLAIN estimate, counter). edges.length is only current page, not total."
+
+  - id: 8
+    type: application
+    question: "Slice-based cursor encodes array position. After 3 items inserted before cursor position, cursor now points to wrong item. Best fix?"
+    options:
+      - label: A
+        text: "Increase cursor encoding complexity"
+      - label: B
+        text: "Switch to ID-based cursors referencing entity primary key"
+      - label: C
+        text: "Re-fetch from start on every pagination"
+      - label: D
+        text: "Use larger page sizes to reduce cursor sensitivity"
+    correctOption: B
+    explanation: "ID-based cursors reference the entity itself, not position. After insert, the cursor still points to the same entity. This is the standard fix for unstable cursors."
+
+  - id: 9
+    type: multi-step
+    question: "Federated graph: Products subgraph has `reviews(first: Int, after: String)`. Router queries 5 products. How many subgraph calls occur if each pagination hits the reviews subgraph separately?"
+    options:
+      - label: A
+        text: "1 — single batched call"
+      - label: B
+        text: "5 — one per product, N+1 pagination"
+      - label: C
+        text: "10 — two calls per product"
+      - label: D
+        text: "0 — reviews are embedded in product data"
+    correctOption: B
+    explanation: "Each product's reviews resolver calls the reviews subgraph independently. This is N+1 pagination. Solution: batch query with reviewsByProductIds or reference resolver pattern."
+
+  - id: 10
+    type: recall
+    question: "What is the standard cursor encoding format in Relay?"
+    options:
+      - label: A
+        text: "Plain text UUID"
+      - label: B
+        text: "Base64-encoded string (commonly JSON or ID-based)"
+      - label: C
+        text: "Hexadecimal hash"
+      - label: D
+        text: "Unix timestamp"
+    correctOption: B
+    explanation: "Relay uses opaque base64-encoded strings. Common implementations encode JSON like `base64({type, id})` or `base64(\"arrayconnection:N\")`. Clients should never parse cursor values."

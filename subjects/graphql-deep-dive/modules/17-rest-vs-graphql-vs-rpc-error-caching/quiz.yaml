@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "What HTTP status code does a GraphQL endpoint return when a resolver fails?"
+    options:
+      - label: A
+        text: "200 (always)"
+      - label: B
+        text: "400 if client error, 500 if server error"
+      - label: C
+        text: "200 only if some fields succeed, 500 if all fail"
+      - label: D
+        text: "Depends on the GraphQL server implementation"
+    correctOption: A
+    explanation: "GraphQL always returns 200. Errors go into the errors[] array in the response body. This enables partial success — some fields resolve, others fail."
+
+  - id: 2
+    type: recall
+    question: "Which REST HTTP status code indicates 'rate limited'?"
+    options:
+      - label: A
+        text: "403 Forbidden"
+      - label: B
+        text: "429 Too Many Requests"
+      - label: C
+        text: "503 Service Unavailable"
+      - label: D
+        text: "409 Conflict"
+    correctOption: B
+    explanation: "429 Too Many Requests is the standard for rate limiting. 403 is permission denied. 503 is server unavailable. 409 is conflict (e.g., duplicate)."
+
+  - id: 3
+    type: application
+    question: "Your GraphQL server returns 200 with partial data and some errors. What's the operational monitoring challenge?"
+    options:
+      - label: A
+        text: "Load balancers cannot distinguish success from failure by status alone"
+      - label: B
+        text: "CDNs will cache error responses"
+      - label: C
+        text: "Clients cannot parse the response"
+      - label: D
+        text: "There is no challenge — 200 always means success"
+    correctOption: A
+    explanation: "Load balancers, alerting tools, and dashboards monitor HTTP 5xx rates. GraphQL returns 200 even when resolvers fail, so standard monitoring misses resolver errors. Teams must instrument response body parsing or resolver-level metrics."
+
+  - id: 4
+    type: recall
+    question: "Which API style has the best out-of-the-box CDN cacheability?"
+    options:
+      - label: A
+        text: "REST (GET requests)"
+      - label: B
+        text: "GraphQL (POST requests)"
+      - label: C
+        text: "GraphQL (persisted queries via GET)"
+      - label: D
+        text: "gRPC (all requests)"
+    correctOption: A
+    explanation: "REST GET requests have full HTTP caching support out of the box — Cache-Control, ETag, CDN caching by URL. GraphQL POST is not cacheable. Persisted queries via GET are cacheable but need setup. gRPC is not cacheable at protocol level."
+
+  - id: 5
+    type: multi-step
+    question: "Public REST API has GET /products/{id} cached at CDN for 1 hour. Admin PATCHes product price. How long before CDN serves updated price?"
+    options:
+      - label: A
+        text: "Immediately — PATCH triggers CDN purge"
+      - label: B
+        text: "Up to 1 hour (TTL expires)"
+      - label: C
+        text: "Depends on ETag — next GET validates"
+      - label: D
+        text: "Never — CDN only caches static assets"
+    correctOption: B
+    explanation: "Without explicit purge (via cache tag or API call), CDN serves stale data until TTL expires. Option A assumes automatic purge (not default). Option C: ETag validation happens on cache MISS, not on CDN serving stale cached copy. Option D: CDNs cache API responses too."
+
+  - id: 6
+    type: application
+    question: "Team builds batch payment processor handling 1000 transactions per request. Some may fail. Which API style handles partial success most cleanly?"
+    options:
+      - label: A
+        text: "REST — return 200 with per-item status in body"
+      - label: B
+        text: "GraphQL — each payment mutation field returns success + error per item"
+      - label: C
+        text: "gRPC with bidirectional streaming — per-item response as streamed message"
+      - label: D
+        text: "REST — return 207 Multi-Status"
+    correctOption: C
+    explanation: "gRPC bidirectional streaming is ideal — server sends individual responses per payment as they complete. Client processes per-item success/failure in real time. GraphQL (B) works for smaller batches but accumulates entire response in memory. REST (A) requires manual parsing; 207 (D) is WebDAV and rarely supported."
+
+  - id: 7
+    type: recall
+    question: "In GraphQL, where do authentication details such as user identity typically live?"
+    options:
+      - label: A
+        text: "In the query string parameters"
+      - label: B
+        text: "In the resolver's return value"
+      - label: C
+        text: "In the GraphQL context object"
+      - label: D
+        text: "In a separate auth header, decoded by middleware and passed to resolvers via context"
+    correctOption: D
+    explanation: "Token comes via Authorization header. Middleware decodes and injects user into GraphQL context. Resolvers read context for auth checks. Auth directives can also check context at schema level."
+
+  - id: 8
+    type: application
+    question: "Your API serves authenticated dashboards with user-specific data. Cache hit rates are low. Which API style's caching disadvantage is irrelevant?"
+    options:
+      - label: A
+        text: "REST — unique POST requests are not cacheable"
+      - label: B
+        text: "GraphQL — POST and unique queries make caching irrelevant anyway"
+      - label: C
+        text: "gRPC — no cacheability, but user-specific data wouldn't benefit from shared cache"
+      - label: D
+        text: "All styles have relevant caching advantages for user-specific data"
+    correctOption: C
+    explanation: "User-specific data is not shareable across clients, so CDN caching (REST, GraphQL) offers little benefit. gRPC's lack of cacheability is irrelevant because the data wouldn't be cached in a shared cache anyway. Client-side caching (localStorage, in-memory) matters more."
+
+  - id: 9
+    type: multi-step
+    question: "GraphQL query requests user profile (resolver succeeds) and recommended products (resolver times out). What response does client receive?"
+    options:
+      - label: A
+        text: "Entire response fails — no data"
+      - label: B
+        text: "User profile in data, null for products, timeout error in errors[]"
+      - label: C
+        text: "User profile only — products field omitted"
+      - label: D
+        text: "200 with data.user populated and data.products showing error object"
+    correctOption: B
+    explanation: "GraphQL's partial success: successful resolvers populate data, failed resolvers produce null (for nullable field) + error in errors[]. Products is nullable → null. User profile is returned. Not option D — products field returns null, not an error object."
+
+  - id: 10
+    type: application
+    question: "Which tooling stack matches each API style?"
+    options:
+      - label: A
+        text: "REST → Postman, GraphQL → GraphiQL, gRPC → grpcurl"
+      - label: B
+        text: "REST → GraphiQL, GraphQL → Postman, gRPC → Swagger"
+      - label: C
+        text: "REST → protoc, GraphQL → grpcurl, gRPC → Insomnia"
+      - label: D
+        text: "REST → Apollo Studio, GraphQL → Swagger, gRPC → GraphiQL"
+    correctOption: A
+    explanation: "REST ecosystem: Postman, Swagger, curl. GraphQL: GraphiQL, Apollo Studio, Altair. gRPC: grpcurl, protoc, BloomRPC."

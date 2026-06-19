@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "Which migration strategy provides GraphQL benefits fastest without changing backend services?"
+    options:
+      - label: A
+        text: "Strangler fig pattern"
+      - label: B
+        text: "Wrap REST endpoints behind GraphQL gateway"
+      - label: C
+        text: "Rewrite all services as native GraphQL resolvers"
+      - label: D
+        text: "Federation with subgraph per service"
+    correctOption: B
+    explanation: "Wrap strategy adds GraphQL front-end that calls existing REST endpoints. No backend changes needed. Fastest to deploy. But inherits REST over-fetching and no performance gain."
+
+  - id: 2
+    type: recall
+    question: "In the strangler fig migration, when should REST endpoints be removed?"
+    options:
+      - label: A
+        text: "Immediately after GraphQL gateway is deployed"
+      - label: B
+        text: "After each service is migrated to native GraphQL resolvers"
+      - label: C
+        text: "After monitoring confirms no REST traffic for 3-6 months"
+      - label: D
+        text: "REST endpoints are never removed — they remain for legacy clients"
+    correctOption: C
+    explanation: "REST endpoints must stay until all clients migrate. Monitor REST traffic for 3-6 months to catch forgotten consumers (cron jobs, integrations, partner APIs). Removing too early causes breakage."
+
+  - id: 3
+    type: application
+    question: "Your 5-person startup needs a mobile API for a simple todo app. Which API style minimizes TCO?"
+    options:
+      - label: A
+        text: "GraphQL — future-proof for when app grows complex"
+      - label: B
+        text: "REST — quickest to build, everyone knows it, $0 tooling"
+      - label: C
+        text: "gRPC — most performant, future-proof"
+      - label: D
+        text: "GraphQL + gRPC polyglot — best of both worlds"
+    correctOption: B
+    explanation: "Startup with 5 engineers should minimize time to market. REST is universal knowledge, simple to build, no tooling cost. GraphQL adds upfront schema design and resolver complexity. gRPC adds proto learning curve. Polyglot is overkill for a simple todo app."
+
+  - id: 4
+    type: application
+    question: "Mid-stage product (30 engineers) has 50 microservices communicating internally. Which internal communication style minimizes latency and maximizes throughput?"
+    options:
+      - label: A
+        text: "REST — HTTP is universal"
+      - label: B
+        text: "GraphQL — flexible querying"
+      - label: C
+        text: "gRPC — HTTP/2 multiplexed streaming with protobuf"
+      - label: D
+        text: "Message queue (Kafka/RabbitMQ)"
+    correctOption: C
+    explanation: "gRPC is designed for high-throughput service mesh. Protobuf serialization is faster than JSON, HTTP/2 multiplexes streams over single connection, and streaming supports real-time patterns. REST has higher overhead per call. GraphQL is designed for client-facing, not service-to-service. Message queues are async, not request-response."
+
+  - id: 5
+    type: multi-step
+    question: "Team builds a public API for third-party developers. They need CDN caching, standard documentation, and simple onboarding. Which API style and which tools?"
+    options:
+      - label: A
+        text: "REST + OpenAPI + Postman"
+      - label: B
+        text: "GraphQL + Apollo Studio + GraphiQL"
+      - label: C
+        text: "gRPC + protoc + grpcurl"
+      - label: D
+        text: "REST + GraphQL hybrid"
+    correctOption: A
+    explanation: "Third-party public API: REST is standard. OpenAPI generates self-service docs. CDN caching of GET requests is critical. Postman is familiar to every developer. GraphQL requires third-party devs to learn new tooling. gRPC requires proto compilation. Hybrid adds unnecessary complexity."
+
+  - id: 6
+    type: recall
+    question: "Which API style has the highest learning curve for new team members?"
+    options:
+      - label: A
+        text: "REST"
+      - label: B
+        text: "GraphQL"
+      - label: C
+        text: "gRPC"
+      - label: D
+        text: "All are equal"
+    correctOption: C
+    explanation: "gRPC requires learning protobuf IDL, proto versioning rules (reserved fields), stream patterns (unary/server/client/bidi), and codegen setup. Estimated 4-8 weeks proficiency. GraphQL is 2-4 weeks. REST is universal knowledge."
+
+  - id: 7
+    type: application
+    question: "Enterprise with 1000 REST endpoints, mobile app slow due to waterfall. Which migration strategy balances speed of improvement with risk?"
+    options:
+      - label: A
+        text: "Rewrite everything as GraphQL in one release"
+      - label: B
+        text: "Phase 1: GraphQL gateway wrapping top 20 endpoints. Phase 2: strangler fig on critical services. Phase 3: deprecate REST"
+      - label: C
+        text: "Switch to gRPC for everything"
+      - label: D
+        text: "Add CDN caching to REST endpoints"
+    correctOption: B
+    explanation: "Phase 1 gives mobile immediate benefit (less waterfall) with zero backend risk (wrapping existing endpoints). Phase 2 gradually replaces critical services. Phase 3 removes REST when safe. Option A is high-risk big-bang. Option C doesn't fix waterfall. Option D doesn't reduce request count."
+
+  - id: 8
+    type: multi-step
+    question: "GraphQL gateway passes through 5 REST calls per query. Each REST call takes 50ms. GraphQL parse + plan adds 20ms. Native GraphQL resolver would take 30ms. What's the total time for the wrapped vs native path?"
+    options:
+      - label: A
+        text: "Wrapped: 70ms, Native: 30ms"
+      - label: B
+        text: "Wrapped: 270ms, Native: 30ms"
+      - label: C
+        text: "Wrapped: 120ms, Native: 30ms"
+      - label: D
+        text: "Wrapped: 270ms, Native: 170ms"
+    correctOption: B
+    explanation: "Wrapped path: 20ms parse + 5 * 50ms REST calls = 270ms. Native path: 30ms single resolver (one DB query, batching). This illustrates why wrapping provides zero performance gain — only flexibility benefit. Full migration (native resolvers) is needed for speed."
+
+  - id: 9
+    type: application
+    question: "Team of 15 engineers builds a real-time analytics dashboard. Data streams from 3 services (events, users, metrics). Which architecture?"
+    options:
+      - label: A
+        text: "REST polling every 5 seconds"
+      - label: B
+        text: "GraphQL subscriptions over WebSocket, services talk via gRPC streaming"
+      - label: C
+        text: "gRPC everywhere — dashboard connects via gRPC-web"
+      - label: D
+        text: "Server-Sent Events over REST"
+    correctOption: B
+    explanation: "GraphQL subscriptions provide real-time updates to the dashboard. Backend services can use gRPC streaming for efficient inter-service data flow. gRPC-web (C) has limited browser support. REST polling (A) wastes bandwidth. SSE (D) works but lacks GraphQL's flexible data selection."
+
+  - id: 10
+    type: multi-step
+    question: "You consult for three companies: (1) 3-person startup building CRUD app, (2) 50-person company with mobile app suffering slow load times from 200 REST endpoints, (3) 200-person fintech with 100 microservices. Which API strategy for each?"
+    options:
+      - label: A
+        text: "(1) REST, (2) GraphQL strangler migration, (3) gRPC for internal + GraphQL for mobile"
+      - label: B
+        text: "(1) GraphQL, (2) gRPC migration, (3) REST everywhere"
+      - label: C
+        text: "(1) gRPC, (2) REST with CDN, (3) GraphQL everywhere"
+      - label: D
+        text: "(1) REST, (2) REST with BFF, (3) gRPC for everything"
+    correctOption: A
+    explanation: "Startup → REST (fastest time to market). Mid-stage with mobile performance issues → GraphQL strangler (reduce waterfall, gradual migration). Enterprise with microservices → gRPC internal (efficient service mesh) + GraphQL front-end (mobile flexibility). Matches TCO analysis: simple → REST, mid → GraphQL, large → polyglot."

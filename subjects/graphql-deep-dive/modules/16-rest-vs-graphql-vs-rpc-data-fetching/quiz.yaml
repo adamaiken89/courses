@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "Which API style inherently causes the most over-fetching?"
+    options:
+      - label: A
+        text: "GraphQL"
+      - label: B
+        text: "REST"
+      - label: C
+        text: "gRPC"
+      - label: D
+        text: "They over-fetch equally"
+    correctOption: B
+    explanation: "REST returns entire resource representation. Client receives all fields even when only few needed. GraphQL selects exact fields. gRPC returns exact function-defined types."
+
+  - id: 2
+    type: recall
+    question: "In the dashboard scenario (user + orders + products), how many HTTP requests does GraphQL typically require?"
+    options:
+      - label: A
+        text: "1"
+      - label: B
+        text: "3"
+      - label: C
+        text: "N+1 (depends on items)"
+      - label: D
+        text: "Depends on resolver implementation"
+    correctOption: A
+    explanation: "GraphQL resolves all requested fields (user, orders, products) in one round trip via resolver tree. REST requires 3+ requests."
+
+  - id: 3
+    type: application
+    question: "Your mobile team reports 4-second load times on 4G. Analysis shows 7 waterfall REST calls. Which API change gives biggest improvement?"
+    options:
+      - label: A
+        text: "Switch to gRPC for all endpoints"
+      - label: B
+        text: "Add a BFF layer that aggregates the REST calls"
+      - label: C
+        text: "Switch to GraphQL"
+      - label: D
+        text: "Enable HTTP/2 multiplexing on REST endpoints"
+    correctOption: C
+    explanation: "Waterfall is the primary problem. GraphQL eliminates it with single round trip. BFF helps but still requires one aggregated call per UI view. gRPC doesn't solve waterfall (still N calls). HTTP/2 multiplexing helps parallel calls but not sequential waterfall."
+
+  - id: 4
+    type: recall
+    question: "How does GraphQL handle backward-incompatible schema changes?"
+    options:
+      - label: A
+        text: "URL versioning like /v2/graphql"
+      - label: B
+        text: "Additive evolution with @deprecated on old fields"
+      - label: C
+        text: "Server-side negotiation based on client version header"
+      - label: D
+        text: "It forbids breaking changes entirely"
+    correctOption: B
+    explanation: "GraphQL adds new fields/types without breaking old queries. Old fields get @deprecated. Clients migrate at own pace. There is no URL versioning or header negotiation."
+
+  - id: 5
+    type: application
+    question: "Which scenario favors REST over GraphQL or gRPC?"
+    options:
+      - label: A
+        text: "Mobile social feed with nested data"
+      - label: B
+        text: "Simple CRUD with one resource type and high CDN cache hit ratio"
+      - label: C
+        text: "Microservice mesh with 50 inter-service calls per request"
+      - label: D
+        text: "Real-time dashboard with widgets from multiple domains"
+    correctOption: B
+    explanation: "Simple CRUD benefits from REST's direct HTTP caching (CDN, browser), low overhead, and well-understood tooling. Nested/complex UIs benefit from GraphQL. High-frequency internal calls benefit from gRPC."
+
+  - id: 6
+    type: multi-step
+    question: "Team builds catalog API. Clients include: (1) mobile app needing product names + prices, (2) admin panel needing full product data, (3) partner API needing SKU + stock. Which API strategy minimizes total requests and payload?"
+    options:
+      - label: A
+        text: "Single REST endpoint returning all fields"
+      - label: B
+        text: "Three separate REST endpoints (v1 mobile, v2 admin, v3 partner)"
+      - label: C
+        text: "GraphQL with one schema and three persisted queries"
+      - label: D
+        text: "gRPC with one GetProduct RPC returning all fields"
+    correctOption: C
+    explanation: "GraphQL lets each client select exactly needed fields from one schema. Persisted queries reduce overhead. Option A over-fetches. Option B creates endpoint sprawl. Option D still over-fetches fields unused by mobile/partner."
+
+  - id: 7
+    type: recall
+    question: "What protocol feature enables gRPC to avoid per-request connection overhead?"
+    options:
+      - label: A
+        text: "WebSocket long-lived connections"
+      - label: B
+        text: "HTTP/2 multiplexed streams over single TCP connection"
+      - label: C
+        text: "Keep-alive headers"
+      - label: D
+        text: "Connection pooling in client libraries"
+    correctOption: B
+    explanation: "gRPC uses HTTP/2 multiplexing — multiple streams share one TCP connection. No TLS handshake per call. Not connection pooling (that's HTTP/1.1 pattern) and not WebSocket (gRPC uses HTTP/2 frames)."
+
+  - id: 8
+    type: application
+    question: "REST API returns GET /user/{id} with 20 fields. Mobile app uses 4. GraphQL adoption is blocked by infrastructure team. What's the best short-term mitigation?"
+    options:
+      - label: A
+        text: "Ignore — bandwidth is cheap"
+      - label: B
+        text: "Add ?fields=name,email query param to REST endpoint"
+      - label: C
+        text: "Switch to gRPC immediately"
+      - label: D
+        text: "Use client-side response stripping"
+    correctOption: B
+    explanation: "Fields query param (sparse fieldsets, like JSON:API) reduces over-fetching immediately. It's a REST-compatible pattern. Client-side stripping saves bandwidth but wastes server serialization cost."
+
+  - id: 9
+    type: multi-step
+    question: "Team chooses GraphQL for dashboard. After launch, server CPU spikes 300%. Root cause: one client queries user { orders { items { product { category { promotions { ... } } } } } } resolving 50k nested objects. What missing safeguard?"
+    options:
+      - label: A
+        text: "HTTP caching layer"
+      - label: B
+        text: "Query depth limiting and cost analysis"
+      - label: C
+        text: "Rest API fallback"
+      - label: D
+        text: "Connection pooling"
+    correctOption: B
+    explanation: "GraphQL's flexible query shape allows deeply nested queries that trigger massive resolver cascades. Query depth limiting (max 5-7 levels) and cost analysis (weight per field) prevent abusive queries."
+
+  - id: 10
+    type: multi-step
+    question: "Your API serves 3 client types: public website, mobile app, internal service. Each has different data shape needs. You can use one API style. Which?"
+    options:
+      - label: A
+        text: "REST — most widely supported and understood"
+      - label: B
+        text: "GraphQL — single schema adapts to each client's needs"
+      - label: C
+        text: "gRPC — most performant for all clients"
+      - label: D
+        text: "REST + gRPC hybrid — different style per client type"
+    correctOption: B
+    explanation: "GraphQL's client-driven data shape suits multiple client types with different needs — website needs different fields than mobile, internal service needs subset. REST over-fetches for all. gRPC requires proto alignment across teams. Hybrid (D) works but adds operational complexity. Question asks 'one API style' — GraphQL is best single choice for diverse clients."

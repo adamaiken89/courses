@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "Which fetchPolicy returns cached data immediately AND always fires a network request?"
+    options:
+      - label: A
+        text: "cache-first"
+      - label: B
+        text: "network-only"
+      - label: C
+        text: "cache-and-network"
+      - label: D
+        text: "cache-only"
+    correctOption: C
+    explanation: "cache-and-network returns cached data instantly for fast render, then fires network request to update cache with fresh data. Best for data that changes moderately often."
+
+  - id: 2
+    type: application
+    question: "A stock trading app displays current prices. Stale price could trigger wrong trade decisions. Which fetchPolicy?"
+    options:
+      - label: A
+        text: "cache-first"
+      - label: B
+        text: "network-only"
+      - label: C
+        text: "cache-and-network"
+      - label: D
+        text: "standby"
+    correctOption: B
+    explanation: "network-only guarantees no stale cache data. Every query hits server. cache-and-network could briefly show stale cached price. For trading, stale data is dangerous."
+
+  - id: 3
+    type: application
+    question: "Mutation returns only { success: boolean }. List view needs to reflect new data. What cache update strategy?"
+    options:
+      - label: A
+        text: "Automatic — Apollo merges by id"
+      - label: B
+        text: "refetchQueries — re-fetch the list query"
+      - label: C
+        text: "cache.modify — manually write new data"
+      - label: D
+        text: "Both B and C work"
+    correctOption: D
+    explanation: "Since mutation response has no updated entity, automatic update does nothing. Either refetchQueries (simple but wasteful) or cache.modify (precise but verbose) works."
+
+  - id: 4
+    type: multi-step
+    question: "User likes a post. Mutation takes 2s. With optimisticResponse, what does user see during those 2 seconds?"
+    options:
+      - label: A
+        text: "Loading spinner — mutation in flight"
+      - label: B
+        text: "Like count incremented immediately, then reverts if server fails"
+      - label: C
+        text: "Nothing changes until server responds"
+      - label: D
+        text: "Error toast — no network response yet"
+    correctOption: B
+    explanation: "optimisticResponse provides fake data for instant UI update. If server succeeds, optimistic data replaced with real. If server fails, Apollo rolls back to pre-mutation state."
+
+  - id: 5
+    type: recall
+    question: "What does nextFetchPolicy do?"
+    options:
+      - label: A
+        text: "Defines fallback policy when network fails"
+      - label: B
+        text: "Transitions to different policy after initial fetch"
+      - label: C
+        text: "Sets policy for mutation queries"
+      - label: D
+        text: "Controls subscription fetch behavior"
+    correctOption: B
+    explanation: "nextFetchPolicy applies to subsequent re-renders after the initial mount. Common pattern: cache-and-network first, cache-first thereafter."
+
+  - id: 6
+    type: application
+    question: "Pagination loads 20 comments per page. Without custom merge function, what happens on page 2 load?"
+    options:
+      - label: A
+        text: "Comments append to existing list"
+      - label: B
+        text: "Page 2 comments replace page 1 comments"
+      - label: C
+        text: "Apollo errors — duplicate comments"
+      - label: D
+        text: "Comments merged by id automatically"
+    correctOption: B
+    explanation: "Default merge replaces existing array with incoming. Page 1 comments lost unless custom merge appends incoming to existing."
+
+  - id: 7
+    type: multi-step
+    question: "cache-and-network returns stale data, user mutates data, then network response overwrites with pre-mutation data. What happened?"
+    options:
+      - label: A
+        text: "Normal cache-and-network behavior — no bug"
+      - label: B
+        text: "Race condition: network response arrived after user mutation"
+      - label: C
+        text: "Mutation failed silently"
+      - label: D
+        text: "fetchPolicy was actually network-only"
+    correctOption: B
+    explanation: "Race condition: stale network response arrived after mutation, overwriting user's changes. Fix: use optimistic updates so mutation update runs after network response, or use network-only for mutable data."
+
+  - id: 8
+    type: recall
+    question: "Which method reads current cache state without firing any network request?"
+    options:
+      - label: A
+        text: "client.query()"
+      - label: B
+        text: "client.refetchQueries()"
+      - label: C
+        text: "client.readQuery()"
+      - label: D
+        text: "useQuery with fetchPolicy: network-only"
+    correctOption: C
+    explanation: "readQuery reads cache synchronously (or returns null if missing). query() fires network if cache miss. refetchQueries always fires network."
+
+  - id: 9
+    type: application
+    question: "List of countries rarely changes. You want zero network requests after initial load. Which fetchPolicy for subsequent mounts?"
+    options:
+      - label: A
+        text: "cache-first"
+      - label: B
+        text: "network-only"
+      - label: C
+        text: "cache-only"
+      - label: D
+        text: "standby"
+    correctOption: C
+    explanation: "cache-only never fires network. If data exists in cache, returns it. If not, returns null (no fetch). Ideal for static reference data loaded once."
+
+  - id: 10
+    type: multi-step
+    question: "Mutation creates a new Todo. You use cache.modify to append TodoRef to todos list. After server responds with real Todo (id from DB), what extra step is needed?"
+    options:
+      - label: A
+        text: "Nothing — cache.modify handles replacement automatically"
+      - label: B
+        text: "Remove optimistic TodoRef and replace with real TodoRef"
+      - label: C
+        text: "Call cache.gc() to clean up"
+      - label: D
+        text: "Refetch the todos query"
+    correctOption: B
+    explanation: "Optimistic response used temp id. Server returns real id. Cache has both temp-ref and real-ref in todos list. Update callback must remove temp-ref and add real-ref. Or use IDs that match (pre-generated UUID) to avoid remapping."

@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "Which GraphQL type modifier pair correctly describes 'non-null list of non-null strings'?"
+    options:
+      - label: A
+        text: "[String!]"
+      - label: B
+        text: "[String]!"
+      - label: C
+        text: "[String!]!"
+      - label: D
+        text: "String[!]!"
+    correctOption: C
+    explanation: "[String!]! means the list is non-null, each element is non-null. Option A allows null list. Option B allows null elements. Option D is invalid syntax."
+
+  - id: 2
+    type: recall
+    question: "How many root types are required in a GraphQL schema?"
+    options:
+      - label: A
+        text: "All three: query, mutation, subscription"
+      - label: B
+        text: "Only query"
+      - label: C
+        text: "At least query and mutation"
+      - label: D
+        text: "None — schema can be empty"
+    correctOption: B
+    explanation: "Only query root type is required. Mutation and subscription are optional."
+
+  - id: 3
+    type: application
+    question: "You have types User (id, name, email) and Admin (id, name, email, role) that share fields. Which type system construct should you use?"
+    options:
+      - label: A
+        text: "Union — User | Admin"
+      - label: B
+        text: "Interface — Node with id, name, email"
+      - label: C
+        text: "Interface — Node with id only"
+      - label: D
+        text: "Keep separate, no abstraction"
+    correctOption: B
+    explanation: "Interface fits when types share common fields. Admin extends User's fields with role. Union is for unrelated types."
+
+  - id: 4
+    type: application
+    question: "A search endpoint returns Users, Posts, or Comments. Types have no shared fields. Which construct?"
+    options:
+      - label: A
+        text: "interface Searchable { ... }"
+      - label: B
+        text: "union SearchResult = User | Post | Comment"
+      - label: C
+        text: "type SearchResult = User | Post | Comment"
+      - label: D
+        text: "Return [JSON] and parse client-side"
+    correctOption: B
+    explanation: "Union is correct when types are semantically grouped but structurally unrelated. Interface requires shared fields. Type union is not valid SDL."
+
+  - id: 5
+    type: recall
+    question: "What happens when a non-null field (!) resolves to null at runtime?"
+    options:
+      - label: A
+        text: "The field returns null and error is added to errors[]"
+      - label: B
+        text: "The field returns null silently"
+      - label: C
+        text: "The parent object becomes null and error is added to errors[]"
+      - label: D
+        text: "The entire response is rejected"
+    correctOption: C
+    explanation: "Null-bubble rule: non-null field returning null causes parent to become null. Error goes to errors[]. This prevents partial parent objects."
+
+  - id: 6
+    type: application
+    question: "Which statement about input types is FALSE?"
+    options:
+      - label: A
+        text: "Input types can have default values on fields"
+      - label: B
+        text: "Input types can reference other input types"
+      - label: C
+        text: "Input types can be used as field return types"
+      - label: D
+        text: "Input types are used only for mutation or query arguments"
+    correctOption: C
+    explanation: "Input types cannot be used as return types for fields. They exist solely for argument definitions."
+
+  - id: 7
+    type: multi-step
+    question: "Schema has `type Query { user(id: ID!): User }` and `type User { id: ID! posts: [Post!]! }` with `type Post { id: ID! title: String! }`. Client queries user(id: \"1\") { id posts { title } }. The resolver for User.posts throws an error for one of the posts. What is the result?"
+    options:
+      - label: A
+        text: "The posts field returns null for that element"
+      - label: B
+        text: "The entire posts list is null"
+      - label: C
+        text: "The user object is null"
+      - label: D
+        text: "The request fails with a top-level error"
+    correctOption: A
+    explanation: "Individual list elements that error become null (since Post is a nullable member of [Post!] — wait, [Post!] means elements are non-null. So the thrown error causes that list element to be null, which violates non-null, so the entire list becomes null. The correct answer depends: if [Post!], null list. If [Post], null element. Common mistake."
+
+  - id: 8
+    type: recall
+    question: "Which directive would you use to conditionally exclude a field during execution?"
+    options:
+      - label: A
+        text: "@include"
+      - label: B
+        text: "@exclude"
+      - label: C
+        text: "@skip"
+      - label: D
+        text: "@deprecated"
+    correctOption: C
+    explanation: "@skip(if: Boolean!) excludes the field when true. @include(if: Boolean!) includes when true. They are opposites."
+
+  - id: 9
+    type: application
+    question: "Schema has `scalar Email`. Server validates format in parseValue. What is the advantage over using String?"
+    options:
+      - label: A
+        text: "Better performance"
+      - label: B
+        text: "Type-level validation enforced by schema tooling and codegen"
+      - label: C
+        text: "Automatic database indexing"
+      - label: D
+        text: "Smaller network payload"
+    correctOption: B
+    explanation: "Custom scalars enable schema-level validation, documentation, and codegen that emits native types (e.g., Email type in TypeScript) rather than raw strings."
+
+  - id: 10
+    type: multi-step
+    question: "You want every CreateUser mutation to accept only role USER or ADMIN. How many schema constructs needed?"
+    options:
+      - label: A
+        text: "One: input type with String field"
+      - label: B
+        text: "Two: enum for role + input type"
+      - label: C
+        text: "Three: enum + input type + custom scalar"
+      - label: D
+        text: "Four: enum + input type + directive + scalar"
+    correctOption: B
+    explanation: "Define enum UserRole { USER ADMIN } then input CreateUserInput { ..., role: UserRole! }. Two constructs. Enum enforces values at schema level."

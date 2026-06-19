@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "What is the key format Apollo InMemoryCache uses to store normalized entities by default?"
+    options:
+      - label: A
+        text: "Only the entity id"
+      - label: B
+        text: "Only the __typename"
+      - label: C
+        text: "__typename + id composite key"
+      - label: D
+        text: "Full query path + field name"
+    correctOption: C
+    explanation: "Default key is `${__typename}:${id}`. This prevents collisions between types sharing same id (e.g., User:1 and Post:1)."
+
+  - id: 2
+    type: recall
+    question: "Which method would you call to prevent a specific entity from being garbage collected?"
+    options:
+      - label: A
+        text: "cache.evict()"
+      - label: B
+        text: "cache.retain()"
+      - label: C
+        text: "cache.persist()"
+      - label: D
+        text: "cache.keep()"
+    correctOption: B
+    explanation: "cache.retain() marks an entity as ineligible for GC even if unreachable from root queries. Useful for entities referenced only by evicted fields."
+
+  - id: 3
+    type: application
+    question: "Entity type `Transaction` has fields `txnId`, `amount`, `currency` but no field named `id`. No single field is globally unique. What is the correct typePolicy?"
+    options:
+      - label: A
+        text: "No typePolicy needed — Apollo defaults work"
+      - label: B
+        text: "keyFields: ['txnId']"
+      - label: C
+        text: "keyFields: false"
+      - label: D
+        text: "keyFields: ['__typename']"
+    correctOption: C
+    explanation: "When no single field is unique, set keyFields: false to treat each entity as unique without normalization. txnId may not be globally unique across pages. Option B assumes txnId is globally unique, which may be wrong."
+
+  - id: 4
+    type: application
+    question: "User queries product list, gets Product(id:5, name:'Shoe'). Then navigates to product detail for id:5. Without cache redirect, what happens?"
+    options:
+      - label: A
+        text: "Cache returns product detail from list query data"
+      - label: B
+        text: "Client fires network request for product detail"
+      - label: C
+        text: "Product detail shows all fields from list query"
+      - label: D
+        text: "Apollo throws missing cache field error"
+    correctOption: B
+    explanation: "Without cache redirect, Apollo treats product(id:5) as a separate cache key. It fires network request even though Product:5 exists. With redirect, it returns cached reference."
+
+  - id: 5
+    type: multi-step
+    question: "Cache contains User:1 with name 'Alice'. Mutation updates user name to 'Bob' on server but mutation response only returns { success: true }. What is displayed in views querying User:1?"
+    options:
+      - label: A
+        text: "'Bob' — mutation automatically updates cache"
+      - label: B
+        text: "'Alice' — cache unchanged, no refetch triggered"
+      - label: C
+        text: "null — cache evicted User:1"
+      - label: D
+        text: "Error — type mismatch"
+    correctOption: B
+    explanation: "Cache only updates when mutation response contains the updated entity. Since response is { success: true }, cache never learns of name change. Must refetch or use cache.modify to write new name."
+
+  - id: 6
+    type: recall
+    question: "What algorithm does Apollo cache.gc() use?"
+    options:
+      - label: A
+        text: "Reference counting"
+      - label: B
+        text: "Mark-sweep"
+      - label: C
+        text: "Generational collection"
+      - label: D
+        text: "Timer-based expiry"
+    correctOption: B
+    explanation: "Mark-sweep: marks all entities reachable from root queries, sweeps (evicts) unmarked entities. Does not use reference counting or generational collection."
+
+  - id: 7
+    type: application
+    question: "Two queries fetch User:1 with different field sets. Query A: { id, name }. Query B: { id, email }. After both execute, what does User:1 cache entry contain?"
+    options:
+      - label: A
+        text: "Only fields from the most recent query"
+      - label: B
+        text: "Merged fields: { id, name, email }"
+      - label: C
+        text: "Error — conflicting field sets"
+      - label: D
+        text: "Both field sets stored separately under different keys"
+    correctOption: B
+    explanation: "Apollo merges fields from multiple queries into same entity. User:1 ends up with { id, name, email }. This is normalization benefit — no duplicate entities for different field selections."
+
+  - id: 8
+    type: recall
+    question: "Which storage wrapper is typically used with apollo3-cache-persist in browser environments?"
+    options:
+      - label: A
+        text: "AsyncStorageWrapper"
+      - label: B
+        text: "LocalStorageWrapper"
+      - label: C
+        text: "IndexedDBWrapper"
+      - label: D
+        text: "MemoryWrapper"
+    correctOption: B
+    explanation: "LocalStorageWrapper uses window.localStorage. AsyncStorageWrapper is for React Native. Apollo cache persist abstracts the storage via wrapper pattern."
+
+  - id: 9
+    type: multi-step
+    question: "Schema: union SearchResult = User | Post. Client executes search query without inline fragment on __typename. Cache stores results array with no __typename. What problem occurs?"
+    options:
+      - label: A
+        text: "All results stored as same type — cache breaks"
+      - label: B
+        text: "Array positions used as keys — no normalization"
+      - label: C
+        text: "Apollo throws SchemaError at query time"
+      - label: D
+        text: "Results stored normally, no issue"
+    correctOption: B
+    explanation: "Without __typename, Apollo cannot determine entity identity. Falls back to array-position keys. Entities are not normalized — updates to User:1 do not reflect in search results. Always include __typename in queries with unions."
+
+  - id: 10
+    type: application
+    question: "You want Product:42 to survive GC even though no root query references it. What sequence?"
+    options:
+      - label: A
+        text: "cache.evict → cache.gc()"
+      - label: B
+        text: "cache.identify → cache.retain"
+      - label: C
+        text: "cache.writeQuery → cache.gc()"
+      - label: D
+        text: "cache.modify → cache.retain"
+    correctOption: B
+    explanation: "cache.identify({ __typename: 'Product', id: '42' }) returns the cache key string. Pass to cache.retain() to mark entity as ineligible for GC. Without retain, unreachable entities are collected."

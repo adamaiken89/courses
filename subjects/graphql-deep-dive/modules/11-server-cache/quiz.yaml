@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "Why can't CDNs cache standard GraphQL POST requests?"
+    options:
+      - label: A
+        text: "POST requests are inherently uncacheable by HTTP spec"
+      - label: B
+        text: "CDNs cache by URL, but POST body content is not part of the cache key"
+      - label: C
+        text: "GraphQL responses are too large for CDN caches"
+      - label: D
+        text: "CDNs require Cache-Control: public, which GraphQL never sets"
+    correctOption: B
+    explanation: "CDNs use URL as cache key. POST requests have query in the body, not URL. Without GET or APQ, every POST request appears unique to the CDN."
+
+  - id: 2
+    type: recall
+    question: "What happens on the first APQ request when the server has never seen the query hash?"
+    options:
+      - label: A
+        text: "Server executes a default query and returns result"
+      - label: B
+        text: "Server returns PersistedQueryNotFound error, client resends with full query"
+      - label: C
+        text: "Server returns data with a warning header"
+      - label: D
+        text: "Server computes the query from the hash using reverse lookup"
+    correctOption: B
+    explanation: "APQ protocol: server returns error on cache miss, client resends with full query + hash. Server stores the mapping for future requests."
+
+  - id: 3
+    type: application
+    question: "Two GraphQL queries are semantically identical but formatted differently: `query { user(id:1) { name } }` vs `query{user(id:1){name}}`. When using query-based cache keys, they produce different cache entries. What is the best solution?"
+    options:
+      - label: A
+        text: "Use a longer TTL to compensate for lower hit rate"
+      - label: B
+        text: "Normalize queries before hashing: strip whitespace, sort fields"
+      - label: C
+        text: "Store both mappings in the cache"
+      - label: D
+        text: "Enforce a single query format at the API gateway"
+    correctOption: B
+    explanation: "Normalization before hashing ensures semantically equivalent queries produce the same cache key. Enforcing format is impractical. Longer TTL and storing both do not solve the root cause."
+
+  - id: 4
+    type: application
+    question: "A mutation updates a user's profile picture. Which cache entries should be invalidated?"
+    options:
+      - label: A
+        text: "Only the user profile cache entry"
+      - label: B
+        text: "User profile + any feed that displays the user's posts"
+      - label: C
+        text: "Nothing — mutations should not invalidate caches"
+      - label: D
+        text: "All cache entries, regardless of content"
+    correctOption: B
+    explanation: "Profile picture appears on user profile, user's posts in feeds, comment threads, etc. Tag-based invalidation helps: tag cache entries with domain entities and invalidate all affected tags."
+
+  - id: 5
+    type: recall
+    question: "In the cache-aside pattern, who is responsible for loading data into the cache on a miss?"
+    options:
+      - label: A
+        text: "The cache itself (e.g., Redis module)"
+      - label: B
+        text: "The application/resolver code"
+      - label: C
+        text: "A background worker process"
+      - label: D
+        text: "The database triggers a cache update automatically"
+    correctOption: B
+    explanation: "Cache-aside: application checks cache, on miss fetches from data source, stores result in cache. Application owns cache population logic."
+
+  - id: 6
+    type: multi-step
+    question: "A GraphQL resolver returns `[User!]!` and uses DataLoader to batch-fetch users. Two clients send the same query simultaneously. How many DB queries execute?"
+    options:
+      - label: A
+        text: "1 — DataLoader batches both requests"
+      - label: B
+        text: "2 — DataLoader is per-request, so each client gets its own DataLoader"
+      - label: C
+        text: "4 — DataLoader batches within each request, but two requests mean two batches"
+      - label: D
+        text: "Depends on timing — if requests overlap, DataLoader merges them"
+    correctOption: B
+    explanation: "DataLoader is instantiated per request. Two separate requests → two separate DataLoader instances → two DB batch queries. A shared response cache (Redis) would prevent the second DB call if the first already cached the result."
+
+  - id: 7
+    type: application
+    question: "Which cache pattern guarantees that reads never see stale data after a write?"
+    options:
+      - label: A
+        text: "Cache-Aside with TTL"
+      - label: B
+        text: "Read-Through with TTL"
+      - label: C
+        text: "Write-Through (write to cache synchronously with DB write)"
+      - label: D
+        text: "None — all caching patterns have eventual consistency windows"
+    correctOption: D
+    explanation: "Even write-through has a window: between cache write and DB write (or vice versa). Distributed systems cannot guarantee read-your-writes without coordination overhead. Strong consistency and caching are fundamentally at odds."
+
+  - id: 8
+    type: recall
+    question: "What does `s-maxage` in Cache-Control header control?"
+    options:
+      - label: A
+        text: "Browser cache TTL"
+      - label: B
+        text: "Shared cache (CDN/proxy) TTL, overriding max-age"
+      - label: C
+        text: "Server-side cache TTL"
+      - label: D
+        text: "Stale content serving duration"
+    correctOption: B
+    explanation: "s-maxage (shared max age) specifies TTL for shared caches like CDNs and reverse proxies. It overrides max-age for these caches. Browser caches still use max-age."
+
+  - id: 9
+    type: multi-step
+    question: "A GraphQL API has 10 popular query shapes. Each shape has ~1000 unique variable combinations per minute. TTL is 60 seconds. What is the approximate cache miss rate assuming steady traffic?"
+    options:
+      - label: A
+        text: "100% — every request is a miss because variables change"
+      - label: B
+        text: "~17% — each variable combination is requested roughly once per minute, so TTL covers ~1 request"
+      - label: C
+        text: "~50% — random distribution means half the requests hit the first request's TTL window"
+      - label: D
+        text: "0% — if all queries share the same normalized form, cache hit rate is 100%"
+    correctOption: B
+    explanation: "1000 unique variable combinations per minute = ~16.7 combinations per second. With 60s TTL, each combination is cached for 60s but requested roughly once per minute on average. Roughly 1 hit per cache entry per TTL window. Miss rate ≈ 1 - (1/avg_requests_per_TTL) = high miss rate. Consider normalization or partial caching (e.g., cache DB results, not full response)."
+
+  - id: 10
+    type: application
+    question: "A cache warming script runs every 5 minutes and executes 50 query shapes. Only 5 of those shapes are actually requested by users. What is the waste?"
+    options:
+      - label: A
+        text: "90% compute waste — 45/50 warmed queries are never used"
+      - label: B
+        text: "0% — warming is always beneficial"
+      - label: C
+        text: "10% — only the 5 unused queries waste resources"
+      - label: D
+        text: "Depends on cache eviction policy — if LRU, unused entries get evicted anyway"
+    correctOption: A
+    explanation: "Each warming execution consumes compute resources (DB queries, serialization) and memory. Warming 45 unused queries wastes 90% of warming effort, potentially evicting useful entries. Warm based on telemetry: only cache queries with proven demand."

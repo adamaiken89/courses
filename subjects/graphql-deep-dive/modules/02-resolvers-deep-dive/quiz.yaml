@@ -1,0 +1,150 @@
+questions:
+  - id: 1
+    type: recall
+    question: "What is the correct resolver signature?"
+    options:
+      - label: A
+        text: "(args, context, info) => data"
+      - label: B
+        text: "(parent, args, context, info) => data"
+      - label: C
+        text: "(obj, params, ctx, ast) => data"
+      - label: D
+        text: "(source, args, ctx, resolveInfo) => data"
+    correctOption: B
+    explanation: "Standard signature is (parent, args, context, info). Some frameworks alias (source, args, context, info)."
+
+  - id: 2
+    type: recall
+    question: "When does the default resolver trigger?"
+    options:
+      - label: A
+        text: "Always — GraphQL uses it internally"
+      - label: B
+        text: "Only when no custom resolver is defined for a field"
+      - label: C
+        text: "Only for scalar fields"
+      - label: D
+        text: "Only for query root fields"
+    correctOption: B
+    explanation: "Default resolver runs when no custom resolver is defined. It reads parent[fieldName]. Works for any field type."
+
+  - id: 3
+    type: application
+    question: "Resolver `User.posts` needs userId from parent. Where does it come from?"
+    options:
+      - label: A
+        text: "args.userId"
+      - label: B
+        text: "parent.id"
+      - label: C
+        text: "context.userId"
+      - label: D
+        text: "info.parentType"
+    correctOption: B
+    explanation: "parent (first arg) carries the return value of the parent field resolver — in this case the User object, so parent.id gives the userId."
+
+  - id: 4
+    type: application
+    question: "A server creates fresh DB connection per request in context factory. What is the problem?"
+    options:
+      - label: A
+        text: "No problem — this is best practice"
+      - label: B
+        text: "Database connections should be pooled, not created per-request"
+      - label: C
+        text: "Context cannot hold promises"
+      - label: D
+        text: "DB connections must be in info, not context"
+    correctOption: B
+    explanation: "Creating DB connections per-request wastes resources and adds latency. Use a connection pool initialized at server startup; inject via lightweight data source wrappers in context."
+
+  - id: 5
+    type: application
+    question: "Resolver throws `new GraphQLError('fail', { extensions: { code: 'DB_ERROR' } })`. What response shape?"
+    options:
+      - label: A
+        text: "data: null, errors: [{ message: 'fail' }]"
+      - label: B
+        text: "data: { fieldName: null }, errors: [{ message: 'fail', extensions: { code: 'DB_ERROR' } }]"
+      - label: C
+        text: "data: null, errors: [{ message: 'fail', extensions: { code: 'DB_ERROR' } }]"
+      - label: D
+        text: "HTTP 500, no response body"
+    correctOption: B
+    explanation: "Field-level error: the field becomes null, error object includes message + extensions. data is not null unless the field is the root query."
+
+  - id: 6
+    type: multi-step
+    question: "Schema: `type Query { user(id: ID!): User! }` `type User { id: ID! email: String! }`. Resolver for Query.user returns null. What happens?"
+    options:
+      - label: A
+        text: "Response data.user is null, error in errors[]"
+      - label: B
+        text: "data is null because User! propagated null to root"
+      - label: C
+        text: "Email field resolves as null"
+      - label: D
+        text: "Request succeeds with data.user = null"
+    correctOption: B
+    explanation: "Query.user returns type User! (non-null). Resolver returning null causes null to propagate up to the parent — which is the root Query type. Since Query is the root execution type, data becomes null entirely."
+
+  - id: 7
+    type: recall
+    question: "Which directive-based argument wrapper verifies the user has required role before resolver executes?"
+    options:
+      - label: A
+        text: "@deprecated"
+      - label: B
+        text: "@auth"
+      - label: C
+        text: "@skip"
+      - label: D
+        text: "@include"
+    correctOption: B
+    explanation: "@auth is a custom directive pattern that wraps resolver execution with authentication/authorization checks. Not a built-in directive."
+
+  - id: 8
+    type: application
+    question: "Two resolvers need same expensive computation per request. Where to cache it?"
+    options:
+      - label: A
+        text: "Module-level global variable"
+      - label: B
+        text: "context object"
+      - label: C
+        text: "Database"
+      - label: D
+        text: "info object"
+    correctOption: B
+    explanation: "context is per-request and mutable. Store computed results on context so sibling resolvers reuse them. Global variable leaks across requests. DB is too slow. info is read-only."
+
+  - id: 9
+    type: recall
+    question: "What is the default resolver behavior when parent has field `createdAt` but schema field is `created_at`?"
+    options:
+      - label: A
+        text: "Works — default resolver is case-insensitive"
+      - label: B
+        text: "Returns null — field name must match exactly"
+      - label: C
+        text: "Throws error"
+      - label: D
+        text: "Automatically camelCases parent keys"
+    correctOption: B
+    explanation: "Default resolver reads parent[fieldName]. Schema field `created_at` looks for parent.created_at, not parent.createdAt. You must write a custom resolver to map between naming conventions."
+
+  - id: 10
+    type: multi-step
+    question: "Context contains { currentUser, dataSources }. Resolver for Query.comments calls dataSources.comments.getAll() returning 1000 comments. Client only asked for first 3 via `comments(first: 3)`. What is the inefficiency?"
+    options:
+      - label: A
+        text: "No inefficiency — GraphQL automatically truncates"
+      - label: B
+        text: "Resolver fetches all 1000 but only 3 are serialized in response"
+      - label: C
+        text: "DataSources are not cached"
+      - label: D
+        text: "CurrentUser is not used"
+    correctOption: B
+    explanation: "Resolver fetches all data — GraphQL only serializes what client requested. This is over-fetching at the resolver level. Use args (first, after) in the resolver to limit the DB query, not the response."
