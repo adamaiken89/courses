@@ -1,0 +1,119 @@
+- id: "25.1"
+  question: "Which component serves as the root container in @react-pdf/renderer?"
+  options:
+    A: "Root"
+    B: "Document"
+    C: "PDF"
+    D: "Container"
+  answer: B
+  explanation: "Document is the root component that wraps one or more Page components. It receives global style and metadata props."
+  difficulty: 1
+  tags: [react-pdf, components, architecture]
+
+- id: "25.2"
+  question: "What layout system does @react-pdf/renderer use for positioning elements?"
+  options:
+    A: "CSS Grid"
+    B: "Flexbox"
+    C: "Absolute positioning only"
+    D: "Table layout"
+  answer: B
+  explanation: "@react-pdf/renderer uses Flexbox for layout. Properties like flexDirection, justifyContent, alignItems, and flex work similarly to CSS Flexbox."
+  difficulty: 1
+  tags: [react-pdf, layout, flexbox]
+
+- id: "25.3"
+  question: "How do you add custom fonts to a @react-pdf document?"
+  options:
+    A: "Import font file directly in the component"
+    B: "Call Font.register with family name and source paths"
+    C: "Add font to a global CSS file"
+    D: "Use @font-face in a style tag"
+  answer: B
+  explanation: "Font.register registers fonts before rendering. It accepts a family name and array of font variants (weight, style, src)."
+  difficulty: 1
+  tags: [react-pdf, fonts, configuration]
+
+- id: "25.4"
+  question: "Which method converts a @react-pdf document to a downloadable Blob?"
+  options:
+    A: "pdf(document).toBlob()"
+    B: "document.renderToBlob()"
+    C: "PDFGenerator.blob(document)"
+    D: "convertToPdf(document).blob()"
+  answer: A
+  explanation: "pdf(document).toBlob() asynchronously renders the document and returns a Blob object suitable for download or URL creation."
+  difficulty: 2
+  tags: [react-pdf, download, blob]
+
+- id: "25.5"
+  question: "Why should useTransition be used for PDF generation button clicks?"
+  options:
+    A: "It speeds up PDF rendering"
+    B: "It prevents UI freezes by marking PDF generation as a non-urgent state update"
+    C: "It adds animation to the download process"
+    D: "It automatically retries failed PDF generation"
+  answer: B
+  explanation: "useTransition marks the state update as non-urgent, allowing the browser to remain responsive during the PDF generation process."
+  difficulty: 2
+  tags: [react-19, useTransition, performance]
+
+- id: "25.6"
+  question: "Which component is used to embed an image in a @react-pdf document?"
+  options:
+    A: "Img"
+    B: "Image"
+    C: "Photo"
+    D: "Picture"
+  answer: B
+  explanation: "The Image component accepts src (local path, remote URL, or base64 data URI), width, height, and objectFit props."
+  difficulty: 1
+  tags: [react-pdf, images, components]
+
+- id: "25.7"
+  question: "What is the equivalent of a div element in @react-pdf/renderer?"
+  options:
+    A: "Box"
+    B: "View"
+    C: "Container"
+    D: "Section"
+  answer: B
+  explanation: "View is the generic layout container, equivalent to a div in HTML. Use it for grouping elements and applying layout styles."
+  difficulty: 1
+  tags: [react-pdf, components, layout]
+
+- id: "25.8"
+  question: "How should you handle large PDF documents in @react-pdf/renderer?"
+  options:
+    A: "Generate the entire PDF in memory and download"
+    B: "Use toBuffer() for server-side streaming with appropriate Content-Length headers"
+    C: "Split the document into multiple smaller PDFs"
+    D: "Use client-side rendering only"
+  answer: B
+  explanation: "For large PDFs, use toBuffer() on the server and stream the response with Content-Length header for efficient delivery."
+  difficulty: 2
+  tags: [react-pdf, streaming, performance]
+
+- id: "25.9"
+  question: "How does React 19 Suspense integrate with @react-pdf document generation?"
+  options:
+    A: "Suspense wraps PDF generation automatically"
+    B: "Use Suspense to show fallback UI while async data for PDF content is loading"
+    C: "@react-pdf does not support Suspense"
+    D: "Suspense replaces pdf().toBlob() for async generation"
+  answer: B
+  explanation: "Suspense wraps async data fetching for PDF content. The PDF component tree renders once data resolves, showing a fallback during loading."
+  difficulty: 2
+  tags: [react-19, suspense, async]
+
+- id: "25.10"
+  question: "What happens if you use HTML elements like div or span inside a @react-pdf component?"
+  options:
+    A: "They render with basic styling"
+    B: "They cause a runtime error or produce empty output"
+    C: "They are converted to View and Text components"
+    D: "They render correctly in all cases"
+  answer: B
+  explanation: "@react-pdf/renderer only understands its own components (Document, Page, View, Text, Image). HTML elements are not supported and cause errors or blank output."
+  difficulty: 2
+  tags: [react-pdf, limitations, components]

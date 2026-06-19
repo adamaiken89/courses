@@ -1,0 +1,119 @@
+- id: "37.1"
+  question: "Which of the following best describes usehooks-ts compared to react-use?"
+  options:
+    A: "Larger bundle but more hooks"
+    B: "Zero dependencies, tree-shakeable, TypeScript-first"
+    C: "Only provides React 18 compatible hooks"
+    D: "Requires lodash as a peer dependency"
+  answer: B
+  explanation: "usehooks-ts has zero external dependencies, each hook is tree-shakeable, and the entire library is written in TypeScript."
+  difficulty: 1
+  tags: ["usehooks-ts", "comparison"]
+
+- id: "37.2"
+  question: "What does useLocalStorage return during SSR (server-side rendering)?"
+  options:
+    A: "Throws an error because localStorage is not available"
+    B: "The default value passed to the hook"
+    C: "undefined"
+    D: "Reads from a server-side cookie store"
+  answer: B
+  explanation: "useLocalStorage returns the initial default value during SSR because window.localStorage does not exist on the server."
+  difficulty: 2
+  tags: ["useLocalStorage", "SSR"]
+
+- id: "37.3"
+  question: "In React 19, what types can useEventListener accept as its target parameter?"
+  options:
+    A: "window only"
+    B: "ref object, window, document, or HTMLElement"
+    C: "string CSS selector only"
+    D: "Server Component boundary only"
+  answer: B
+  explanation: "React 19 allows ref as prop, so useEventListener accepts ref objects directly, along with window, document, and HTMLElement."
+  difficulty: 2
+  tags: ["useEventListener", "react-19"]
+
+- id: "37.4"
+  question: "What is the key difference between useDebounce from usehooks-ts and lodash.debounce?"
+  options:
+    A: "They are functionally identical"
+    B: "useDebounce returns a debounced value; lodash.debounce returns a debounced function"
+    C: "useDebounce returns a debounced function; lodash.debounce returns a debounced value"
+    D: "useDebounce uses setTimeout; lodash.debounce uses requestAnimationFrame"
+  answer: B
+  explanation: "useDebounce is declarative: it returns the value after a delay. lodash.debounce is imperative: it wraps a function to delay invocations."
+  difficulty: 2
+  tags: ["useDebounce", "lodash"]
+
+- id: "37.5"
+  question: "When useMediaQuery returns false during SSR, what technique ensures the correct value is shown post-hydration?"
+  options:
+    A: "Server Components read navigator.userAgent"
+    B: "Client hydration runs useEffect which fires the matchMedia listener and updates state"
+    C: "useMediaQuery uses synchronous XHR to check viewport"
+    D: "A cookie stores the viewport width between requests"
+  answer: B
+  explanation: "useMediaQuery initializes with default (false), then useEffect runs on client to call window.matchMedia and set the correct value."
+  difficulty: 2
+  tags: ["useMediaQuery", "SSR", "hydration"]
+
+- id: "37.6"
+  question: "Which React 19 API pairs naturally with useDebounce for search input to keep UI responsive?"
+  options:
+    A: "useDeferredValue"
+    B: "useTransition"
+    C: "useOptimistic"
+    D: "useFormStatus"
+  answer: B
+  explanation: "useTransition wraps the async search call as low-priority, keeping the input responsive while search results load."
+  difficulty: 2
+  tags: ["useDebounce", "useTransition", "react-19"]
+
+- id: "37.7"
+  question: "What advantage does React Compiler provide for custom hooks?"
+  options:
+    A: "Eliminates the need for useEffect"
+    B: "Auto-memoizes returned callbacks and values, removing useCallback/useMemo wrappers"
+    C: "Converts custom hooks to Server Actions"
+    D: "Adds runtime type checking to hook parameters"
+  answer: B
+  explanation: "React Compiler auto-memoizes all closures and values returned from hooks, making explicit useCallback/useMemo wrappers unnecessary."
+  difficulty: 3
+  tags: ["custom-hooks", "react-compiler", "react-19"]
+
+- id: "37.8"
+  question: "In a custom useLocalStorage wrapper with versioned schema migration, why is raw string comparison needed?"
+  options:
+    A: "To detect cross-tab storage changes and re-parse with current migrations"
+    B: "To compress the stored JSON for performance"
+    C: "To encrypt the localStorage value"
+    D: "To check if the user has disabled cookies"
+  answer: A
+  explanation: "Comparing raw string detects changes made in other tabs via the storage event, triggering re-parsing with the latest migration chain."
+  difficulty: 3
+  tags: ["useLocalStorage", "migration", "schema"]
+
+- id: "37.9"
+  question: "Which hook would you use to detect when a DOM element becomes visible for lazy loading?"
+  options:
+    A: "useMediaQuery"
+    B: "useEventListener"
+    C: "useIntersectionObserver"
+    D: "useResizeObserver"
+  answer: C
+  explanation: "useIntersectionObserver wraps IntersectionObserver API to report when an element enters the viewport (or a specified root margin)."
+  difficulty: 1
+  tags: ["useIntersectionObserver", "lazy-loading"]
+
+- id: "37.10"
+  question: "Why would you wrap useMediaQuery in a custom hook with initializeWithValue option?"
+  options:
+    A: "To improve SSR performance by skipping initial render"
+    B: "To skip the initial window.matchMedia call on first render to avoid hydration mismatch"
+    C: "To add analytics tracking for viewport changes"
+    D: "To memoize the query string"
+  answer: B
+  explanation: "Setting initializeWithValue: false returns false on first render, then useEffect sets real value. This avoids hydration mismatch when server-rendered HTML has a different initial value than client."
+  difficulty: 3
+  tags: ["useMediaQuery", "SSR", "hydration"]

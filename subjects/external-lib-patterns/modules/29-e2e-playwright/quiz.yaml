@@ -1,0 +1,110 @@
+- id: "29.1"
+  question: "What is the preferred locator strategy in Playwright?"
+  options:
+    A: "CSS selectors for performance"
+    B: "XPath for complex DOM queries"
+    C: "Accessible locators (getByRole, getByLabel) — resilient to DOM changes"
+    D: "data-testid attributes for all elements"
+  answer: C
+  explanation: "getByRole and getByLabel match how users and assistive tech interact. Resilient to DOM structure changes. CSS/XPath tied to implementation. Prefer role/label, then text, then test-id."
+  difficulty: 1
+  tags: [pattern]
+- id: "29.2"
+  question: "What does page.route() intercept in Playwright?"
+  options:
+    A: "JavaScript errors"
+    B: "Network requests — allows mocking, blocking, or modifying responses"
+    C: "Console messages"
+    D: "Page navigation events"
+  answer: B
+  explanation: "page.route() intercepts HTTP requests matching URL pattern. Supports fulfill (mock response), abort (block), fetch (pass through and modify). Used for offline testing, error states, slow responses."
+  difficulty: 1
+  tags: [api]
+- id: "29.3"
+  question: "How does Playwright handle dynamic content loading without explicit waits?"
+  options:
+    A: "Assertions auto-retry until condition met or timeout — no manual wait/sleep"
+    B: "Use page.waitForTimeout() for all dynamic content"
+    C: "Playwright does not support dynamic content"
+    D: "CSS animations must be disabled for assertions to work"
+  answer: A
+  explanation: "Playwright assertions (toHaveText, toBeVisible) auto-retry with configurable timeout. No manual sleep/wait. Waits disappear with each retry — test stays as fast as content loads."
+  difficulty: 1
+  tags: [concept]
+- id: "29.4"
+  question: "What is the purpose of BrowserContext in Playwright?"
+  options:
+    A: "Represents a single browser tab"
+    B: "Isolated session with own cookies, localStorage, and storageState"
+    C: "Configuration file for browser launch options"
+    D: "Test runner instance"
+  answer: B
+  explanation: "BrowserContext is isolated browser session. Each context has separate cookies, localStorage, and cache. Enables parallel tests with different auth states. storageState persists context."
+  difficulty: 1
+  tags: [terminology]
+- id: "29.5"
+  question: "What does toHaveScreenshot() compare against?"
+  options:
+    A: "Previous test run screenshot"
+    B: "Stored baseline screenshot in snapshot directory"
+    C: "Design mockup image"
+    D: "DOM structure hash"
+  answer: B
+  explanation: "toHaveScreenshot compares current render against stored baseline image in snapshotDir (default __snapshots__/). maxDiffPixelRatio allows small tolerance. Fails if diff exceeds threshold."
+  difficulty: 2
+  tags: [api]
+- id: "29.6"
+  question: "How should React 19 Server Components be identified in E2E tests?"
+  options:
+    A: "Server Components cannot be tested in E2E"
+    B: "Use data attributes (data-server-rendered) or locator text content — HTML present in initial response"
+    C: "Test only client components wrapping Server Components"
+    D: "Use React DevTools protocol"
+  answer: B
+  explanation: "Server Components render HTML server-side, visible in page source. Use data attributes for resilience or text-based assertions. getByRole/getByText work on server-rendered content."
+  difficulty: 2
+  tags: [react19]
+- id: "29.7"
+  question: "What is the Page Object Model pattern in Playwright?"
+  options:
+    A: "Pattern where each test file represents one page"
+    B: "Class that encapsulates page interactions and locators — reusable across tests"
+    C: "Page is mocked object in test setup"
+    D: "Page rendered as object in snapshot"
+  answer: B
+  explanation: "Page Object Model creates class per page (LoginPage, CheckoutPage). Exposes locators and methods (login(), fillShippingInfo()). Reduces duplication when same interaction used across tests."
+  difficulty: 2
+  tags: [pattern]
+- id: "29.8"
+  question: "How should visual regression tests handle components with dynamic data?"
+  options:
+    A: "Do not use visual regression for dynamic components"
+    B: "Mock API data with page.route() before navigation — deterministic snapshots"
+    C: "Use larger pixel diff threshold"
+    D: "Disable visual regression in CI"
+  answer: B
+  explanation: "Mock API responses with page.route() to control rendered data. Same mock each run produces identical snapshots. Works for any component fetching data."
+  difficulty: 2
+  tags: [pattern]
+- id: "29.9"
+  question: "What Playwright feature records execution details for debugging failures?"
+  options:
+    A: "Screenshots only"
+    B: "Trace Viewer — captures action log, screenshots, network, console, and DOM snapshots"
+    C: "Video recording of full test"
+    D: "Console.log output"
+  answer: B
+  explanation: "Trace records full execution: timeline, DOM snapshots before/after each action, network requests, console logs. Opened via npx playwright show-trace. Enabled with trace: 'on' or 'on-first-retry'."
+  difficulty: 1
+  tags: [terminology]
+- id: "29.10"
+  question: "What is the purpose of test.use({ storageState: 'auth/user.json' }) in Playwright?"
+  options:
+    A: "Stores test results in JSON file"
+    B: "Reuses pre-authenticated browser state — skips login step for subsequent tests"
+    C: "Saves page screenshot to file"
+    D: "Caches API responses for faster tests"
+  answer: B
+  explanation: "storageState loads saved cookies and localStorage into BrowserContext. Tests start already authenticated. Commonly created by first test (login → save context) then reused by remaining suite."
+  difficulty: 1
+  tags: [api]

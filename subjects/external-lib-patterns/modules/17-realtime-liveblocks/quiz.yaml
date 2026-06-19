@@ -1,0 +1,110 @@
+- id: "17.1"
+  question: "What Liveblocks hook reads shared storage state reactively?"
+  options:
+    A: "useStorage"
+    B: "useMyPresence"
+    C: "useState"
+    D: "useSharedState"
+  answer: A
+  explanation: "useStorage reads Live structures (LiveList, LiveObject, LiveMap) and re-renders component when any observed property changes."
+  difficulty: 1
+  tags: [api]
+- id: "17.2"
+  question: "What is the difference between Storage and Presence?"
+  options:
+    A: "Storage persists across sessions; presence is transient (cursors, selection)"
+    B: "Storage is client-only; presence syncs to server"
+    C: "Storage is read-only; presence is writable"
+    D: "No difference — interchangeable"
+  answer: A
+  explanation: "Storage holds durable shared state (documents, blocks). Presence holds ephemeral state (cursor position, focus) not persisted after disconnect."
+  difficulty: 1
+  tags: [concept]
+- id: "17.3"
+  question: "How does Liveblocks undo/redo handle changes from other users?"
+  options:
+    A: "Undoing Alice's change removes it for everyone"
+    B: "History is local — each client has own undo stack; undo reverses client's own mutations on shared storage"
+    C: "Undo only affects local presence, not storage"
+    D: "Undo/redo disabled in collaborative rooms"
+  answer: B
+  explanation: "Each client has independent undo stack. Undoing Alice's own mutation reverts that change from shared storage. Bob sees the block disappear. No per-user isolated history."
+  difficulty: 2
+  tags: [concept]
+- id: "17.4"
+  question: "What data structure stores an ordered list of objects in Liveblocks storage?"
+  options:
+    A: "LiveArray"
+    B: "LiveList"
+    C: "LiveSequence"
+    D: "LiveOrderedSet"
+  answer: B
+  explanation: "LiveList is ordered sequence supporting insert, move, delete, and push operations. Children are LiveObject or other Live structures."
+  difficulty: 1
+  tags: [api]
+- id: "17.5"
+  question: "Presence data includes cursor coordinates. How often should presence be sent?"
+  options:
+    A: "Every pointer move event (up to 60fps)"
+    B: "Throttled to ~30fps or 33ms intervals for reasonable bandwidth"
+    C: "Once per second"
+    D: "Only on pointer up"
+  answer: B
+  explanation: "Sending every pointer-move event generates excessive WebSocket messages. Throttle to ~30fps. For 100+ concurrent users, consider throttling further or limiting to visible users."
+  difficulty: 2
+  tags: [pattern]
+- id: "17.6"
+  question: "Which hook provides threads for comment annotations?"
+  options:
+    A: "useComments"
+    B: "useThreads"
+    C: "useAnnotations"
+    D: "useDiscussions"
+  answer: B
+  explanation: "useThreads returns all threads in current room. useCreateThread creates new thread with body content and metadata (position, resolved status)."
+  difficulty: 2
+  tags: [api]
+- id: "17.7"
+  question: "Two clients simultaneously rename same block to different names. What happens?"
+  options:
+    A: "Both names appear — conflict error"
+    B: "Last-write-wins — CRDT converges to single name based on deterministic ordering"
+    C: "First write wins — second rename rejected"
+    D: "Block splits into two blocks with different names"
+  answer: B
+  explanation: "Liveblocks CRDT uses last-write-wins for scalar values. Concurrent operations ordered by vector clock converge deterministically. Both clients see same final state."
+  difficulty: 2
+  tags: [concept]
+- id: "17.8"
+  question: "What makes a `useMutation` call undoable as a single step?"
+  options:
+    A: "Each mutation call is automatically one undoable step"
+    B: "Must call history.batch() to group operations"
+    C: "Only singleton mutations are undoable"
+    D: "Mutations are not undoable by default"
+  answer: A
+  explanation: "Each useMutation invocation is one undoable history entry. Multiple storage.set() calls inside same mutation are grouped as one undo step."
+  difficulty: 2
+  tags: [api]
+- id: "17.9"
+  question: "Why must room state be persisted to external database periodically?"
+  options:
+    A: "Liveblocks does not store data durably — in-memory CRDT lost when room becomes idle"
+    B: "Liveblocks has no storage capability"
+    C: "Database persistence is optional — Liveblocks handles durability"
+    D: "Only needed for billing purposes"
+  answer: A
+  explanation: "Liveblocks holds CRDT state in memory for active rooms. State lost when all clients disconnect or room idle. Use REST API to read state and persist to database on save events."
+  difficulty: 2
+  tags: [concept]
+- id: "17.10"
+  question: "React 19 Suspense with RoomProvider: what does Suspense wait for?"
+  options:
+    A: "React hydration completes"
+    B: "Room connection establishes and initial storage loads"
+    C: "All presence data arrives from other clients"
+    D: "First useMutation call"
+  answer: B
+  explanation: "useSuspenseStorage triggers Suspense boundary during room connection and initial storage synchronization. Component renders only after storage is available."
+  difficulty: 2
+  tags: [react19]

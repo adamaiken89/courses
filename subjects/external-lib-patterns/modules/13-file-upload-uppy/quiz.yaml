@@ -1,0 +1,110 @@
+- id: "13.1"
+  question: "How should Uppy instance lifecycle be managed in React?"
+  options:
+    A: "Create new Uppy() on every render — close in useEffect"
+    B: "useMemo with empty deps for creation, useEffect return for cleanup"
+    C: "Global singleton — create once at module level"
+    D: "React ref with useEffect for creation and cleanup"
+  answer: B
+  explanation: "useMemo preserves Uppy instance across renders. Empty deps = create once. useEffect return calls uppy.close() to clean up files, events, and DOM on unmount."
+  difficulty: 2
+  tags: [application]
+- id: "13.2"
+  question: "What problem does Tus protocol solve?"
+  options:
+    A: "Faster uploads via parallel connections"
+    B: "Resumable uploads — file upload continues from last confirmed chunk after interruption"
+    C: "Server-side file processing pipeline"
+    D: "Client-side file encryption before upload"
+  answer: B
+  explanation: "Tus splits uploads into chunks. Client tracks which chunks server acknowledged. On resume, client sends only unacknowledged chunks. Protocol is standardized (tus.io)."
+  difficulty: 1
+  tags: [terminology]
+- id: "13.3"
+  question: "What is Uppy Companion?"
+  options:
+    A: "Browser extension for debugging Uppy uploads"
+    B: "Server-side middleware that proxies remote file providers (Google Drive, Dropbox)"
+    C: "Alternative to Uppy Dashboard with different UI"
+    D: "File compression service for images before upload"
+  answer: B
+  explanation: "Companion is Node.js server middleware that handles OAuth flows and file streaming for remote providers. Files stream directly from provider to upload destination without passing through companion."
+  difficulty: 1
+  tags: [terminology]
+- id: "13.4"
+  question: "How to restrict file types before upload starts?"
+  options:
+    A: "Validate in server endpoint — reject response"
+    B: "Uppy restrictions.allowedFileTypes filters file picker and file drop"
+    C: "CSS hidden input accept attribute only"
+    D: "TypeScript type checking on File object"
+  answer: B
+  explanation: "allowedFileTypes filters both file dialog (accept attribute) and programmatic/file-drop additions. Uses glob patterns: 'image/*', '.pdf'. onBeforeFileAdded for additional custom validation."
+  difficulty: 1
+  tags: [application]
+- id: "13.5"
+  question: "What is the disadvantage of relying on Uppy Dashboard's built-in progress UI?"
+  options:
+    A: "Dashboard progress is not real-time"
+    B: "Couples upload UI to Uppy — switching upload library requires replacing UI"
+    C: "Dashboard does not support percentage display"
+    D: "No disadvantage — Dashboard UI is fully customizable"
+  answer: B
+  explanation: "Dashboard provides complete UI including progress, preview, retry. Switching to different upload library means replacing all Dashboard-related code. App-level upload state tracker decouples UI from library."
+  difficulty: 2
+  tags: [concept]
+- id: "13.6"
+  question: "Which Uppy event provides real-time per-file upload percentage?"
+  options:
+    A: "file-added"
+    B: "upload-progress — provides bytesUploaded and bytesTotal per file"
+    C: "complete"
+    D: "total-progress"
+  answer: B
+  explanation: "upload-progress fires per file with { bytesUploaded, bytesTotal }. Calculate percentage: Math.round(bytesUploaded / bytesTotal * 100). total-progress provides aggregate across all files."
+  difficulty: 2
+  tags: [terminology]
+- id: "13.7"
+  question: "When should you self-host Uppy Companion instead of using Uppy Cloud?"
+  options:
+    A: "Always — Uppy Cloud adds latency"
+    B: "When OAuth credentials, data sovereignty, or production-scale reliability is required"
+    C: "Companion cannot be self-hosted"
+    D: "Uppy Cloud is the only option — Companion is deprecated"
+  answer: B
+  explanation: "Self-hosting gives control over OAuth secrets, data flow, and scaling. Uppy Cloud is convenient for prototyping but imposes rate limits and shares OAuth credentials across tenants."
+  difficulty: 2
+  tags: [concept]
+- id: "13.8"
+  question: "What does onBeforeFileAdded return to reject a file?"
+  options:
+    A: "Throw an error"
+    B: "Return false"
+    C: "Return null"
+    D: "Call reject() on the file object"
+  answer: B
+  explanation: "onBeforeFileAdded returns false to reject file. Use uppy.info() to show user-friendly error message. Can also modify file object (e.g., add metadata) before returning true."
+  difficulty: 2
+  tags: [application]
+- id: "13.9"
+  question: "Why might Tus not be ideal for serverless environments?"
+  options:
+    A: "Tus does not work with HTTP"
+    B: "Tus requires persistent storage for upload state — serverless functions are stateless"
+    C: "Tus only works with Node.js servers"
+    D: "Tus is deprecated in favor of multipart uploads"
+  answer: B
+  explanation: "Tus upload protocol expects server to store chunk state on disk or database. Serverless functions (Vercel, Lambda) are ephemeral. Workaround: use @uppy/aws-s3 or @uppy/multipart for serverless."
+  difficulty: 3
+  tags: [concept]
+- id: "13.10"
+  question: "How does Uppy handle retry after upload failure?"
+  options:
+    A: "User must manually re-add files"
+    B: "Tus plugin retries with configured delays. Server must support Tus protocol for resume."
+    C: "Uppy does not support retry"
+    D: "Retry is handled by browser's built-in retry mechanism"
+  answer: B
+  explanation: "Tus plugin configures retryDelays array. On failure, Uppy waits then retries. If server supports Tus resume, it continues from last chunk. If server does not, it restarts from beginning."
+  difficulty: 2
+  tags: [concept]

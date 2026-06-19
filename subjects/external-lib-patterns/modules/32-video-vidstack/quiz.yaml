@@ -1,0 +1,110 @@
+- id: "32.1"
+  question: "What is the purpose of Vidstack provider abstraction?"
+  options:
+    A: "Provides DRM decryption for all video formats"
+    B: "Normalizes Html5Video, HLS, YouTube, and Vimeo APIs behind common interface"
+    C: "Replaces HTMLVideoElement entirely with WebGL rendering"
+    D: "Compresses video files on the client"
+  answer: B
+  explanation: "Provider abstraction lets developers swap between video sources (mp4, HLS, YouTube, Vimeo) without changing player UI or control logic. Each provider implements MediaProviderAdapter."
+  difficulty: 1
+  tags: [architecture]
+- id: "32.2"
+  question: "Which Vidstack components are required for a minimal player?"
+  options:
+    A: "MediaProvider and MediaUI"
+    B: "MediaPlayer and MediaOutlet"
+    C: "MediaContainer and MediaSource"
+    D: "MediaHost and MediaRenderer"
+  answer: B
+  explanation: "MediaPlayer orchestrates state and tracks. MediaOutlet renders the underlying video element/iframe. Controls are optional and slot into MediaControls."
+  difficulty: 1
+  tags: [syntax]
+- id: "32.3"
+  question: "How does Vidstack determine which provider to use?"
+  options:
+    A: "Manual provider prop on MediaPlayer"
+    B: "Auto-detection from src URL extension or type"
+    C: "Separate import for each provider"
+    D: "Configuration in MediaPlayer constructor"
+  answer: B
+  explanation: "Vidstack inspects src extension (.mp4, .m3u8) or URL pattern (youtube.com, vimeo.com) to select appropriate provider. Manual override via type prop if needed."
+  difficulty: 1
+  tags: [architecture]
+- id: "32.4"
+  question: "How does Vidstack integrate hls.js for HLS streaming?"
+  options:
+    A: "Bundled inside Vidstack core"
+    B: "Separate @vidstack/hls package with HlsProvider registration"
+    C: "Manual hls.js instance passed via ref"
+    D: "HLS support only available in premium tier"
+  answer: B
+  explanation: "@vidstack/hls exports HlsProvider registered via defineCustomElement. hlsConfig prop passes options like maxBufferLength, startLevel, abrEwmaDefaultEstimate."
+  difficulty: 2
+  tags: [hls, integration]
+- id: "32.5"
+  question: "What is the slot system in Vidstack UI components?"
+  options:
+    A: "CSS grid slots for layout"
+    B: "Named slots replacing default icons (play/pause/fullscreen) with custom SVGs"
+    C: "Slot machine animation for loading states"
+    D: "Time slots for ad insertion"
+  answer: B
+  explanation: "Slot attribute (slot='play', slot='pause', slot='on', slot='off') on child elements replaces default icons while preserving accessibility and behavior."
+  difficulty: 2
+  tags: [ui, customization]
+- id: "32.6"
+  question: "Why use useTransition for timeupdate event handlers in Vidstack?"
+  options:
+    A: "Transition increases video playback speed"
+    B: "Prevents UI jank by marking progress setState as non-urgent during 4-60Hz events"
+    C: "Required for HLS buffer management"
+    D: "Transition synchronizes subtitle rendering"
+  answer: B
+  explanation: "timeupdate fires at high frequency. useTransition marks React state update as low priority to avoid frame drops during video playback. UI stays responsive."
+  difficulty: 2
+  tags: [react, performance]
+- id: "32.7"
+  question: "Which track types does Vidstack support?"
+  options:
+    A: "Subtitles only"
+    B: "Subtitles, chapters, and quality levels"
+    C: "Audio description tracks only"
+    D: "Metadata and cue points"
+  answer: B
+  explanation: "Vidstack supports subtitles (VTT), chapter markers (VTT), and quality level tracks rendered via MediaQualitySlider. Track elements declared as children of MediaPlayer."
+  difficulty: 2
+  tags: [tracks]
+- id: "32.8"
+  question: "How does Vidstack handle responsive video across screen sizes?"
+  options:
+    A: "Media queries in CSS only"
+    B: "aspectRatio prop for ratio locking and src array with media conditions for art direction"
+    C: "JavaScript resize observer only"
+    D: "Separate player component per breakpoint"
+  answer: B
+  explanation: "aspectRatio prop locks player dimensions. src array with media condition strings enables art-direction responsive video (different source per breakpoint)."
+  difficulty: 2
+  tags: [responsive]
+- id: "32.9"
+  question: "What is the benefit of React Compiler with Vidstack media event handlers?"
+  options:
+    A: "Compiler converts media events to Web Workers"
+    B: "Auto-memoizes event handlers, preventing unnecessary re-renders from high-frequency media events"
+    C: "Compiler generates native video element code"
+    D: "No benefit — media events are not reactive"
+  answer: B
+  explanation: "React Compiler automatically memoizes callbacks and components. Vidstack onTimeUpdate fires 4-60 times/second — Compiler prevents these from causing cascading re-renders."
+  difficulty: 3
+  tags: [react, compiler]
+- id: "32.10"
+  question: "When would you NOT use Vidstack and instead use raw HTMLVideoElement?"
+  options:
+    A: "Simple single-MP4 playback without controls customization"
+    B: "HLS live streaming with quality selector"
+    C: "Multi-provider support (YouTube + MP4)"
+    D: "Application with subtitle track requirements"
+  answer: A
+  explanation: "Vidstack adds bundle size for provider abstraction. For a single MP4 with default controls, bare <video> element with controls attribute is simpler and lighter."
+  difficulty: 2
+  tags: [trade-off]

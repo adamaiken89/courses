@@ -1,0 +1,110 @@
+- id: "26.1"
+  question: "What is the correct unified pipeline order in react-markdown?"
+  options:
+    A: "rehype plugins → remark plugins → React elements"
+    B: "remark plugins → rehype plugins → React elements"
+    C: "React elements → remark plugins → rehype plugins"
+    D: "rehype plugins → React elements → remark plugins"
+  answer: B
+  explanation: "Pipeline order: remarkParse (mdast) → remarkPlugins (transform mdast) → remarkRehype (mdast→hast) → rehypePlugins (transform hast) → render to React elements."
+  difficulty: 1
+  tags: [architecture]
+- id: "26.2"
+  question: "What threat does rehype-sanitize protect against in react-markdown?"
+  options:
+    A: "Slow rendering performance"
+    B: "XSS attacks via embedded HTML and javascript: URLs"
+    C: "Memory leaks from large markdown files"
+    D: "Unicode normalization issues"
+  answer: B
+  explanation: "rehype-sanitize strips dangerous HTML elements and attributes. Prevents XSS vectors like <script> tags, javascript: URLs in links, onerror handlers, and other injection attacks."
+  difficulty: 1
+  tags: [security]
+- id: "26.3"
+  question: "How would you add a Copy button to code blocks rendered by react-markdown?"
+  options:
+    A: "Not possible — react-markdown does not support custom UI"
+    B: "Override the pre component in components prop with a wrapper containing Copy button"
+    C: "Use CSS ::after pseudo-element"
+    D: "Inject Copy button via rehype plugin only"
+  answer: B
+  explanation: "Override pre element renderer via components prop. Wrap children with div containing Clipboard API button. Rehype plugin approach also works but component override is simpler."
+  difficulty: 2
+  tags: [application]
+- id: "26.4"
+  question: "What does remark-gfm add that base react-markdown does not support?"
+  options:
+    A: "Bold and italic text"
+    B: "Tables, strikethrough, task lists, URL autolinks"
+    C: "Image embedding"
+    D: "Ordered and unordered lists"
+  answer: B
+  explanation: "GitHub Flavored Markdown adds tables (| col | col |), strikethrough (~~text~~), task lists (- [x]), URL autolinks, and footnotes. Base commonmark does not include these."
+  difficulty: 1
+  tags: [terminology]
+- id: "26.5"
+  question: "How does React 19 Server Component rendering benefit markdown display?"
+  options:
+    A: "Markdown can be edited by server admins at runtime"
+    B: "react-markdown bundle (~8KB) not sent to client — rendered to HTML on server"
+    C: "Server Components allow real-time markdown collaboration"
+    D: "Server Components automatically add syntax highlighting"
+  answer: B
+  explanation: "Server Component renders markdown on server, sends HTML. Client never downloads react-markdown or its plugin dependencies. Smaller bundle, faster initial render."
+  difficulty: 2
+  tags: [react19]
+- id: "26.6"
+  question: "What unist utility is commonly used to traverse and modify the markdown AST in custom remark plugins?"
+  options:
+    A: "unist-walk"
+    B: "unist-util-visit"
+    C: "mdast-traverse"
+    D: "hast-walk"
+  answer: B
+  explanation: "unist-util-visit visits nodes matching a type. Pattern: visit(tree, 'heading', (node) => { ... }). Used in custom remark plugins to extract, modify, or annotate AST nodes."
+  difficulty: 2
+  tags: [pattern]
+- id: "26.7"
+  question: "What happens when rehype-raw is used without rehype-sanitize?"
+  options:
+    A: "Nothing — rehype-raw includes sanitization"
+    B: "Embedded HTML from markdown source renders without restriction — XSS risk"
+    C: "rehype-raw errors without rehype-sanitize"
+    D: "Only text content is rendered"
+  answer: B
+  explanation: "rehype-raw parses HTML tags embedded in markdown into hast. Without rehype-sanitize, <script>, onerror, and javascript: URLs render. Always pair rehype-raw with rehype-sanitize."
+  difficulty: 2
+  tags: [security]
+- id: "26.8"
+  question: "How does React 19 Suspense integrate with react-markdown for async content loading?"
+  options:
+    A: "Wrap ReactMarkdown in Suspense — no additional setup"
+    B: "Use use() hook with fetch promise inside component, wrapped in Suspense boundary"
+    C: "ReactMarkdown has built-in async loading prop"
+    D: "Suspense only works with Server Components"
+  answer: B
+  explanation: "Fetch markdown as promise, pass to component using use() hook. Suspense boundary handles loading state. Pattern: const content = use(markdownPromise); return <ReactMarkdown>{content}</ReactMarkdown>."
+  difficulty: 2
+  tags: [react19]
+- id: "26.9"
+  question: "Which prop on ReactMarkdown overrides default HTML element rendering?"
+  options:
+    A: "elements"
+    B: "components"
+    C: "renderers"
+    D: "overrides"
+  answer: B
+  explanation: "components prop maps HTML tag names to custom React components. Example: components={{ pre: CustomPre, a: CustomLink, code: CustomCode }}."
+  difficulty: 1
+  tags: [api]
+- id: "26.10"
+  question: "What is the purpose of remarkRehype in the unified pipeline?"
+  options:
+    A: "Parses markdown string into mdast"
+    B: "Converts mdast (remark AST) to hast (rehype AST)"
+    C: "Adds syntax highlighting to code blocks"
+    D: "Sanitizes HTML output"
+  answer: B
+  explanation: "remarkRehype bridges remark and rehype ecosystems. Converts mdast (Markdown AST) to hast (HTML AST) so rehype plugins can process the tree before React rendering."
+  difficulty: 1
+  tags: [architecture]

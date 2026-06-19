@@ -1,0 +1,110 @@
+- id: "14.1"
+  question: "How is Sonner's Toaster component configured in an app?"
+  options:
+    A: "Wraps each component that needs notifications"
+    B: "Single instance placed once in app root — all toasts render from it"
+    C: "Toaster is automatically injected by Sonner — no component needed"
+    D: "Each toast call creates its own Toaster instance"
+  answer: B
+  explanation: "Place <Toaster /> once at app root (App.tsx, layout.tsx). All toast.success/error/info calls render into this Toaster. Position, styling, expand mode configured here."
+  difficulty: 1
+  tags: [terminology]
+- id: "14.2"
+  question: "What does toast.promise() return?"
+  options:
+    A: "A promise that resolves with toast ID"
+    B: "The same promise passed in — toast.promise does not block"
+    C: "Void — no return value"
+    D: "A new promise that resolves when toast is dismissed"
+  answer: A
+  explanation: "toast.promise returns a promise that resolves with the toast ID string/number. The original promise runs in parallel — the function does not await it."
+  difficulty: 2
+  tags: [terminology]
+- id: "14.3"
+  question: "What is the benefit of typed notification helpers (notifySuccess, notifyError)?"
+  options:
+    A: "No benefit — direct toast calls are simpler"
+    B: "Enforces consistent duration, dismissible behavior, and action button style across app"
+    C: "Reduces bundle size"
+    D: "Required for TypeScript compilation"
+  answer: B
+  explanation: "Typed helpers centralize toast configuration: error toasts get longer duration, all toasts get consistent action button styling, dismissible behavior is standardized. Changing app-wide behavior changes one file."
+  difficulty: 2
+  tags: [concept]
+- id: "14.4"
+  question: "How does Sonner handle multiple toasts stacking?"
+  options:
+    A: "Only one toast visible at a time"
+    B: "Toasts stack vertically, newest at top. visibleToasts prop limits count."
+    C: "Toasts appear in random positions"
+    D: "Toasts replace each other — only latest stays"
+  answer: B
+  explanation: "Default stacking: newest on top, older below. visibleToasts (default 3) limits simultaneous display. Excess queue until dismissal. Expand mode shows full content stacks."
+  difficulty: 1
+  tags: [terminology]
+- id: "14.5"
+  question: "When would you use expand={true} on Toaster?"
+  options:
+    A: "Always — expanded mode is better UX"
+    B: "When toasts contain important information that should not be truncated"
+    C: "Never — expand mode is deprecated"
+    D: "Only on mobile devices"
+  answer: B
+  explanation: "Expanded mode shows toast content in full vertical layout. Good for: error details, multiple action buttons, rich content. Stacked mode better for high-frequency updates."
+  difficulty: 2
+  tags: [application]
+- id: "14.6"
+  question: "How to update a toast after it's shown?"
+  options:
+    A: "Cannot update — dismiss and show new"
+    B: "Call toast.success(newMsg, { id: existingToastId })"
+    C: "Use toast.update() method"
+    D: "Modify toast DOM directly"
+  answer: B
+  explanation: "Pass existing toast ID to toast.success/error/info to update content. Pattern: const id = toast.loading('Uploading...'); later toast.success('Done', { id }). Updating dismisses loading and shows success."
+  difficulty: 2
+  tags: [application]
+- id: "14.7"
+  question: "How does Sonner integrate with React 19 useActionState?"
+  options:
+    A: "Sonner has built-in useActionState wrapper"
+    B: "Call toast in server action result handler — useEffect reacts to state change"
+    C: "Server actions cannot call Sonner — client-only"
+    D: "Wrap useActionState with Sonner's withToast() higher-order function"
+  answer: B
+  explanation: "Call toast from client component. Server action returns result object. Client useEffect watches state changes and calls appropriate toast helper. toast itself is client-side only."
+  difficulty: 2
+  tags: [application]
+- id: "14.8"
+  question: "How to create a toast with custom JSX content in Sonner?"
+  options:
+    A: "Not supported — string messages only"
+    B: "Use toast.custom((t) => <div>...</div>) — receives toast ID for dismiss"
+    C: "Pass JSX as first argument to toast.success"
+    D: "Use dangerouslySetInnerHTML in toast message"
+  answer: B
+  explanation: "toast.custom() accepts render function. Receives toast ID as argument for custom dismiss behavior. Used for complex layouts with buttons, icons, and formatted text."
+  difficulty: 2
+  tags: [terminology]
+- id: "14.9"
+  question: "How to style Sonner toasts using CSS?"
+  options:
+    A: "Sonner does not support custom styling"
+    B: "CSS custom properties (--sonner-normal-bg, --sonner-success-bg, etc.) on Toaster container"
+    C: "Inline styles on toast.success() call only"
+    D: "CSS modules imported from Sonner package"
+  answer: B
+  explanation: "Sonner exposes CSS custom properties on the Toaster element. Override: --sonner-normal-bg, --sonner-normal-text, --sonner-success-bg, --sonner-error-bg, --sonner-radius, etc."
+  difficulty: 2
+  tags: [concept]
+- id: "14.10"
+  question: "How should toast duration differ between success and error?"
+  options:
+    A: "Both should use same duration"
+    B: "Error toasts should be longer (5-8s) than success (2-4s) — user needs more time to read error"
+    C: "Success should be longer — user wants to celebrate"
+    D: "Duration does not matter — toasts auto-dismiss on click"
+  answer: B
+  explanation: "Errors need longer duration because user must read and understand failure. Action button (Retry, Undo) increases duration further. Success toasts disappear faster — positive feedback is lightweight."
+  difficulty: 1
+  tags: [concept]

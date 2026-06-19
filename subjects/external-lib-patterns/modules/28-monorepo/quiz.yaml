@@ -1,0 +1,110 @@
+- id: "28.1"
+  question: "What does dependsOn: ['^build'] mean in turbo.json?"
+  options:
+    A: "Run build after all tasks complete"
+    B: "Wait for upstream dependency builds before running this task"
+    C: "Build current package, then build dependencies"
+    D: "Skip cache for build task"
+  answer: B
+  explanation: "^ prefix indicates upstream dependencies. '^build' means this package's build waits for its dependencies' build tasks to complete first. Ensures compiled dependencies are available."
+  difficulty: 1
+  tags: [terminology]
+- id: "28.2"
+  question: "What determines whether Turborepo returns a cache hit or executes a task?"
+  options:
+    A: "Only the source file modification timestamps"
+    B: "Hash of task definition + input file hashes + global dependency hashes + env vars"
+    C: "Git commit hash"
+    D: "Package version number"
+  answer: B
+  explanation: "Cache key = hash(task definition, input glob hashes, globalDependencies hashes, env vars, lockfile). Any change invalidates cache. Consistent across machines."
+  difficulty: 2
+  tags: [concept]
+- id: "28.3"
+  question: "How does shared TypeScript config prevent configuration drift across packages?"
+  options:
+    A: "Each package has independent config — no drift possible"
+    B: "Packages extend a base config from a shared package — changes propagate automatically"
+    C: "TypeScript CLI flags override per-package config"
+    D: "Turborepo enforces tsconfig rules"
+  answer: B
+  explanation: "Shared config package (e.g., config-typescript/base.json) defines base compiler options. Consumer tsconfig uses extends: 'config-typescript/nextjs.json'. Updating shared config updates all consumers."
+  difficulty: 1
+  tags: [pattern]
+- id: "28.4"
+  question: "What is the purpose of remote caching in Turborepo?"
+  options:
+    A: "Store build artifacts on users local machine"
+    B: "Share cached build outputs across CI machines and developer machines"
+    C: "Replace package manager's lockfile"
+    D: "Cache npm packages for faster installs"
+  answer: B
+  explanation: "Remote cache stores build outputs in cloud (Vercel, S3). CI pipeline and developers share cache. PR build skips if main branch already built same inputs."
+  difficulty: 1
+  tags: [concept]
+- id: "28.5"
+  question: "What is the correct way for a library package to declare React dependency in a monorepo?"
+  options:
+    A: "Direct dependency on react in library's package.json"
+    B: "Peer dependency with supported version range"
+    C: "No declaration — React is provided globally"
+    D: "Dependency on React in turbo.json"
+  answer: B
+  explanation: "Peer dependency: 'react': '^18.0.0 || ^19.0.0'. Ensures consumer app controls React version. Monorepo's single React instance shared across all packages. Avoids duplicate React installation."
+  difficulty: 2
+  tags: [pattern]
+- id: "28.6"
+  question: "What does outputs: [] in a turbo.json pipeline task mean?"
+  options:
+    A: "Task outputs are stored in default cache directory"
+    B: "Task has no cacheable outputs — always executes"
+    C: "Outputs are deleted after task completes"
+    D: "Outputs are streamed to stdout"
+  answer: B
+  explanation: "Empty outputs array means task produces no cacheable artifacts. Examples: lint, typecheck, test. These tasks always execute because caching them provides no benefit."
+  difficulty: 1
+  tags: [api]
+- id: "28.7"
+  question: "How to run a Turborepo task for only one workspace?"
+  options:
+    A: "turbo run build --workspace=@myorg/ui"
+    B: "turbo run build --filter=@myorg/ui"
+    C: "cd packages/ui && turbo run build"
+    D: "turbo run build @myorg/ui"
+  answer: B
+  explanation: "--filter flag targets specific workspace. Example: turbo run build --filter=@myorg/ui. Builds only that package and its dependencies. Other workspaces unaffected."
+  difficulty: 1
+  tags: [api]
+- id: "28.8"
+  question: "What is the recommended strategy for adopting React 19 in a monorepo with existing React 18 packages?"
+  options:
+    A: "Upgrade all packages at once"
+    B: "Create canary versions of packages, canary app workspace, dual peer dependency support"
+    C: "Stay on React 18 until all dependencies support React 19"
+    D: "Use React 18 and React 19 in same bundle"
+  answer: B
+  explanation: "Gradual rollout: canary package variants with React 19, separate canary app workspace, peer dependency range '^18.0.0 || ^19.0.0'. Test in CI with both versions before full migration."
+  difficulty: 2
+  tags: [pattern]
+- id: "28.9"
+  question: "What file defines Turborepo's task graph, dependencies, caching, and outputs?"
+  options:
+    A: "package.json"
+    B: "turbo.json"
+    C: ".turborepo.yaml"
+    D: "workspace.json"
+  answer: B
+  explanation: "turbo.json at project root defines pipeline (tasks, dependsOn, outputs, inputs, env), globalDependencies, remoteCache configuration. Schema at https://turbo.build/schema.json."
+  difficulty: 1
+  tags: [terminology]
+- id: "28.10"
+  question: "What does globalDependencies: ['.env'] in turbo.json achieve?"
+  options:
+    A: "Makes .env available to all task processes"
+    B: "Includes .env hash in cache key — cache invalidates when .env changes"
+    C: "Copies .env to each workspace during build"
+    D: "Validates .env file exists before running tasks"
+  answer: B
+  explanation: "globalDependencies lists files whose content contributes to cache key for all tasks. .env changes invalidate all caches. Prevents stale builds when environment variables change."
+  difficulty: 2
+  tags: [concept]

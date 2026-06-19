@@ -1,0 +1,110 @@
+- id: "16.1"
+  question: "What Babel macro component renders ICU plural forms in JSX?"
+  options:
+    A: "<FormatPlural>"
+    B: "<Plural>"
+    C: "<Count>"
+    D: "<Locale>"
+  answer: B
+  explanation: "<Plural> is Lingui's ICU plural component. It handles count-based text selection with one/other (and few/many for Slavic languages)."
+  difficulty: 1
+  tags: [syntax]
+- id: "16.2"
+  question: "Lingui compiles messages at build time. What is the primary benefit over runtime i18n?"
+  options:
+    A: "Smaller bundle — no runtime parser needed"
+    B: "Faster locale switching"
+    C: "Dynamic key resolution"
+    D: "No build step required"
+  answer: A
+  explanation: "Babel macros remove ICU parser from bundle. Application ships only compiled messages. Runtime approaches (react-i18next) include parser in bundle."
+  difficulty: 1
+  tags: [concept]
+- id: "16.3"
+  question: "What CLI flag generates typed message catalogs for autocomplete?"
+  options:
+    A: "--typescript"
+    B: "--typed"
+    C: "--strict"
+    D: "--dts"
+  answer: A
+  explanation: "`lingui compile --typescript` generates .d.ts type declaration files alongside compiled catalogs, enabling autocomplete for message IDs."
+  difficulty: 1
+  tags: [cli]
+- id: "16.4"
+  question: "Which method activates a locale after loading its catalog?"
+  options:
+    A: "i18n.switch(locale)"
+    B: "i18n.activate(locale)"
+    C: "i18n.setLocale(locale)"
+    D: "i18n.use(locale)"
+  answer: B
+  explanation: "`i18n.load(locale, messages)` loads catalog. `i18n.activate(locale)` sets active locale and triggers re-render via I18nProvider."
+  difficulty: 1
+  tags: [api]
+- id: "16.5"
+  question: "ICU message: `{name} uploaded {count, plural, one {# file} other {# files}}`. What does `#` represent?"
+  options:
+    A: "The count value"
+    B: "The message ID"
+    C: "A hash placeholder for future text"
+    D: "The translation version number"
+  answer: A
+  explanation: "`#` in ICU plural forms is replaced with the numeric value of the count argument. `{count, plural, one {# file} other {# files}}` with count=1 renders '1 file'."
+  difficulty: 2
+  tags: [icu]
+- id: "16.6"
+  question: "When does `msg` macro fail to extract a message?"
+  options:
+    A: "When message contains JSX"
+    B: "When argument is a dynamic variable, not a template literal — `msg(someVar)` cannot be extracted"
+    C: "When message uses ICU syntax"
+    D: "When message is longer than 100 characters"
+  answer: B
+  explanation: "Macros operate on AST at compile time. Static template literal `msg`Hello ${name}`` is analyzable. Dynamic variable `msg(someVar)` cannot be extracted. Always use template literals."
+  difficulty: 2
+  tags: [macro]
+- id: "16.7"
+  question: "What Lingui component renders gender-based text selection?"
+  options:
+    A: "<Gender>"
+    B: "<Select>"
+    C: "<Conditional>"
+    D: "<Choose>"
+  answer: B
+  explanation: "`<Select value={gender} male=\"He\" female=\"She\" other=\"They\" />` handles gender-based text. ICU select format supports arbitrary category values."
+  difficulty: 2
+  tags: [syntax]
+- id: "16.8"
+  question: "How to lazy-load Lingui catalogs for code-split bundles?"
+  options:
+    A: "Load all catalogs eagerly — lazy loading not supported"
+    B: "Dynamic import of catalog module: `await import('./locales/' + locale + '/messages')`"
+    C: "Use React.lazy on I18nProvider"
+    D: "Configure lazy: true in lingui.config.ts"
+  answer: B
+  explanation: "Dynamic import keeps locale catalogs in separate chunks. Only active locale's catalog loaded. `i18n.load(locale, messages)` after import."
+  difficulty: 2
+  tags: [pattern]
+- id: "16.9"
+  question: "Lingui vs react-i18next: when is react-i18next the better choice?"
+  options:
+    A: "Always — react-i18next is more popular"
+    B: "When translation keys are dynamic and change without deployments (CMS-driven content)"
+    C: "When app targets only one locale"
+    D: "When using TypeScript"
+  answer: B
+  explanation: "Runtime key resolution allows dynamic translation keys from CMS. Lingui requires rebuild for new messages. For CMS-driven multilingual apps, react-i18next flexibility wins."
+  difficulty: 2
+  tags: [comparison]
+- id: "16.10"
+  question: "What happens if a Lingui message ID is missing from the active catalog?"
+  options:
+    A: "Blank string renders"
+    B: "Runtime error thrown"
+    C: "Source message string used as fallback"
+    D: "Message renders but logs warning"
+  answer: C
+  explanation: "Lingui embeds source message strings as fallback. Missing translation renders the source code message. No blank UI or runtime error — graceful degradation."
+  difficulty: 2
+  tags: [concept]

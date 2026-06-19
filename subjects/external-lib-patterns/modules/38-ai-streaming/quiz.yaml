@@ -1,0 +1,119 @@
+- id: "38.1"
+  question: "Which hook from the Vercel AI SDK is used for multi-turn chat with message history?"
+  options:
+    A: "useCompletion"
+    B: "useChat"
+    C: "useAssistant"
+    D: "useStream"
+  answer: B
+  explanation: "useChat manages message history, streaming, abort, and regenerate for conversational interfaces."
+  difficulty: 1
+  tags: ["ai-sdk", "useChat"]
+
+- id: "38.2"
+  question: "How do you switch from OpenAI to Anthropic Claude with the Vercel AI SDK?"
+  options:
+    A: "Change the API endpoint URL only"
+    B: "Install @ai-sdk/anthropic and change the model parameter passed to streamText"
+    C: "Rewrite all useChat calls to useCompletion"
+    D: "Anthropic is not supported by the AI SDK"
+  answer: B
+  explanation: "The AI SDK uses provider packages (@ai-sdk/openai, @ai-sdk/anthropic). Just install the provider and pass its model to streamText."
+  difficulty: 1
+  tags: ["ai-sdk", "providers"]
+
+- id: "38.3"
+  question: "What React 19 hook replaces the traditional form submission pattern for chat in the example?"
+  options:
+    A: "useReducer"
+    B: "useActionState"
+    C: "useDeferredValue"
+    D: "useOptimistic"
+  answer: B
+  explanation: "useActionState manages form submission state and pending status, replacing manual handleSubmit + useState for loading."
+  difficulty: 2
+  tags: ["react-19", "useActionState", "chat"]
+
+- id: "38.4"
+  question: "In the generative UI pattern, what does the AI model actually execute on the server?"
+  options:
+    A: "JSX rendering code"
+    B: "A named tool/function with typed parameters"
+    C: "Inline React components"
+    D: "CSS-in-JS styles"
+  answer: B
+  explanation: "The model calls a registered tool (function). The tool returns data. The client maps the data to a React component."
+  difficulty: 2
+  tags: ["generative-ui", "tools"]
+
+- id: "38.5"
+  question: "What is the purpose of createStreamableValue in the Server Action chat pattern?"
+  options:
+    A: "It creates a new OpenAI client instance"
+    B: "It wraps a stream so the client can read chunks progressively via async iteration"
+    C: "It compresses tokens for faster transfer"
+    D: "It caches responses in localStorage"
+  answer: B
+  explanation: "createStreamableValue creates a stream that the client reads with for-await-of, enabling progressive UI updates."
+  difficulty: 2
+  tags: ["ai-sdk", "streaming", "server-actions"]
+
+- id: "38.6"
+  question: "Which library is recommended for rendering streaming Markdown responses in the chat UI?"
+  options:
+    A: "marked"
+    B: "react-markdown"
+    C: "remark"
+    D: "showdown"
+  answer: B
+  explanation: "react-markdown integrates as a React component that re-renders when content updates, ideal for streaming text."
+  difficulty: 1
+  tags: ["markdown", "streaming", "react-markdown"]
+
+- id: "38.7"
+  question: "What does the stop() function returned by useChat do internally?"
+  options:
+    A: "Pauses the stream temporarily"
+    B: "Aborts the underlying fetch request via AbortController"
+    C: "Clears all messages from history"
+    D: "Disconnects the WebSocket"
+  answer: B
+  explanation: "useChat uses AbortController internally. stop() aborts the current fetch, halting the stream on the server."
+  difficulty: 2
+  tags: ["useChat", "abort"]
+
+- id: "38.8"
+  question: "When should you use useCompletion instead of useChat?"
+  options:
+    A: "When you need multi-turn conversation history"
+    B: "When you have a single prompt-response without chat history"
+    C: "When you need tool calls"
+    D: "When using Anthropic instead of OpenAI"
+  answer: B
+  explanation: "useCompletion is for single-turn completion tasks. useChat manages a conversation array with multiple exchanges."
+  difficulty: 2
+  tags: ["useCompletion", "useChat"]
+
+- id: "38.9"
+  question: "What React 19 feature enables a component to suspend while waiting for an async model response?"
+  options:
+    A: "useEffect with dependency array"
+    B: "Suspense boundary with use() for promise consumption"
+    C: "forwardRef with async callback"
+    D: "createPortal with streaming"
+  answer: B
+  explanation: "React 19's use() hook reads a promise within a Suspense boundary, suspending the component until the promise resolves."
+  difficulty: 3
+  tags: ["react-19", "Suspense", "use"]
+
+- id: "38.10"
+  question: "How does the AI SDK handle tool call serialization between server and client?"
+  options:
+    A: "Tool calls are sent as raw JSX strings"
+    B: "The tool name + parameters are serialized in the stream; client maps to components"
+    C: "The server renders HTML and sends it to the client"
+    D: "Tool calls bypass the stream and use a separate WebSocket"
+  answer: B
+  explanation: "The stream contains structured tool invocation data (name, args, result). The client reads these and renders corresponding React components."
+  difficulty: 3
+  tags: ["ai-sdk", "tools", "serialization"]

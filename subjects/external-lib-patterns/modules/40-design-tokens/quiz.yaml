@@ -1,0 +1,119 @@
+- id: "40.1"
+  question: "What is the primary purpose of Style Dictionary?"
+  options:
+    A: "A CSS framework for responsive design"
+    B: "A build tool that transforms design tokens into platform-specific output"
+    C: "A design tool for creating color palettes"
+    D: "A runtime theme engine for React"
+  answer: B
+  explanation: "Style Dictionary takes structured token JSON and generates platform-specific files (CSS, JS, TS, Android XML, etc.) via transforms and formats."
+  difficulty: 1
+  tags: ["style-dictionary", "tokens"]
+
+- id: "40.2"
+  question: "In the token hierarchy, what is the difference between alias tokens and component tokens?"
+  options:
+    A: "Alias tokens are for JavaScript; component tokens are for CSS"
+    B: "Alias tokens map global tokens to semantic purposes; component tokens scope overrides to specific components"
+    C: "They are the same thing with different naming conventions"
+    D: "Alias tokens are deprecated; component tokens are the standard"
+  answer: B
+  explanation: "Alias tokens add semantic meaning (color.danger). Component tokens further scope values to specific components (button.background.danger)."
+  difficulty: 2
+  tags: ["tokens", "hierarchy"]
+
+- id: "40.3"
+  question: "How do CSS custom properties enable runtime theming without re-render?"
+  options:
+    A: "CSS custom properties trigger React re-render when changed"
+    B: "Custom properties resolve at paint time; changing data-theme attribute swaps values without component re-render"
+    C: "They use JavaScript setters to update the DOM"
+    D: "They are polyfilled by Style Dictionary at build time"
+  answer: B
+  explanation: "CSS custom properties are evaluated by the browser at paint time. Changing data-theme on a parent element cascades new values to all children without JavaScript re-render."
+  difficulty: 2
+  tags: ["css-variables", "theming"]
+
+- id: "40.4"
+  question: "What does a custom Style Dictionary transform do?"
+  options:
+    A: "Changes the file format of the output"
+    B: "Modifies token values during build (e.g., px to dp, px to rem)"
+    C: "Validates token JSON schema"
+    D: "Compresses the output CSS"
+  answer: B
+  explanation: "Transforms are middleware that modify token values (or attributes) during build, enabling platform-specific value conversion."
+  difficulty: 2
+  tags: ["style-dictionary", "transforms"]
+
+- id: "40.5"
+  question: "Why are static class names compiler-friendly for React Compiler?"
+  options:
+    A: "Static class names are faster to hash"
+    B: "Static class names produce no dynamic style objects, so the compiler can memoize the rendering unconditionally"
+    C: "React Compiler only works with className strings, not objects"
+    D: "Static class names automatically tree-shake unused styles"
+  answer: B
+  explanation: "Static class names avoid dynamic style object creation. React Compiler can memoize the virtual DOM output without tracking style dependencies."
+  difficulty: 3
+  tags: ["react-compiler", "class-names", "tokens"]
+
+- id: "40.6"
+  question: "What is the token reference syntax Style Dictionary uses for alias resolution?"
+  options:
+    A: "$ref: path.to.token"
+    B: "{path.to.token}"
+    C: "@path/to/token"
+    D: "var(--path-to-token)"
+  answer: B
+  explanation: "Style Dictionary uses {path.to.token} to reference other tokens. References are resolved at build time, not runtime."
+  difficulty: 1
+  tags: ["style-dictionary", "references"]
+
+- id: "40.7"
+  question: "How does the CI token diff checker detect breaking changes?"
+  options:
+    A: "Comparing file sizes of the output CSS"
+    B: "Parsing CSS custom properties from current and base branch, then checking for value changes on existing keys"
+    C: "Running the full Style Dictionary build twice"
+    D: "Comparing git commit hashes of token files"
+  answer: B
+  explanation: "The checker parses --variable: value pairs from CSS output on both branches. If an existing key has a different value, it's a breaking change."
+  difficulty: 2
+  tags: ["ci", "tokens", "breaking-changes"]
+
+- id: "40.8"
+  question: "What is the benefit of Server Components consuming token CSS?"
+  options:
+    A: "Server Components can modify CSS custom properties"
+    B: "Zero JS runtime cost for theming — CSS custom properties resolve at paint time on the client"
+    C: "Server Components inline all CSS into the HTML"
+    D: "Tokens are compiled to inline styles by the server"
+  answer: B
+  explanation: "Server Components emit HTML with class names. CSS custom properties handle theming at paint time. No JavaScript executes for token resolution."
+  difficulty: 2
+  tags: ["server-components", "tokens", "css-variables"]
+
+- id: "40.9"
+  question: "Which Style Dictionary format output would you use to generate TypeScript type definitions for tokens?"
+  options:
+    A: "css/variables"
+    B: "javascript/es6"
+    C: "typescript/es6-declarations"
+    D: "scss/variables"
+  answer: C
+  explanation: "typescript/es6-declarations generates .d.ts type definitions alongside .js token files for TypeScript consumers."
+  difficulty: 2
+  tags: ["style-dictionary", "typescript", "formats"]
+
+- id: "40.10"
+  question: "What scenario would require a custom Style Dictionary format instead of a built-in format?"
+  options:
+    A: "Generating CSS custom properties for the web"
+    B: "Generating SCSS variables for a Sass project"
+    C: "Generating a Tailwind CSS config extension from tokens"
+    D: "Generating JavaScript ES6 module exports"
+  answer: C
+  explanation: "Tailwind config is a custom JSON structure not covered by built-in formats. A custom format function transforms tokens into the Tailwind extend config shape."
+  difficulty: 3
+  tags: ["style-dictionary", "custom-format", "tailwind"]

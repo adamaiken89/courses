@@ -1,0 +1,110 @@
+- id: "15.1"
+  question: "What is the purpose of cmdk's CommandInput component?"
+  options:
+    A: "Renders a styled text input that filters CommandItems by default"
+    B: "Provides a search bar but filtering must be implemented manually"
+    C: "Shows keyboard shortcut hints"
+    D: "Renders input for command arguments"
+  answer: A
+  explanation: "CommandInput renders a search input that automatically filters CommandItem children by their value and keywords props. onValueChange callback provides custom filtering alternative."
+  difficulty: 1
+  tags: [terminology]
+- id: "15.2"
+  question: "How does cmdk rank search results by default?"
+  options:
+    A: "Alphabetical order — no ranking"
+    B: "Exact match > prefix match > substring match > keyword match"
+    C: "Random order each search"
+    D: "By order items appear in DOM"
+  answer: B
+  explanation: "cmdk's built-in filter ranks: exact value match highest, then prefix match, then substring, then keyword match. Helps users find common actions quickly."
+  difficulty: 2
+  tags: [concept]
+- id: "15.3"
+  question: "What pattern enables feature modules to add their own commands without modifying a central file?"
+  options:
+    A: "Central commands.tsx file with all commands"
+    B: "Command registration pattern — modules call registry.register() at init"
+    C: "Environment variables for each command"
+    D: "Runtime JSON fetch from /api/commands"
+  answer: B
+  explanation: "CommandRegistry singleton accepts register() calls from any module. Each module calls register() during initialization. Registry aggregates and provides commands to CommandMenu component."
+  difficulty: 2
+  tags: [concept]
+- id: "15.4"
+  question: "How to implement a submenu/nested command in cmdk?"
+  options:
+    A: "cmdk does not support nested commands"
+    B: "Render separate Command tree when user selects parent item — swap visible content"
+    C: "Use nested CommandGroup components"
+    D: "Set depth prop on CommandItem"
+  answer: B
+  explanation: "Submenus are separate Command trees rendered conditionally. Parent item's onSelect sets state to show submenu. Submenu includes back button to return to main menu."
+  difficulty: 2
+  tags: [application]
+- id: "15.5"
+  question: "What is the difference between Dialog and Inline mode in cmdk?"
+  options:
+    A: "Dialog mode renders overlay with backdrop. Inline embeds command list in page flow."
+    B: "No difference — same functionality"
+    C: "Dialog mode has search, Inline does not"
+    D: "Inline mode requires shouldFilter={false}"
+  answer: A
+  explanation: "CommandDialog wraps Command in a modal dialog (overlay, backdrop, focus trap). Inline mode renders Command directly in DOM for embedded use cases."
+  difficulty: 1
+  tags: [terminology]
+- id: "15.6"
+  question: "When should you set shouldFilter={false} on Command?"
+  options:
+    A: "Always — built-in filtering is buggy"
+    B: "When implementing custom filtering logic external to cmdk"
+    C: "When CommandItems have no value prop"
+    D: "Only in Dialog mode"
+  answer: B
+  explanation: "shouldFilter={false} disables cmdk's built-in filtering. Use when: fetch-as-you-type with debounce, server-side search, or custom ranking algorithm. You control what renders in CommandList."
+  difficulty: 2
+  tags: [application]
+- id: "15.7"
+  question: "How does useHotkeys handle platform modifier differences?"
+  options:
+    A: "No platform detection — use 'meta' for both Mac and Windows"
+    B: "Automatically maps meta to cmd on Mac, ctrl on Windows"
+    C: "Developer must provide separate key combos per platform"
+    D: "Uses navigator.platform to conditionally register"
+  answer: B
+  explanation: "react-hotkey detects OS and maps 'meta' to command key ⌘ on macOS and ctrl on Windows/Linux. useHotkeys('meta+k') works on both platforms without conditional logic."
+  difficulty: 2
+  tags: [concept]
+- id: "15.8"
+  question: "How to add keyboard shortcut hints to CommandItems?"
+  options:
+    A: "Not supported — shortcuts displayed in separate component"
+    B: "Use <CommandShortcut> children inside CommandItem"
+    C: "Add shortcut prop to CommandItem"
+    D: "Shortcuts are automatically detected from useHotkeys"
+  answer: B
+  explanation: "CommandShortcut renders styled keyboard shortcut text inside CommandItem. Visual only — does not register key bindings. Pair with useHotkeys for actual key handling."
+  difficulty: 1
+  tags: [terminology]
+- id: "15.9"
+  question: "What happens when a user types a query that matches no commands?"
+  options:
+    A: "CommandList shows nothing — empty state"
+    B: "<CommandEmpty> renders with the unmatched query text"
+    C: "cmdk throws error"
+    D: "Previous results remain visible"
+  answer: B
+  explanation: "CommandEmpty renders when no CommandItem matches current search query. Typically shows 'No results found' or 'No results for {query}'. Only visible when its parent CommandList has no visible CommandItems."
+  difficulty: 1
+  tags: [terminology]
+- id: "15.10"
+  question: "How to handle async data fetching in command items?"
+  options:
+    A: "cmdk has built-in async support — pass fetch function"
+    B: "Fetch in useEffect with query dependency, abort previous request, render results as CommandItems"
+    C: "Fetch all data upfront — async fetching not supported"
+    D: "Use Web Workers for async command data"
+  answer: B
+  explanation: "Implement async fetch in useEffect. Use query state as deps. Abort previous fetch on new query via AbortController. Map results to CommandItems. Show loading state during fetch."
+  difficulty: 2
+  tags: [application]

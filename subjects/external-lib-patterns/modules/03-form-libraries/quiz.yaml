@@ -1,0 +1,110 @@
+- id: "3.1"
+  question: "Which form paradigm gives the most control over field layout and styling?"
+  options:
+    A: "Schema-driven (Formio, JSON Forms)"
+    B: "Headless (React Hook Form, Formik)"
+    C: "Template-driven (Angular Forms)"
+    D: "Both A and B give equal control"
+  answer: B
+  explanation: "Headless form libraries manage state only. Consumer renders every field, controls layout, styling, and behavior. Schema-driven libraries auto-render from JSON schema, limiting layout control."
+  difficulty: 1
+  tags: [comparison]
+- id: "3.2"
+  question: "When should you choose Formio over React Hook Form?"
+  options:
+    A: "Always — Formio is more powerful"
+    B: "When forms are schema-driven, stored in DB, or configured by non-developers"
+    C: "When bundle size must be minimal"
+    D: "When you need custom field validation"
+  answer: B
+  explanation: "Formio excels at dynamic forms rendered from persisted schemas — admin panels, surveys, user-configurable forms. RHF excels at lightweight, custom-layout forms."
+  difficulty: 2
+  tags: [concept]
+- id: "3.3"
+  question: "How should validation logic be structured to remain form-library-agnostic?"
+  options:
+    A: "Use built-in validation of chosen form library"
+    B: "Define validation as pure functions with typed input/output, adapt to form library via resolver"
+    C: "Duplicate validation in both form library and backend"
+    D: "Skip client validation — server only"
+  answer: B
+  explanation: "Pure validation functions (Zod schema, custom validator) have no form library dependency. Adapter converts result to library-specific format (RHF resolver, Formio custom validation). Swap adapter when library changes."
+  difficulty: 2
+  tags: [concept]
+- id: "3.4"
+  question: "A wizard form uses RHF internally. How does state persist across wizard steps?"
+  options:
+    A: "Each step has independent state — merge on final submit"
+    B: "Single useForm instance shared across all steps — each step renders subset of fields"
+    C: "Store state in URL search params"
+    D: "Wizard state is managed by a separate library (e.g., Zustand)"
+  answer: B
+  explanation: "Single useForm instance holds all fields. Each step calls register() for its subset of fields. trigger() validates current step. Final submit calls handleSubmit() with all fields."
+  difficulty: 2
+  tags: [application]
+- id: "3.5"
+  question: "What is the primary cost of schema-driven forms?"
+  options:
+    A: "More code to write"
+    B: "Limited layout control and larger bundle size"
+    C: "Cannot validate inputs"
+    D: "Does not support accessibility"
+  answer: B
+  explanation: "Schema-driven forms trade layout flexibility for automation. Formio bundle is ~200KB. Custom layouts require renderer customization or component overrides. Accessibility depends on renderer quality."
+  difficulty: 2
+  tags: [concept]
+- id: "3.6"
+  question: "Validation needs cross-field rules (e.g., endDate > startDate). Which approach works for both RHF and Formio?"
+  options:
+    A: "Only RHF supports cross-field validation"
+    B: "Define cross-field rule in Zod/yup schema — both RHF resolver and Formio custom validation can call it"
+    C: "Cross-field validation is server-only"
+    D: "Formio cannot validate cross-field"
+  answer: B
+  explanation: "Pure validation function (Zod refine, yup.test) works in both. RHF calls via resolver. Formio calls via onSubmit custom validation handler. Write once, adapt twice."
+  difficulty: 3
+  tags: [application]
+- id: "3.7"
+  question: "Form interface FormContext<T> abstracts form state. What is its main benefit?"
+  options:
+    A: "Reduces bundle size"
+    B: "Lets consumers switch form library without changing form interaction code"
+    C: "Improves TypeScript inference"
+    D: "Auto-generates form validation"
+  answer: B
+  explanation: "FormContext<T> standardizes form operations (setValue, submit, errors, isValid). Components depend on context interface, not library-specific hooks. Change library: provide new FormContext implementation."
+  difficulty: 1
+  tags: [terminology]
+- id: "3.8"
+  question: "A multi-step form needs server validation per step. How to design?"
+  options:
+    A: "Submit all steps at once — server validates everything"
+    B: "Two-tier validation: client-side Zod per step + server validation on step POST, merge errors back"
+    C: "Skip client-side validation — server validates each step"
+    D: "Validate only on final submit — no per-step validation"
+  answer: B
+  explanation: "Client-side validation provides instant feedback. Server validation per step catches business rule violations. Merged errors let user fix per-step issues before proceeding. Both validations must pass for step to advance."
+  difficulty: 3
+  tags: [application]
+- id: "3.9"
+  question: "Which pattern lets you mix headless and schema-driven forms in same app?"
+  options:
+    A: "Wrap both behind same FormContext interface"
+    B: "Use only one form library per app"
+    C: "Use iframes to isolate form paradigms"
+    D: "Convert all forms to schema-driven"
+  answer: A
+  explanation: "FormContext abstraction hides implementation. RHF and Formio both implement FormContext. Consumer components use FormContext regardless of which library runs which form."
+  difficulty: 2
+  tags: [application]
+- id: "3.10"
+  question: "A designer wants fine control over form field placement across multiple columns. Which form paradigm fits best?"
+  options:
+    A: "Schema-driven — columns defined in JSON layout"
+    B: "Headless — consumer renders fields in CSS Grid with full layout control"
+    C: "Neither — forms cannot support multi-column layouts"
+    D: "Both equally support any layout"
+  answer: B
+  explanation: "Headless forms give consumer full layout control (CSS Grid, Flexbox, custom breakpoints). Schema-driven forms have opinionated layout engines that make pixel-perfect multi-column layouts difficult without customization."
+  difficulty: 2
+  tags: [comparison]

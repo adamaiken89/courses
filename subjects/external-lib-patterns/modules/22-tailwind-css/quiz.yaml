@@ -1,0 +1,119 @@
+- id: "22.1"
+  question: "What problem does the twMerge function in the cn() helper solve?"
+  options:
+    A: "It merges Tailwind config files"
+    B: "It resolves conflicting Tailwind utility classes, keeping the last one"
+    C: "It combines separate CSS files into one bundle"
+    D: "It converts inline styles to Tailwind classes"
+  answer: B
+  explanation: "twMerge resolves specificity conflicts between Tailwind utilities (e.g., px-4 vs px-6), keeping the last defined class."
+  difficulty: 1
+  tags: [tailwind, tailwind-merge, utilities]
+
+- id: "22.2"
+  question: "Why is Tailwind fully compatible with React 19 Compiler?"
+  options:
+    A: "Tailwind includes a React 19 plugin"
+    B: "Tailwind generates static class names at build time with zero runtime CSS-in-JS"
+    C: "React 19 Compiler only works with Tailwind"
+    D: "Tailwind uses runtime style injection for compatibility"
+  answer: B
+  explanation: "React 19 Compiler memoizes components automatically. Tailwind's static class names need no runtime style computation, so no migration effort is needed."
+  difficulty: 2
+  tags: [react-19, compiler, tailwind]
+
+- id: "22.3"
+  question: "What is the correct pattern for making a Button component accept custom styles from consumers?"
+  options:
+    A: "Accept a style object prop"
+    B: "Accept a className prop merged with cn()"
+    C: "Use CSS variables for all visual properties"
+    D: "Extend Tailwind config per consumer"
+  answer: B
+  explanation: "Accepting className and merging with cn() allows consumers to override or extend styles while preserving internal component styles."
+  difficulty: 1
+  tags: [tailwind, component-patterns, className]
+
+- id: "22.4"
+  question: "How do you configure Tailwind to support class-based dark mode toggling?"
+  options:
+    A: "Set darkMode: 'media' in tailwind.config"
+    B: "Set darkMode: 'class' in tailwind.config"
+    C: "Use the @dark directive in CSS"
+    D: "Import a dark mode plugin"
+  answer: B
+  explanation: "darkMode: 'class' enables toggling dark mode by adding/removing the 'dark' class on the HTML element. 'media' follows system preference."
+  difficulty: 1
+  tags: [tailwind, dark-mode, configuration]
+
+- id: "22.5"
+  question: "What is the advantage of mapping design tokens via CSS variables in tailwind.config?"
+  options:
+    A: "CSS variables allow runtime theme switching without recompilation"
+    B: "CSS variables are faster than Tailwind utility classes"
+    C: "Tailwind only supports CSS variable tokens"
+    D: "CSS variables eliminate the need for Tailwind config"
+  answer: A
+  explanation: "CSS variables can be toggled at runtime for theme switching. Tailing config references them, so utility classes automatically reflect the current theme."
+  difficulty: 2
+  tags: [tailwind, design-tokens, CSS-variables]
+
+- id: "22.6"
+  question: "Which Radix UI state attribute does Tailwind use for styling open/closed transitions?"
+  options:
+    A: "aria-expanded"
+    B: "data-state"
+    C: "data-open"
+    D: "role"
+  answer: B
+  explanation: "Radix UI components expose data-state attribute (e.g., data-[state=open], data-[state=closed]) for styling via Tailwind's data-* variant."
+  difficulty: 2
+  tags: [radix, tailwind, data-attributes]
+
+- id: "22.7"
+  question: "What is the difference between Tailwind utility-first approach and CSS-in-JS?"
+  options:
+    A: "Tailwind generates CSS at build time; CSS-in-JS generates styles at runtime or build time via JavaScript"
+    B: "They are the same approach with different syntax"
+    C: "CSS-in-JS is faster than Tailwind"
+    D: "Tailwind only works with React"
+  answer: A
+  explanation: "Tailwind uses PostCSS to generate CSS at build time. CSS-in-JS libraries may generate styles at runtime or use compile-time extraction."
+  difficulty: 1
+  tags: [tailwind, css-in-js, architecture]
+
+- id: "22.8"
+  question: "Which responsive breakpoint pattern creates a 4-column grid on desktop and 2-column on tablet?"
+  options:
+    A: "grid-cols-4 sm:grid-cols-2"
+    B: "grid-cols-2 lg:grid-cols-4"
+    C: "grid-cols-4 md:grid-cols-2"
+    D: "grid-cols-2 md:grid-cols-4"
+  answer: B
+  explanation: "In Tailwind mobile-first breakpoints, lg: overrides the default (mobile) grid. grid-cols-2 default becomes lg:grid-cols-4 on large screens."
+  difficulty: 1
+  tags: [tailwind, responsive, grid]
+
+- id: "22.9"
+  question: "How should you handle repeated utility patterns that appear many times across components?"
+  options:
+    A: "Keep inline utilities for consistency"
+    B: "Extract into a reusable component with className prop"
+    C: "Add a custom utility class via @apply"
+    D: "Use inline styles for the repeated patterns"
+  answer: B
+  explanation: "Reusable components encapsulate utility patterns. className prop allows consumer customization while reducing duplication."
+  difficulty: 2
+  tags: [tailwind, component-extraction, patterns]
+
+- id: "22.10"
+  question: "What does the clsx function in the cn() helper do?"
+  options:
+    A: "Merges Tailwind classes resolving conflicts"
+    B: "Conditionally joins class names together"
+    C: "Converts CSS modules to Tailwind"
+    D: "Generates responsive variants"
+  answer: B
+  explanation: "clsx handles conditional class name joining (e.g., clsx('base', condition && 'extra')) returning a single string."
+  difficulty: 1
+  tags: [tailwind, clsx, utilities]

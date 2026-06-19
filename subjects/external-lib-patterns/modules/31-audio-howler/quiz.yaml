@@ -1,0 +1,110 @@
+- id: "31.1"
+  question: "What is the difference between Howl and Howler in Howler.js?"
+  options:
+    A: "Howl is global singleton; Howler manages individual instances"
+    B: "Howl manages individual audio instances; Howler is the global singleton for mute/volume/spatial"
+    C: "They are interchangeable aliases"
+    D: "Howl handles sprites; Howler handles non-sprite audio"
+  answer: B
+  explanation: "Howl creates individual audio instances with playback control. Howler provides global state: mute, volume, listener position for spatial audio, and codec detection."
+  difficulty: 1
+  tags: [architecture]
+- id: "31.2"
+  question: "How are audio sprites defined in Howler.js?"
+  options:
+    A: "Array of file paths, played in sequence"
+    B: "Object mapping sprite names to [offsetMs, durationMs] arrays"
+    C: "Separate JSON manifest file linked in constructor"
+    D: "CSS animation timing applied to audio element"
+  answer: B
+  explanation: "Sprite definition is Record<string, [number, number]> where each entry maps name to [offsetMs, durationMs] within a single audio file."
+  difficulty: 1
+  tags: [syntax]
+- id: "31.3"
+  question: "Which method signature correctly seeks a specific sound instance?"
+  options:
+    A: "howl.seek(5)"
+    B: "howl.seek(5, soundId)"
+    C: "howl.seek(soundId, 5)"
+    D: "Howler.seek(5, soundId)"
+  answer: B
+  explanation: "Howl.seek(seconds, soundId) seeks specific playback instance. Without soundId, seeks first/default instance. Howler has no seek method."
+  difficulty: 2
+  tags: [api]
+- id: "31.4"
+  question: "What is the purpose of providing multiple formats in Howl src array?"
+  options:
+    A: "Play all formats simultaneously for redundancy"
+    B: "Howler picks first playable format based on browser codec support"
+    C: "Increases audio quality by merging codecs"
+    D: "Required for sprite sheets to work"
+  answer: B
+  explanation: "Howler detects browser codec support and selects first playable entry from src array. Pattern: [webm, ogg, mp3] for optimal coverage."
+  difficulty: 1
+  tags: [cross-browser]
+- id: "31.5"
+  question: "How does the React 19 ref-as-prop pattern work with Howler.js?"
+  options:
+    A: "Ref holds Howl instance created inside effect"
+    B: "Ref exposes imperative audio control methods (play, pause, seek) to parent"
+    C: "Ref replaces useState for audio state"
+    D: "Ref stores audio buffer for visualizer"
+  answer: B
+  explanation: "Ref-as-prop in React 19 passes ref to child, which assigns handle object with play/pause/seek/volume methods. Parent calls audio.handle.play() imperatively."
+  difficulty: 2
+  tags: [react, pattern]
+- id: "31.6"
+  question: "Why use useTransition when triggering audio sprite playback?"
+  options:
+    A: "Transition lowers audio latency"
+    B: "Prevents UI jank during rapid section switching by marking state update as low priority"
+    C: "Transition enables crossfade between sprites"
+    D: "Required for Howler autoplay policy"
+  answer: B
+  explanation: "useTransition marks state update as non-urgent, keeping UI responsive during rapid playlist navigation. Audio playback itself is imperative and unaffected by React render."
+  difficulty: 2
+  tags: [react, performance]
+- id: "31.7"
+  question: "What happens if seek is called on a sprite-based Howl instance?"
+  options:
+    A: "Seeks to position within current sprite"
+    B: "Seeks to position within full audio file, not relative to sprite"
+    C: "Throws error — seek not supported with sprites"
+    D: "Seeks to next sprite boundary"
+  answer: B
+  explanation: "Seek position is relative to full audio buffer, not sprite. To control sprite playback position, restart the sprite or adjust sprite offset definition."
+  difficulty: 3
+  tags: [edge-case]
+- id: "31.8"
+  question: "Which pattern prevents memory leaks when using Howler.js in React components?"
+  options:
+    A: "Call howl.unload() in useEffect cleanup"
+    B: "Set howl reference to null on unmount"
+    C: "Use ref instead of state to store Howl"
+    D: "Wrap Howl in useMemo with empty deps"
+  answer: A
+  explanation: "Howl allocates AudioContext resources. useEffect cleanup must call howl.unload() to release buffers and disconnect audio graph. Without unload, memory grows per mount."
+  difficulty: 2
+  tags: [memory, react]
+- id: "31.9"
+  question: "How does Howler.js handle browser autoplay restrictions?"
+  options:
+    A: "Plays anyway after user scroll"
+    B: "Must resume AudioContext via Howler.ctx.resume() after user gesture"
+    C: "Schedules play for after page load"
+    D: "Always autoplays in Web Worker context"
+  answer: B
+  explanation: "Browsers suspend AudioContext until user gesture. Call Howler.ctx.resume() inside click/submit handler to resume audio processing. Pattern: one-time gesture listener at app root."
+  difficulty: 2
+  tags: [autoplay, browser]
+- id: "31.10"
+  question: "When should the Sound Pool pattern be used with Howler.js?"
+  options:
+    A: "Always — pool is default best practice"
+    B: "When same sound played repeatedly and overlapping (e.g., UI clicks, game sfx)"
+    C: "Only for spatial audio"
+    D: "Pool replaces sprite sheet for large audio files"
+  answer: B
+  explanation: "Sound Pool pre-allocates multiple Howl instances and rotates play() calls. Prevents allocation overhead for rapid overlapping sounds like UI clicks or game events. Not needed for sequential playback."
+  difficulty: 3
+  tags: [pattern, performance]

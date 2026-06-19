@@ -1,0 +1,119 @@
+- id: "24.1"
+  question: "What does the priority prop on next/image do?"
+  options:
+    A: "Sets the image as highest quality"
+    B: "Preloads the image with a <link rel=preload> tag"
+    C: "Prioritizes the image in the CDN queue"
+    D: "Increases the loading timeout"
+  answer: B
+  explanation: "priority adds a preload link in the document head, telling the browser to start loading the image immediately rather than waiting for discovery."
+  difficulty: 1
+  tags: [nextjs, image, optimization]
+
+- id: "24.2"
+  question: "Which Sharp pipeline step converts an image to WebP with quality control?"
+  options:
+    A: "sharp(input).webp({ quality: 80 })"
+    B: "sharp(input).toFormat('webp', { quality: 80 })"
+    C: "sharp(input).convert('webp', 80)"
+    D: "sharp(input).encode('webp', { quality: 80 })"
+  answer: A
+  explanation: "Sharp provides format-specific methods (.webp(), .avif(), .jpeg()) accepting an options object with quality and other format-specific settings."
+  difficulty: 1
+  tags: [sharp, image-processing, webp]
+
+- id: "24.3"
+  question: "What is the purpose of blurDataURL in next/image?"
+  options:
+    A: "Blur the image on hover"
+    B: "Show a blurry placeholder while the full image loads, improving perceived performance"
+    C: "Reduce image quality for bandwidth savings"
+    D: "Apply CSS blur filter automatically"
+  answer: B
+  explanation: "blurDataURL is a tiny base64-encoded image shown as placeholder. placeholder='blur' must be set alongside blurDataURL for this effect."
+  difficulty: 1
+  tags: [nextjs, image, placeholder]
+
+- id: "24.4"
+  question: "How should you use React 19 Server Components with image metadata?"
+  options:
+    A: "Process image metadata in the Server Component and pass as props to the client component"
+    B: "Fetch metadata client-side with useEffect"
+    C: "Define metadata in a static JSON file"
+    D: "Use onLoad callback to capture metadata"
+  answer: A
+  explanation: "Server Components can read file system, process images with Sharp, and pass metadata (dimensions, blurDataURL) to client components as props."
+  difficulty: 2
+  tags: [react-19, server-components, image-metadata]
+
+- id: "24.5"
+  question: "Which sizes attribute value serves full-viewport images on mobile and half-viewport on desktop?"
+  options:
+    A: "(max-width: 768px) 50vw, 100vw"
+    B: "(max-width: 768px) 100vw, 50vw"
+    C: "100vw"
+    D: "50vw"
+  answer: B
+  explanation: "The sizes attribute tells the browser what width the image will display at each breakpoint. Mobile gets 100vw, desktop gets 50vw."
+  difficulty: 2
+  tags: [responsive-images, sizes, nextjs]
+
+- id: "24.6"
+  question: "What does the 'withoutEnlargement: true' option in Sharp's resize do?"
+  options:
+    A: "Crops the image instead of resizing"
+    B: "Prevents upscaling images smaller than the target dimensions"
+    C: "Enlarges images to fill the target size"
+    D: "Removes EXIF data during resize"
+  answer: B
+  explanation: "withoutEnlargement ensures small images aren't scaled up (which would degrade quality). The image stays at its original dimensions if smaller than target."
+  difficulty: 2
+  tags: [sharp, resize, best-practices]
+
+- id: "24.7"
+  question: "What is the difference between WebP and AVIF formats?"
+  options:
+    A: "WebP is smaller than AVIF at equal quality"
+    B: "AVIF offers ~20% better compression but lower browser support than WebP"
+    C: "WebP supports transparency, AVIF does not"
+    D: "AVIF is only supported in Chrome"
+  answer: B
+  explanation: "AVIF (AV1 Image File Format) provides better compression ratios than WebP but has lower browser support (~92% vs ~97%)."
+  difficulty: 1
+  tags: [formats, webp, avif, compression]
+
+- id: "24.8"
+  question: "What happens when you set fill on next/image without a parent with position: relative?"
+  options:
+    A: "The image fills the viewport"
+    B: "The image collapses to zero dimensions"
+    C: "next/image throws a runtime error"
+    D: "The image uses intrinsic dimensions instead"
+  answer: C
+  explanation: "fill requires a parent with position: relative (or absolute/fixed) and defined dimensions. Without it, the image has no container to fill."
+  difficulty: 2
+  tags: [nextjs, image, fill]
+
+- id: "24.9"
+  question: "Which native attribute defers image loading until near the viewport?"
+  options:
+    A: "decoding='async'"
+    B: "loading='lazy'"
+    C: "fetchpriority='low'"
+    D: "importance='low'"
+  answer: B
+  explanation: "loading='lazy' defers loading until the image approaches the viewport (browser-defined distance). decoding='async' is complementary but unrelated to loading timing."
+  difficulty: 1
+  tags: [lazy-loading, native, performance]
+
+- id: "24.10"
+  question: "Why configure remotePatterns in next.config for image optimization?"
+  options:
+    A: "It enables next/image to optimize images from external CDNs"
+    B: "It speeds up image download from external sources"
+    C: "It caches external images locally"
+    D: "It allows external images but disables optimization"
+  answer: A
+  explanation: "remotePatterns tells next/image which external hosts are safe to optimize. Optimized images are served through Next.js's optimization endpoint."
+  difficulty: 1
+  tags: [nextjs, cdn, configuration]

@@ -1,0 +1,110 @@
+- id: "34.1"
+  question: "What are the three core components of react-resizable-panels?"
+  options:
+    A: "Splitter, Pane, Divider"
+    B: "PanelGroup, Panel, PanelResizeHandle"
+    C: "Container, Section, Handle"
+    D: "Row, Column, Gutter"
+  answer: B
+  explanation: "PanelGroup wraps the layout (direction). Panel defines resizable regions with min/max/collapse. PanelResizeHandle is the draggable separator between panels."
+  difficulty: 1
+  tags: [architecture]
+- id: "34.2"
+  question: "What is the difference between controlled and uncontrolled Panel?"
+  options:
+    A: "Controlled uses size prop with onLayout; uncontrolled uses defaultSize"
+    B: "Controlled panels are not resizable by users"
+    C: "Uncontrolled panels require minSize prop"
+    D: "No difference — they are aliases"
+  answer: A
+  explanation: "Controlled mode: parent manages sizes via size prop and receives updates via onLayout. Uncontrolled mode: panel manages own size via defaultSize without external state."
+  difficulty: 1
+  tags: [control]
+- id: "34.3"
+  question: "What happens if panel sizes total exceeds 100%?"
+  options:
+    A: "PanelGroup throws error"
+    B: "Sizes are normalized proportionally to sum to 100%"
+    C: "Last panel is clipped"
+    D: "Overflow scrollbar appears"
+  answer: B
+  explanation: "PanelGroup auto-normalizes sizes. If panels sum > 100%, each scales down proportionally. Use onLayout output (always normalized) for persistence."
+  difficulty: 2
+  tags: [behavior]
+- id: "34.4"
+  question: "How to persist panel layout across sessions?"
+  options:
+    A: "PanelGroup auto-saves to localStorage"
+    B: "Use onLayout callback to save sizes array to localStorage; restore via size prop"
+    C: "Panels persist automatically via React state"
+    D: "Store panel refs in global context"
+  answer: B
+  explanation: "onLayout fires number[] of percentage sizes. Save to localStorage. On mount, read saved array and pass as size prop to each Panel in controlled mode."
+  difficulty: 2
+  tags: [persistence]
+- id: "34.5"
+  question: "Why use useTransition when persisting panel layout to localStorage?"
+  options:
+    A: "Required for localStorage write permission"
+    B: "Debounces high-frequency onLayout calls during drag, preventing main thread blocking"
+    C: "Transition enables undo of layout changes"
+    D: "Layout persistence is async by default"
+  answer: B
+  explanation: "onLayout fires during every pixel of drag at high frequency. useTransition marks localStorage write as low priority, keeping resize responsive."
+  difficulty: 2
+  tags: [react, performance]
+- id: "34.6"
+  question: "How are Suspense boundaries used with resizable panels?"
+  options:
+    A: "Suspense wraps PanelGroup for loading state"
+    B: "Each Panel wraps its content in Suspense for lazy-loaded panel content"
+    C: "PanelResizeHandle supports Suspense for resize animations"
+    D: "Suspense replaces PanelResizeHandle"
+  answer: B
+  explanation: "Each Panel wraps its content in <Suspense> so lazy-loaded panel sections stream independently. One panel's loading state does not block adjacent panels."
+  difficulty: 2
+  tags: [react, suspense]
+- id: "34.7"
+  question: "What keyboard keys resize panels by default?"
+  options:
+    A: "Tab and Shift+Tab"
+    B: "Arrow keys (left/right/up/down), Home/End, Enter"
+    C: "Space and Escape"
+    D: "Page Up and Page Down"
+  answer: B
+  explanation: "Arrow keys adjust size incrementally. Home/End minimize/maximize panel. Enter toggles collapse. Enabled without extra configuration."
+  difficulty: 1
+  tags: [accessibility]
+- id: "34.8"
+  question: "How to create a collapsible sidebar that hides completely?"
+  options:
+    A: "Set collapsible=true and collapsedSize=0 on Panel"
+    B: "Use visibility:hidden CSS class"
+    C: "Set minSize=0 on Panel"
+    D: "Wrap sidebar in conditional render"
+  answer: A
+  explanation: "collapsible=true enables collapse. collapsedSize=0 hides panel completely. onCollapse/onExpand callbacks notify parent of state change."
+  difficulty: 2
+  tags: [collapse]
+- id: "34.9"
+  question: "How does RTL support work in react-resizable-panels?"
+  options:
+    A: "Must set document.dir manually"
+    B: "dir='rtl' prop on PanelGroup reverses handle resize direction"
+    C: "CSS direction property on parent element"
+    D: "Auto-detected from HTML lang attribute"
+  answer: B
+  explanation: "dir='rtl' on PanelGroup reverses resize behavior — dragging handle left increases right panel. Arrow keys also reverse accordingly."
+  difficulty: 2
+  tags: [rtl]
+- id: "34.10"
+  question: "How to programmatically trigger panel resize via React 19 ref?"
+  options:
+    A: "Panels expose resize(percentage) and collapse()/expand() methods on ref"
+    B: "Set size prop to new value — ref not needed for imperative control"
+    C: "Dispatch custom DOM event on panel element"
+    D: "Call panelRef.current.style.flex property"
+  answer: A
+  explanation: "Panels expose imperative API via ref: resize(percentage), collapse(), expand(). Pass ref as prop (React 19 pattern) for parent-controlled imperative operations."
+  difficulty: 3
+  tags: [react, imperative]

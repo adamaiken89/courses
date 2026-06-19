@@ -1,0 +1,110 @@
+- id: "2.1"
+  question: "What is the primary benefit of abstracting column definitions into AppColumnDef?"
+  options:
+    A: "Columns render faster"
+    B: "Switching grid libraries changes only the mapper functions"
+    C: "TypeScript can infer row type from column definitions"
+    D: "Column definitions become serializable"
+  answer: B
+  explanation: "AppColumnDef provides library-agnostic column schema. Mapper functions convert to library-specific format. Migration changes mappers, not every column usage."
+  difficulty: 1
+  tags: [concept]
+- id: "2.2"
+  question: "A grid library owns its internal sort state. Why externalize it?"
+  options:
+    A: "Library internal state is always buggy"
+    B: "External state enables URL sync, undo, and multi-grid coordination"
+    C: "External state renders faster"
+    D: "Library state cannot be serialized to JSON"
+  answer: B
+  explanation: "External state enables URL deep linking, undo/redo, sharing sort/filter between grids, and cross-tab synchronization. Library internal state is isolated."
+  difficulty: 2
+  tags: [concept]
+- id: "2.3"
+  question: "Which approach handles library-specific grid features (e.g., AG Grid pivot) in an abstraction?"
+  options:
+    A: "Ban all library-specific features"
+    B: "Abstract only the intersection of features across supported libraries"
+    C: "Expose every library feature as optional props"
+    D: "Only support features present in all libraries"
+  answer: B
+  explanation: "Abstract the intersection. For library-specific features, provide optional escape hatch (e.g., `extra` prop typed as `Record<string, unknown>`). This prevents feature lock-in while allowing full library use."
+  difficulty: 3
+  tags: [concept]
+- id: "2.4"
+  question: "TanStack Table is headless — it provides hooks, not UI. What additional library does a headless grid need?"
+  options:
+    A: "React Router"
+    B: "TanStack Virtual (or similar virtualizer)"
+    C: "Redux"
+    D: "Tailwind CSS"
+  answer: B
+  explanation: "Headless table provides logic (sort, filter, pagination) but no rendering. Virtualizer handles windowed rendering so only visible rows are in DOM. Required for performance with large datasets."
+  difficulty: 1
+  tags: [application]
+- id: "2.5"
+  question: "AG Grid community license lacks pivot and Excel export. How to design wrapper for future enterprise upgrade?"
+  options:
+    A: "Use AG Grid enterprise from the start"
+    B: "Design IEnterpriseFeature interface, implement with community stubs, swap for enterprise implementation later"
+    C: "Avoid AG Grid — only use TanStack Table"
+    D: "Fork AG Grid community and add features"
+  answer: B
+  explanation: "IEnterpriseFeature adapter pattern. Community stub throws 'not implemented' or returns unsupported. Enterprise implementation delegates to AG Grid enterprise. Conditional import via dynamic import or build flag."
+  difficulty: 2
+  tags: [application]
+- id: "2.6"
+  question: "When is controlled grid state problematic for performance?"
+  options:
+    A: "Always — controlled state is always slower"
+    B: "When wrapper re-renders all rows on every sort change instead of delegating to grid's virtual DOM"
+    C: "When using TanStack Table (headless)"
+    D: "When state is serialized to URL"
+  answer: B
+  explanation: "Controlled state is fine if wrapper passes state to grid library's optimized internal mechanisms. Problematic if wrapper triggers full React re-render of visible rows on every state mutation. Use React.memo and library-specific batch updates."
+  difficulty: 3
+  tags: [concept]
+- id: "2.7"
+  question: "Wrapper exposes 'pivot' prop even though only AG Grid enterprise supports it. What is this?"
+  options:
+    A: "Good design — forward-thinking"
+    B: "Leaky abstraction — app-level concerns coupled to library feature"
+    C: "Protection — consumers should know all options"
+    D: "Feature parity — all grids should have pivot"
+  answer: B
+  explanation: "Pivot is a library-specific concept, not an app-level grid concern. Exposing it in wrapper API couples abstraction to AG Grid enterprise. Better: abstract feature behind generic concept like 'aggregate' or 'cross-tab'."
+  difficulty: 2
+  tags: [terminology]
+- id: "2.8"
+  question: "How to handle inline editing validation across different grid libraries?"
+  options:
+    A: "Each library handles its own validation — no abstraction needed"
+    B: "Define GridEditConfig with validate function — wrapper maps to library validation API"
+    C: "Validation must be done outside grid, after save"
+    D: "Only allow editing in AG Grid (turnkey solution)"
+  answer: B
+  explanation: "GridEditConfig provides uniform validation model. Mapper converts to library-specific validation mechanism (AG Grid cellClassRules, TanStack custom editor with validation). Consumer writes validation once."
+  difficulty: 2
+  tags: [application]
+- id: "2.9"
+  question: "How does virtual scrolling in AG Grid differ from TanStack Table?"
+  options:
+    A: "AG Grid virtualizes internally; TanStack Table requires external virtualizer"
+    B: "TanStack Table virtualizes internally; AG Grid requires external virtualizer"
+    C: "Both virtualize identically"
+    D: "Neither virtualizes — you must use react-window"
+  answer: A
+  explanation: "AG Grid handles virtual scrolling internally — you get it for free. TanStack Table is headless — you pair it with TanStack Virtual or react-window. Wrapper should hide this difference."
+  difficulty: 2
+  tags: [comparison]
+- id: "2.10"
+  question: "Your grid wrapper exposes 'aggregation' concept. AG Grid has built-in aggregation. TanStack Table requires manual reduce. How to implement?"
+  options:
+    A: "Implement aggregation manually for all libraries"
+    B: "Use AG Grid aggregation when available, manual reduce for TanStack — both behind same aggregation interface"
+    C: "Skip aggregation in wrapper — consumers implement separately per library"
+    D: "Only support aggregation with AG Grid"
+  answer: B
+  explanation: "Abstract concept ('aggregation') maps to library-specific implementation. AG Grid uses built-in aggregate functions. TanStack uses reduce over row model. Both implement the same interface. Consumer gets aggregation without knowing which strategy runs."
+  difficulty: 3
+  tags: [application]

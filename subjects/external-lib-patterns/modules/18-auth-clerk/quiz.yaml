@@ -1,0 +1,110 @@
+- id: "18.1"
+  question: "What Clerk component conditionally renders children when user is signed in?"
+  options:
+    A: "<Authenticated>"
+    B: "<SignedIn>"
+    C: "<UserLoaded>"
+    D: "<Protected>"
+  answer: B
+  explanation: "SignedIn renders children only when user session is active. SignedOut renders children when no session. Pair them for auth-gated layout."
+  difficulty: 1
+  tags: [component]
+- id: "18.2"
+  question: "What hook provides organization role and permissions?"
+  options:
+    A: "useUser"
+    B: "useAuth"
+    C: "useOrg"
+    D: "useSession"
+  answer: B
+  explanation: "useAuth returns orgRole, orgId, orgPermissions, sessionId, getToken. useUser returns user profile data (name, email, image)."
+  difficulty: 1
+  tags: [api]
+- id: "18.3"
+  question: "How to get a session token for backend API authentication?"
+  options:
+    A: "Token is in localStorage"
+    B: "Call user.getToken() or useAuth().getToken()"
+    C: "Token passed automatically via Cookie"
+    D: "Import token from @clerk/token"
+  answer: B
+  explanation: "getToken() returns a short-lived JWT signed by Clerk. Send as Authorization: Bearer header to backend. Supports token templates for custom claims."
+  difficulty: 1
+  tags: [api]
+- id: "18.4"
+  question: "What Protect permission attribute checks specific action-level access?"
+  options:
+    A: "role"
+    B: "permission"
+    C: "action"
+    D: "scope"
+  answer: B
+  explanation: "Protect accepts both role (org-level) and permission (action-level). 'org:sys:memberships:manage' is a permission. 'org:admin' is a role."
+  difficulty: 2
+  tags: [rbac]
+- id: "18.5"
+  question: "What is the correct server-side helper to verify auth in a React 19 Server Component?"
+  options:
+    A: "clerkClient.auth()"
+    B: "auth() from @clerk/nextjs/server"
+    C: "getAuth() from @clerk/backend"
+    D: "verifySession() from clerkClient"
+  answer: B
+  explanation: "auth() from @clerk/nextjs/server returns userId, orgId, sessionClaims for the current request. Works in Server Components and Route Handlers."
+  difficulty: 2
+  tags: [server]
+- id: "18.6"
+  question: "What happens when social auth strategy is disabled in Clerk Dashboard?"
+  options:
+    A: "App must redeploy to reflect change"
+    B: "Clerk UI components automatically hide disabled strategy — no code change"
+    C: "Component throws error"
+    D: "Disabled strategy remains visible but returns 403"
+  answer: B
+  explanation: "Clerk UI components fetch enabled strategies from Clerk API at runtime. Disabling Google SSO in dashboard immediately hides Google button. Zero code changes."
+  difficulty: 2
+  tags: [concept]
+- id: "18.7"
+  question: "What event type indicates a new user signed up via webhook?"
+  options:
+    A: "user.signup"
+    B: "user.created"
+    C: "session.created"
+    D: "user.registered"
+  answer: B
+  explanation: "Clerk webhook event 'user.created' fires on new user registration. Payload includes user data (id, email, name, image). Use to sync user to database."
+  difficulty: 2
+  tags: [webhook]
+- id: "18.8"
+  question: "What middleware configuration sets routes accessible without authentication?"
+  options:
+    A: "ignoredRoutes"
+    B: "publicRoutes"
+    C: "unprotectedRoutes"
+    D: "allowedRoutes"
+  answer: B
+  explanation: "publicRoutes in clerkMiddleware config defines routes accessible without auth (landing page, sign-in, sign-up, webhook endpoints). All other routes protected by default."
+  difficulty: 2
+  tags: [middleware]
+- id: "18.9"
+  question: "How to switch active organization programmatically?"
+  options:
+    A: "Call clerk.setOrganization(id)"
+    B: "Call setActive({ organization: orgId }) from useOrganizationList"
+    C: "Navigate to /org/:id"
+    D: "Re-render ClerkProvider with new org"
+  answer: B
+  explanation: "setActive from useOrganizationList switches current organization. Session token is re-issued with new org claims. All Protect checks re-evaluate against new org role."
+  difficulty: 2
+  tags: [org]
+- id: "18.10"
+  question: "What TypeScript import provides types for UserResource and SessionResource?"
+  options:
+    A: "@clerk/nextjs/types"
+    B: "@clerk/types"
+    C: "@clerk/backend/types"
+    D: "types from @clerk/clerk-sdk-node"
+  answer: B
+  explanation: "@clerk/types package exports UserResource, SessionResource, OrganizationResource, and other TypeScript interfaces for Clerk data models."
+  difficulty: 1
+  tags: [typescript]

@@ -1,0 +1,221 @@
+subject: "External Library Patterns"
+language: en
+time_budget_hours: 72
+target_level: advanced
+domain: web-development
+prerequisites:
+  - React 18+ experience
+  - TypeScript fluency
+  - Basic understanding of design patterns (adapter, facade, wrapper)
+learning_objectives:
+  - "Architect clean abstraction layers around third-party libraries"
+  - "Apply adapter, facade, and wrapper patterns to decouple app code from vendor APIs"
+  - "Design extensible wrapper components for data grids, forms, editors, and charts"
+  - "Evaluate trade-offs between embedding, wrapping, and abstracting external libraries"
+  - "Implement migration strategies between versions and vendors"
+  - "Build reusable library interop patterns across UI, data, and rendering domains"
+  - "Integrate testing, build, and deployment tooling into React 19 workflows"
+  - "Design type-safe API layers with tRPC and GraphQL Apollo Client"
+  - "Implement media, search, and AI streaming patterns with modern SDKs"
+
+modules:
+  - id: 1
+    name: "Adapter, Facade & Wrapper Patterns"
+    time_hours: 2
+    prerequisites: []
+    topics: [adapter, facade, wrapper, abstraction]
+  - id: 2
+    name: "Data Grids: TanStack Table & AG Grid"
+    time_hours: 2.5
+    prerequisites: [1]
+    topics: [data-grid, tanstack-table, ag-grid, virtualization]
+  - id: 3
+    name: "Form Libraries: Formio & React Hook Form"
+    time_hours: 2.5
+    prerequisites: [1]
+    topics: [forms, formio, react-hook-form, validation]
+  - id: 4
+    name: "Drag & Drop: dnd-kit"
+    time_hours: 2
+    prerequisites: [1]
+    topics: [dnd, dnd-kit, sortable, accessibility]
+  - id: 5
+    name: "Rich Text Editors: TipTap & Lexical"
+    time_hours: 2.5
+    prerequisites: [1]
+    topics: [editor, tiptap, lexical, extensions]
+  - id: 6
+    name: "Charts & Data Visualization"
+    time_hours: 2.5
+    prerequisites: [1]
+    topics: [charts, visx, recharts, d3]
+  - id: 7
+    name: "Map Libraries: MapLibre GL JS & Leaflet"
+    time_hours: 2
+    prerequisites: [1]
+    topics: [maps, maplibre, leaflet, geodata]
+  - id: 8
+    name: "Virtual Scrolling: TanStack Virtual"
+    time_hours: 2
+    prerequisites: [1, 2]
+    topics: [virtual-scroll, tanstack-virtual, windowing, performance]
+  - id: 9
+    name: "Date/Time Libraries"
+    time_hours: 1.5
+    prerequisites: [1]
+    topics: [date, date-fns, dayjs, timezone]
+  - id: 10
+    name: "Multi-Library Architecture & Migration"
+    time_hours: 3
+    prerequisites: [1, 2, 3, 5, 8]
+    topics: [architecture, migration, vendor-lock-in, capstone]
+  - id: 11
+    name: "Animation: Framer Motion"
+    time_hours: 2
+    prerequisites: [1]
+    topics: [animation, framer-motion, gestures, layout]
+  - id: 12
+    name: "Routing: TanStack Router"
+    time_hours: 2
+    prerequisites: [1]
+    topics: [routing, tanstack-router, type-safety, code-splitting]
+  - id: 13
+    name: "File Upload: Uppy"
+    time_hours: 1.5
+    prerequisites: [1]
+    topics: [upload, uppy, tus, multipart]
+  - id: 14
+    name: "Toast & Notifications: Sonner"
+    time_hours: 1
+    prerequisites: [1]
+    topics: [toast, sonner, notifications, accessibility]
+  - id: 15
+    name: "Command Palette: cmdk"
+    time_hours: 1.5
+    prerequisites: [1]
+    topics: [command-palette, cmdk, keyboard, search]
+  - id: 16
+    name: "Internationalization: Lingui"
+    time_hours: 2
+    prerequisites: [1]
+    topics: [i18n, lingui, localization, translation]
+  - id: 17
+    name: "Real-time Collaboration: Liveblocks"
+    time_hours: 2
+    prerequisites: [1]
+    topics: [real-time, liveblocks, cursors, awareness]
+  - id: 18
+    name: "Authentication: Clerk"
+    time_hours: 2
+    prerequisites: [1]
+    topics: [auth, clerk, session, rbac]
+  - id: 19
+    name: "Headless UI: Radix Primitives"
+    time_hours: 2
+    prerequisites: [1]
+    topics: [headless-ui, radix, accessibility, composition]
+  - id: 20
+    name: "Data Fetching: TanStack Query"
+    time_hours: 2.5
+    prerequisites: [1, 8]
+    topics: [data-fetching, tanstack-query, caching, optimistic-updates]
+  - id: 21
+    name: "Component Testing: Testing Library & Vitest"
+    time_hours: 2
+    prerequisites: [1]
+    topics: [testing, vitest, testing-library, mocks]
+  - id: 22
+    name: "CSS Frameworks: Tailwind CSS"
+    time_hours: 2
+    prerequisites: [1]
+    topics: [css, tailwind, utility-first, design-tokens]
+  - id: 23
+    name: "Type-Safe APIs: tRPC"
+    time_hours: 2
+    prerequisites: [1]
+    topics: [trpc, rpc, type-safety, server-client]
+  - id: 24
+    name: "Image Optimization: next/image & Sharp"
+    time_hours: 1.5
+    prerequisites: [1]
+    topics: [images, optimization, sharp, responsive]
+  - id: 25
+    name: "PDF Rendering: @react-pdf/renderer"
+    time_hours: 1.5
+    prerequisites: [1]
+    topics: [pdf, document, rendering, export]
+  - id: 26
+    name: "Markdown Rendering: react-markdown"
+    time_hours: 1.5
+    prerequisites: [1]
+    topics: [markdown, remark, rehype, content]
+  - id: 27
+    name: "Full-Text Search: Algolia"
+    time_hours: 2
+    prerequisites: [1]
+    topics: [search, algolia, instantsearch, faceting]
+  - id: 28
+    name: "Monorepo: Turborepo"
+    time_hours: 1.5
+    prerequisites: [1]
+    topics: [monorepo, turborepo, caching, orchestration]
+  - id: 29
+    name: "E2E Testing: Playwright"
+    time_hours: 2
+    prerequisites: [1]
+    topics: [e2e, playwright, assertions, ci]
+  - id: 30
+    name: "GraphQL: Apollo Client"
+    time_hours: 2
+    prerequisites: [1, 20]
+    topics: [graphql, apollo, cache, fragments]
+  - id: 31
+    name: "Audio: Howler.js"
+    time_hours: 1.5
+    prerequisites: [1]
+    topics: [audio, howler, playback, sprites]
+  - id: 32
+    name: "Video: Vidstack"
+    time_hours: 1.5
+    prerequisites: [1]
+    topics: [video, vidstack, providers, streaming]
+  - id: 33
+    name: "QR & Barcodes: react-qrcode & jsbarcode"
+    time_hours: 1
+    prerequisites: [1]
+    topics: [qr, barcode, canvas, svg]
+  - id: 34
+    name: "Resizable Panels: react-resizable-panels"
+    time_hours: 1
+    prerequisites: [1]
+    topics: [layout, panels, resize, split]
+  - id: 35
+    name: "Color Picker: react-colorful"
+    time_hours: 1
+    prerequisites: [1]
+    topics: [color, picker, controlled-input, a11y]
+  - id: 36
+    name: "Clipboard Utilities"
+    time_hours: 1
+    prerequisites: [1]
+    topics: [clipboard, copy, paste, permissions]
+  - id: 37
+    name: "Hooks Libraries: usehooks-ts"
+    time_hours: 1.5
+    prerequisites: [1]
+    topics: [hooks, usehooks-ts, reusable, extraction]
+  - id: 38
+    name: "AI Streaming: Vercel AI SDK"
+    time_hours: 2
+    prerequisites: [1, 20]
+    topics: [ai, streaming, llm, generative-ui]
+  - id: 39
+    name: "Full-Stack Framework: Next.js App Router"
+    time_hours: 2.5
+    prerequisites: [12, 23, 38]
+    topics: [nextjs, app-router, rsc, full-stack]
+  - id: 40
+    name: "Design Tokens: Style Dictionary"
+    time_hours: 1.5
+    prerequisites: [22]
+    topics: [design-tokens, style-dictionary, theming, pipeline]

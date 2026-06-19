@@ -1,0 +1,110 @@
+- id: "6.1"
+  question: "Which chart library category gives full control over SVG rendering?"
+  options:
+    A: "Declarative (Recharts)"
+    B: "Composable (visx)"
+    C: "Imperative (D3)"
+    D: "All three give equal control"
+  answer: C
+  explanation: "D3 gives full imperative control over every SVG element. Recharts abstracts SVG. visx sits between — composable but still built on D3 primitives."
+  difficulty: 1
+  tags: [comparison]
+- id: "6.2"
+  question: "Where should data transformation (filtering, aggregation, sorting) live?"
+  options:
+    A: "Inside chart wrapper"
+    B: "Separate pipeline function — chart wrapper accepts ready-to-render data"
+    C: "In the API backend"
+    D: "Inside each chart component"
+  answer: B
+  explanation: "Separate data pipeline keeps transformation testable and reusable across charts. Wrapper remains a pure renderer. Pipeline can be shared between chart and non-chart views (table, export)."
+  difficulty: 2
+  tags: [concept]
+- id: "6.3"
+  question: "What is the purpose of ChartTheme abstraction?"
+  options:
+    A: "Makes charts render faster"
+    B: "Provides consistent colors, fonts, and grid styles across chart libraries"
+    C: "Bundle size optimization"
+    D: "Enables server-side chart rendering"
+  answer: B
+  explanation: "ChartTheme defines uniform visual properties mapped to library-specific theme structures. Swap library, map same theme to new structure — charts look identical."
+  difficulty: 1
+  tags: [terminology]
+- id: "6.4"
+  question: "When would you use raw D3 instead of Recharts?"
+  options:
+    A: "Always — D3 is better"
+    B: "For standard bar/line/pie charts"
+    C: "For novel visualizations (force-directed graph, chord diagram, custom cartography)"
+    D: "When you need responsive charts"
+  answer: C
+  explanation: "D3 for novel visualizations that declarative libraries cannot express. Recharts/visx for standard business charts. D3 for custom; declarative for standard."
+  difficulty: 2
+  tags: [application]
+- id: "6.5"
+  question: "How to handle responsive chart resizing across libraries?"
+  options:
+    A: "Use each library's built-in responsive component (Recharts ResponsiveContainer, visx ParentSize)"
+    B: "Single ResizeObserver wrapper that provides width/height to any chart library"
+    C: "Fixed-size charts — avoid responsiveness"
+    D: "CSS media queries"
+  answer: B
+  explanation: "Single ResizeObserver wrapper normalizes responsive behavior. All chart libraries receive same width/height. Avoids library-specific responsive quirks and provides uniform API."
+  difficulty: 2
+  tags: [application]
+- id: "6.6"
+  question: "Migrating from Recharts to visx. What changes are needed outside chart wrapper?"
+  options:
+    A: "Every chart usage changes"
+    B: "Only wrapper internals change — ChartConfig API stays"
+    C: "Data pipeline must be rewritten"
+    D: "Theme must be completely redesigned"
+  answer: B
+  explanation: "With ChartConfig abstraction, library swap changes wrapper internals (config-to-JSX mapping). ChartConfig interface, data pipeline, and theme definitions remain unchanged."
+  difficulty: 2
+  tags: [concept]
+- id: "6.7"
+  question: "ChartConfig.extra allows per-library features. What concern?"
+  options:
+    A: "Too flexible — every chart becomes unique, losing abstraction benefit"
+    B: "Perfect — escape hatch for library-specific features"
+    C: "Extra props should go in separate file"
+    D: "No concern — extra is harmless"
+  answer: A
+  explanation: "If every chart uses extra for different features, wrapper adds no value. Better: promote commonly-used extra features to first-class ChartConfig props. Extra is escape hatch, not primary API."
+  difficulty: 3
+  tags: [concept]
+- id: "6.8"
+  question: "Which chart export approach is abstraction-friendly?"
+  options:
+    A: "Use library-specific export methods directly in components"
+    B: "ChartExport interface: toImage(), toSVG() implemented per library"
+    C: "Screenshot the entire page"
+    D: "Export CSV instead of image"
+  answer: B
+  explanation: "ChartExport interface wraps library-specific export. Recharts uses html2canvas. visx uses SVG serialization. D3 uses XMLSerializer. Consumer calls export.toImage() regardless of library."
+  difficulty: 2
+  tags: [application]
+- id: "6.9"
+  question: "Dashboard uses 5 chart types, all standard (bar, line, pie, area, scatter). Which library choice is most practical?"
+  options:
+    A: "Raw D3 for all — full control"
+    B: "Recharts or visx — standard chart types well-covered, less code than D3"
+    C: "Custom canvas rendering"
+    D: "No library — CSS-only charts"
+  answer: B
+  explanation: "Standard chart types are well-covered by declarative/composable libraries. Recharts or visx produce correct charts with 80% less code than D3. Only switch to D3 for non-standard visualizations."
+  difficulty: 1
+  tags: [application]
+- id: "6.10"
+  question: "Animation config is part of ChartConfig. How to keep it library-agnostic?"
+  options:
+    A: "Each library has unique animation API — cannot abstract"
+    B: "Abstract as { duration: number, easing: string, type: 'fade' | 'scale' | 'slide' } — wrapper maps to library animation"
+    C: "Skip animation entirely"
+    D: "Animation is a render-time concern — not part of config"
+  answer: B
+  explanation: "Common animation properties (duration, easing, type) abstract across libraries. Mapper converts to Recharts animationDuration/easing, visx animationTiming, D3 transition duration/ease. Library-specific animation details stay in wrapper."
+  difficulty: 3
+  tags: [concept]

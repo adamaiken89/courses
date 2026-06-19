@@ -1,0 +1,110 @@
+- id: "8.1"
+  question: "How many DOM nodes does a virtual scroll list typically render regardless of total items?"
+  options:
+    A: "All items — virtual scrolling does not reduce DOM nodes"
+    B: "Only visible items + overscan buffer (typically 10-30 nodes)"
+    C: "Exactly 100 nodes"
+    D: "10% of total items"
+  answer: B
+  explanation: "Virtual scroll renders only visible viewport items plus overscan (items just above/below). With 100k items, typically 10-30 DOM nodes. Significantly reduces render time and memory."
+  difficulty: 1
+  tags: [concept]
+- id: "8.2"
+  question: "What is the overscan property in TanStack Virtual?"
+  options:
+    A: "Number of items to skip before rendering starts"
+    B: "Extra items rendered above and below viewport to reduce blank areas during fast scroll"
+    C: "Maximum number of items to render"
+    D: "Percentage of container height to reserve"
+  answer: B
+  explanation: "Overscan renders extra items beyond viewport so fast scrolling does not show blank space while new items load. Higher overscan = smoother scroll but more DOM nodes."
+  difficulty: 1
+  tags: [terminology]
+- id: "8.3"
+  question: "How does TanStack Virtual handle variable item heights?"
+  options:
+    A: "All items must be same height"
+    B: "estimateSize provides initial estimate; measureElement callback measures actual height after render"
+    C: "Variable heights are not supported"
+    D: "Developer must pre-calculate all heights before rendering"
+  answer: B
+  explanation: "estimateSize gives initial guess. measureElement reads actual DOM height after render. Cached per index. Re-measure on content change."
+  difficulty: 2
+  tags: [concept]
+- id: "8.4"
+  question: "When combining infinite scroll with virtual scrolling, where does the endReached callback trigger?"
+  options:
+    A: "When user scrolls to last item"
+    B: "When virtual scroll's last item enters viewport minus threshold distance"
+    C: "When all items are loaded"
+    D: "On component mount"
+  answer: B
+  explanation: "endReached fires when scroll position is within threshold px of total content bottom. Virtual scroll's total size includes loaded items; endReached detects when user approaches loaded boundary."
+  difficulty: 2
+  tags: [application]
+- id: "8.5"
+  question: "Chat prepends messages when scrolling up. How to prevent scroll position jump?"
+  options:
+    A: "Cannot — virtual scroll cannot handle prepended items"
+    B: "After prepend, increase scrollTop by total height of new items"
+    C: "Reload entire list"
+    D: "Disable virtual scrolling for chat"
+  answer: B
+  explanation: "Prepending shifts all items down. Adjust scrollTop by sum of new item heights (from estimate or measure). Virtualizer re-indexes. User stays at same logical position."
+  difficulty: 3
+  tags: [application]
+- id: "8.6"
+  question: "What must be true for virtual scrolling to work?"
+  options:
+    A: "Container must have a fixed or computed height (not auto)"
+    B: "Container must be the document body"
+    C: "Items must be <table> elements"
+    D: "Browser must support WebGL"
+  answer: A
+  explanation: "Virtual scrolling needs scrollable container with defined height. Height: auto means container grows with content — cannot virtualize. Set explicit height or use flex-basis + overflow."
+  difficulty: 2
+  tags: [concept]
+- id: "8.7"
+  question: "VirtualList wrapper hides TanStack Virtual API. How to allow scrollToIndex?"
+  options:
+    A: "Expose scrollToIndex as prop that changes trigger scroll"
+    B: "Provide onVirtualizerReady callback that gives consumer access to virtualizer"
+    C: "Cannot — virtualizer is internal"
+    D: "Consumer must use native scroll method on container ref"
+  answer: B
+  explanation: "onVirtualizerReady callback provides controlled access to virtualizer for advanced operations (scrollToIndex, getTotalSize). Used in conjunction with imperative handle (useImperativeHandle)."
+  difficulty: 3
+  tags: [application]
+- id: "8.8"
+  question: "How to restore scroll position when navigating back to a list?"
+  options:
+    A: "Virtualizer remembers its position"
+    B: "Save scrollTop to sessionStorage on unmount, restore on mount"
+    C: "Use browser History API scroll restoration"
+    D: "Scroll position cannot be restored"
+  answer: B
+  explanation: "Save scrollRef.current.scrollTop to sessionStorage/navigation state before unmount. On mount, read saved value and set scrollRef.current.scrollTop = saved. browser History API scrollRestoration = 'manual' to prevent conflict."
+  difficulty: 2
+  tags: [application]
+- id: "8.9"
+  question: "When should you skip virtual scrolling?"
+  options:
+    A: "Never — always use virtual scroll"
+    B: "When list has <100 items and rendering all is performant"
+    C: "When data comes from GraphQL"
+    D: "When using TypeScript"
+  answer: B
+  explanation: "Virtual scroll overhead (measurement, re-renders, scroll synchronization) is unnecessary for small lists. For <100 items, rendering all is simpler and performant."
+  difficulty: 2
+  tags: [concept]
+- id: "8.10"
+  question: "Virtual scroll with animated item enter/exit (Framer Motion) is tricky because?"
+  options:
+    A: "Motion library does not support virtual scroll"
+    B: "Animated enter/exit changes item height dynamically, causing layout shift and measurement issues"
+    C: "Virtual scroll and animations cannot coexist"
+    D: "Framer Motion breaks TanStack Virtual"
+  answer: B
+  explanation: "Animation that changes item height (collapse, expand, fade-out with height change) breaks virtualizer's measurement. Solution: overlay animations on top of virtualized container using absolute positioning, outside virtualized items."
+  difficulty: 3
+  tags: [application]

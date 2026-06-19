@@ -1,0 +1,110 @@
+- id: "4.1"
+  question: "Which DnD library is currently recommended for new projects?"
+  options:
+    A: "react-beautiful-dnd"
+    B: "dnd-kit"
+    C: "jQuery UI Sortable"
+    D: "HTML Drag and Drop API"
+  answer: B
+  explanation: "dnd-kit is actively maintained, modular, accessible, and supports complex DnD (tree, kanban). react-beautiful-dnd is deprecated. jQuery UI is legacy. HTML Drag and Drop API has inconsistent browser support and poor accessibility."
+  difficulty: 1
+  tags: [terminology]
+- id: "4.2"
+  question: "What is the primary purpose of dnd-kit's DragOverlay?"
+  options:
+    A: "Highlights valid drop targets"
+    B: "Renders a portal-based preview of dragged item on top of all content"
+    C: "Provides keyboard navigation for drag operations"
+    D: "Animates items after drop"
+  answer: B
+  explanation: "DragOverlay renders a copy of the dragged item via portal, tracking cursor position. This lets the original item remain in place (or show placeholder) while dragged copy floats above everything."
+  difficulty: 1
+  tags: [terminology]
+- id: "4.3"
+  question: "How does dnd-kit implement keyboard-accessible DnD?"
+  options:
+    A: "KeyboardSensor — maps arrow keys to drag movement"
+    B: "Keyboard DnD is not supported"
+    C: "Uses native HTML5 drag and drop keyboard support"
+    D: "Separate ARIA buttons for move up/down"
+  answer: A
+  explanation: "dnd-kit's KeyboardSensor lets users activate drag with Space/Enter, move with arrow keys, cancel with Escape. UseSensors composes PointerSensor + KeyboardSensor."
+  difficulty: 2
+  tags: [concept]
+- id: "4.4"
+  question: "In a kanban board with multiple SortableContexts, how does dnd-kit determine which container receives a dropped item?"
+  options:
+    A: "Uses collision detection algorithms (closestCenter, closestCorners, pointerWithin)"
+    B: "Each container is a separate DndContext"
+    C: "Developer must manually check coordinates"
+    D: "Multiple SortableContexts are not supported"
+  answer: A
+  explanation: "Collision detection (closestCenter, closestCorners, pointerWithin) identifies target container based on pointer position relative to droppable areas. Multiple SortableContexts share one DndContext for cross-container moves."
+  difficulty: 2
+  tags: [concept]
+- id: "4.5"
+  question: "How to announce DnD state changes to screen readers in dnd-kit?"
+  options:
+    A: "Cannot — dnd-kit does not support screen readers"
+    B: "Via DndContext.announcements prop — maps dragStart/dragOver/dragEnd/dragCancel to messages"
+    C: "Screen readers automatically detect drag operations"
+    D: "Use aria-live region manually controlled"
+  answer: B
+  explanation: "DndContext.announcements is a map of lifecycle events to screen reader messages. Customize per app context (e.g., 'Moved column 3 to position 5')."
+  difficulty: 2
+  tags: [application]
+- id: "4.6"
+  question: "DnD wrapper exposes onDragEnd handler with dnd-kit's DragEndEvent type. What abstraction concern?"
+  options:
+    A: "Good — exposes full library capability"
+    B: "Leaky abstraction — consumer depends on library types"
+    C: "DragEndEvent is standard — no abstraction issue"
+    D: "Should use any type to avoid coupling"
+  answer: B
+  explanation: "Exposing library-specific event types couples consumer to dnd-kit. Better: normalize to app-level shape like `{ activeId, overId, sourceIndex, destIndex }`. Library change then only affects wrapper internals."
+  difficulty: 3
+  tags: [concept]
+- id: "4.7"
+  question: "How to handle drag within a virtualized list (TanStack Virtual)?"
+  options:
+    A: "Virtualized lists cannot support DnD"
+    B: "Align dnd-kit's MeasuringStrategy with virtualizer's measurement. Use Always strategy for dynamic heights"
+    C: "Disable virtualization during drag"
+    D: "Use react-beautiful-dnd instead — it handles virtualization natively"
+  answer: B
+  explanation: "dnd-kit measures item layout. Virtualizer also measures. Conflicting measurements cause jumpy drag. Use `MeasuringStrategy.Always` in dnd-kit and ensure both use same item size calculations."
+  difficulty: 3
+  tags: [application]
+- id: "4.8"
+  question: "What is the relationship between DndContext and SortableContext in dnd-kit?"
+  options:
+    A: "SortableContext replaces DndContext"
+    B: "DndContext provides drag infrastructure; SortableContext configures sortable behavior for a group of items"
+    C: "They are mutually exclusive"
+    D: "SortableContext provides collision detection; DndContext provides sensors"
+  answer: B
+  explanation: "One DndContext wraps entire drag region. Multiple SortableContexts inside define sortable groups (lists/columns). DndContext handles sensors, collision detection, lifecycle. SortableContext handles item ordering strategy."
+  difficulty: 2
+  tags: [terminology]
+- id: "4.9"
+  question: "When would you choose up/down buttons over drag-and-drop for reordering?"
+  options:
+    A: "When mobile support is required"
+    B: "When accessibility compliance requires keyboard-only operation"
+    C: "For simple lists where DnD's overhead (drag overlay, sensor config, collision detection) is not justified"
+    D: "Never — drag-and-drop is always better UX"
+  answer: C
+  explanation: "For simple reordering (short lists, admin CRUD), up/down buttons are simpler to implement and fully accessible. DnD's overhead is justified for: visual canvas, kanban, resizable panels, or user expectation of drag."
+  difficulty: 2
+  tags: [concept]
+- id: "4.10"
+  question: "A wrapper includes DndContext with keyboard sensor but no announcements. What issue?"
+  options:
+    A: "No issue — keyboard sensor alone provides accessibility"
+    B: "Keyboard sensor without announcements means screen reader users get no feedback on drag state changes"
+    C: "Announcements are only for pointer drag"
+    D: "Keyboard sensor requires announcements to function"
+  answer: B
+  explanation: "Keyboard sensor enables keyboard operation. Announcements provide feedback ('dragging item X', 'dropped at position Y'). Without announcements, screen reader users do not know what happened during drag."
+  difficulty: 2
+  tags: [concept]
