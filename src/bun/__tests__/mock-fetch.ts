@@ -16,3 +16,7 @@ export function mockFetch(responses: Record<string, unknown>): void {
 export function restoreFetch(): void {
   if (originalFetch) globalThis.fetch = originalFetch;
 }
+
+export function restoreFetch(): void {
+  if (originalFetch) globalThis.fetch = originalFetch;
+}

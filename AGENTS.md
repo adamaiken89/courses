@@ -8,6 +8,7 @@ bun run start            # build + launch desktop app
 bun run dev              # launch dev mode (HMR via Vite)
 bun run dev:hmr          # Vite HMR + electobun concurrently
 bun run build            # production build
+bun test                 # run all tests (bun:test + happy-dom)
 ```
 
 ## Architecture
@@ -34,6 +35,7 @@ src/
     ├── quiz-engine.ts   # QuizEngine class (state machine for MCQ flow)
     ├── srs.ts           # SM-2 filter helpers (getDue, getStarred, toggleStar)
     ├── storage.ts       # JSON file persistence (~/.coursereader/data.json)
+    │   └── __tests__/   # Test files (bun:test + happy-dom)
     └── gemini.ts        # Gemini 2.0 Flash API client
 ```
 
@@ -45,7 +47,7 @@ src/
 - **Styling**: Tailwind CSS utility classes + custom `.book-content` CSS for lesson prose.
 - **No CSS preprocessors**, no CSS modules — all custom styles in `index.css`.
 - **No Makefile** — all commands via `package.json` scripts + `bun`.
-- **No tests** currently.
+- **Tests**: `bun test` runs `src/bun/__tests__/` via bun:test + happy-dom (DOM mocks) + @testing-library/react (component tests). Run before every commit.
 - **TypeScript strict mode** enabled.
 - **2-space indent** in tsx, 2-space in ts, tab in json (existing convention).
 

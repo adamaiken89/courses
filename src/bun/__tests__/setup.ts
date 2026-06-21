@@ -27,3 +27,19 @@ const win = new Window() as unknown as Window & typeof globalThis;
 (globalThis as any).requestAnimationFrame = (cb: FrameRequestCallback) => setTimeout(cb, 16);
 (globalThis as any).cancelAnimationFrame = (id: number) => clearTimeout(id);
 (globalThis as any).fetch = async () => new Response("{}", { status: 200 });
+(globalThis as any).NodeFilter = {
+  SHOW_ALL: -1,
+  SHOW_ELEMENT: 1,
+  SHOW_TEXT: 4,
+  SHOW_COMMENT: 128,
+  SHOW_DOCUMENT: 256,
+  SHOW_DOCUMENT_TYPE: 512,
+  SHOW_DOCUMENT_FRAGMENT: 1024,
+  SHOW_PROCESSING_INSTRUCTION: 64,
+  SHOW_CDATA_SECTION: 8,
+  SHOW_ENTITY_REFERENCE: 16,
+  SHOW_ENTITY: 32,
+  FILTER_ACCEPT: 1,
+  FILTER_REJECT: 2,
+  FILTER_SKIP: 3,
+};

@@ -17,14 +17,14 @@ Built with **Electrobun** + **React 18** + **TypeScript** + **Bun**.
 
 ## Subjects
 
-| Subject | Modules |
-|---------|---------|
-| Advanced React 19 | — |
-| External Library Patterns | 40 |
-| Fixed Income | 20 |
-| GraphQL Deep Dive | 20 |
-| Modern CSS with React | — |
-| Zustand State Management | — |
+| Subject                   | Modules |
+| ------------------------- | ------- |
+| Advanced React 19         | —       |
+| External Library Patterns | 40      |
+| Fixed Income              | 20      |
+| GraphQL Deep Dive         | 20      |
+| Modern CSS with React     | —       |
+| Zustand State Management  | —       |
 
 Subjects live in `subjects/<id>/` with syllabus, modules, and SRS deck.
 
@@ -47,11 +47,12 @@ bun install            # install dependencies
 bun run start          # build + launch desktop app
 bun run dev:hmr        # dev mode with Vite HMR
 bun run build          # production build
+bun test               # run all tests (bun:test + happy-dom)
 ```
 
 ## Project layout
 
-```
+```bash
 src/
 ├── mainview/              # React frontend
 │   ├── main.tsx           # Entry point
@@ -72,6 +73,7 @@ src/
     ├── srs.ts             # SM-2 filters
     ├── storage.ts         # JSON persistence
     └── gemini.ts          # Gemini API client
+    └── __tests__/         # Test suite (bun:test + happy-dom)
 subjects/                  # Course data
 ├── <id>/syllabus.yaml     # Subject metadata
 ├── <id>/modules/<NN->/    # Modules with lesson.md + quiz.yaml

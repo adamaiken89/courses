@@ -1,23 +1,19 @@
-import { useState, useEffect, useRef, type ReactNode } from "react";
+import { useState, useEffect, useRef, useCallback, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import { api } from "../api";
 import { useSettingsStore } from "../stores/settingsStore";
 import type { Theme } from "../stores/settingsStore";
+import Sidebar, { type Section } from "./Sidebar";
+import { useBookmarks } from "../hooks/useBookmarks";
+import { useHighlights } from "../hooks/useHighlights";
 
 interface ModuleMeta {
   id: number;
   name: string;
   timeHours: number;
   prerequisites: number[];
-}
-
-interface Section {
-  id: string;
-  heading: string;
-  level: number;
-  parentID: string | null;
 }
 
 interface Props {
@@ -67,20 +63,31 @@ const THEMES: Theme[] = ["dark", "sepia", "light"];
 const THEME_LABELS: Record<Theme, string> = { dark: "Dark", sepia: "Sepia", light: "Light" };
 const THEME_ICONS: Record<Theme, string> = { dark: "🌙", sepia: "📜", light: "☀️" };
 
+const HIGHLIGHT_COLORS: Record<string, string> = {
+  yellow: "#facc15",
+  green: "#4ade80",
+  blue: "#60a5fa",
+  pink: "#f472b6",
+};
+
 export default function LessonView({ subjectId, module, onStartQuiz }: Props) {
   const [content, setContent] = useState("");
   const [loading, setLoading] = useState(true);
   const [sections, setSections] = useState<Section[]>([]);
   const [visibleSection, setVisibleSection] = useState<string | null>(null);
-  const [showTOC, setShowTOC] = useState(false);
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [showAI, setShowAI] = useState(false);
-  const [notes, setNotes] = useState<any[]>([]);
-  const [bookmarks, setBookmarks] = useState<any[]>([]);
-  const [aiQuestion, setAiQuestion] = useState("");
-  const [aiResponse, setAiResponse] = useState("");
-  const [aiThinking, setAiThinking] = useState(false);
+  const [sidebarTab, setSidebarTab] = useState<"sections" | "notes" | "highlights" | "ai" | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const [showHighlightPicker, setShowHighlightPicker] = useState(false);
+  const [highlightSelection, setHighlightSelection] = useState<{ text: string; range: Range } | null>(null);
+  const [highlightPickerPos, setHighlightPickerPos] = useState({ x: 0, y: 0 });
+
+  const {
+    bookmarks,
+    handleToggleBookmark: toggleBookmark,
+    handleDeleteBookmark,
+    hasActiveBookmark,
+  } = useBookmarks(subjectId, module.id, visibleSection);
+  const { highlights, addHighlight, deleteHighlight } = useHighlights(subjectId, module.id);
 
   const fontSize = useSettingsStore((s) => s.fontSize);
   const theme = useSettingsStore((s) => s.theme);
@@ -90,61 +97,46 @@ export default function LessonView({ subjectId, module, onStartQuiz }: Props) {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([
-      api.subjects.lesson(subjectId, module.id),
-      api.subjects.sections(subjectId, module.id),
-      api.storage.notes(subjectId, module.id),
-    ]).then(([lesson, secs, nts]) => {
+    api.subjects.lesson(subjectId, module.id).then((lesson) => {
       setContent(lesson.content);
-      setSections(secs);
-      setNotes(nts);
       setLoading(false);
     }).catch(() => setLoading(false));
-    api.storage.moduleBookmarks(subjectId, module.id).then(setBookmarks).catch(() => setBookmarks([]));
+    api.subjects.sections(subjectId, module.id).then(setSections).catch(() => {});
   }, [subjectId, module.id]);
 
-  const handleAskAI = async () => {
-    if (!aiQuestion.trim()) return;
-    setAiThinking(true);
-    setAiResponse("");
-    try {
-      const result = await api.gemini.ask(aiQuestion, content.slice(0, 4000));
-      setAiResponse(result.response);
-    } catch (err) {
-      setAiResponse(`Error: ${(err as Error).message}`);
+  const handleToggleBookmark = useCallback(() => {
+    const title = visibleSection
+      ? `${module.name} – ${sections.find((s) => s.id === visibleSection)?.heading}`
+      : module.name;
+    toggleBookmark(title, visibleSection);
+  }, [visibleSection, module.name, sections, toggleBookmark]);
+
+  const handleToggleSectionBookmark = useCallback((sectionId: string, _hasBookmark: boolean, heading: string) => {
+    toggleBookmark(`${module.name} – ${heading}`, sectionId);
+  }, [module.name, toggleBookmark]);
+
+  const handleTextSelection = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed || !selection.rangeCount) {
+      setShowHighlightPicker(false);
+      setHighlightSelection(null);
+      return;
     }
-    setAiThinking(false);
+    const text = selection.toString().trim();
+    if (!text || text.length > 500) return;
+    const range = selection.getRangeAt(0);
+    const rect = range.getBoundingClientRect();
+    setHighlightSelection({ text, range });
+    setHighlightPickerPos({ x: rect.left + rect.width / 2, y: rect.top - 10 });
+    setShowHighlightPicker(true);
   };
 
-  const sectionBookmark = bookmarks.find((b) => b.sectionID === visibleSection);
-  const moduleBookmark = bookmarks.find((b) => !b.sectionID);
-  const hasActiveBookmark = visibleSection ? !!sectionBookmark : !!moduleBookmark;
-  const activeBookmarkId = visibleSection
-    ? sectionBookmark?.id
-    : moduleBookmark?.id;
-
-  const handleToggleBookmark = async () => {
-    if (hasActiveBookmark && activeBookmarkId) {
-      await api.storage.deleteBookmark(activeBookmarkId);
-      setBookmarks((prev) => prev.filter((b) => b.id !== activeBookmarkId));
-    } else {
-      const title = visibleSection
-        ? `${module.name} – ${sections.find((s) => s.id === visibleSection)?.heading}`
-        : module.name;
-      const bookmark = await api.storage.addBookmark({
-        subjectID: subjectId,
-        moduleID: module.id,
-        title,
-        sectionID: visibleSection,
-        scrollPosition: contentRef.current?.scrollTop || 0,
-      });
-      setBookmarks((prev) => [...prev, bookmark]);
-    }
-  };
-
-  const handleDeleteBookmark = async (id: string) => {
-    await api.storage.deleteBookmark(id);
-    setBookmarks((prev) => prev.filter((b) => b.id !== id));
+  const handleAddHighlight = async (color: string) => {
+    if (!highlightSelection) return;
+    await addHighlight(highlightSelection.text, color);
+    setShowHighlightPicker(false);
+    setHighlightSelection(null);
+    window.getSelection()?.removeAllRanges();
   };
 
   const handleScroll = () => {
@@ -170,6 +162,37 @@ export default function LessonView({ subjectId, module, onStartQuiz }: Props) {
     if (target >= 0 && target < sections.length) scrollToSection(sections[target].id);
   };
 
+  useEffect(() => {
+    if (!contentRef.current || highlights.length === 0) return;
+    const container = contentRef.current;
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+    const marks: { node: Text; highlight: { id: string; selectedText: string; color: string } }[] = [];
+    while (walker.nextNode()) {
+      const textNode = walker.currentNode as Text;
+      for (const h of highlights) {
+        if (textNode.textContent?.includes(h.selectedText)) {
+          marks.push({ node: textNode, highlight: h });
+        }
+      }
+    }
+    for (const { node, highlight } of marks) {
+      const idx = node.textContent!.indexOf(highlight.selectedText);
+      if (idx === -1) continue;
+      const parent = node.parentElement;
+      if (parent && (parent.tagName === 'MARK' || parent.closest('mark, pre, code'))) continue;
+      const after = node.splitText(idx);
+      after.splitText(highlight.selectedText.length);
+      const mark = document.createElement('mark');
+      mark.style.backgroundColor = HIGHLIGHT_COLORS[highlight.color] || highlight.color;
+      mark.style.color = '#1f2937';
+      mark.style.borderRadius = '2px';
+      mark.style.padding = '0 2px';
+      mark.dataset.highlightId = highlight.id;
+      after.parentNode?.replaceChild(mark, after);
+      mark.textContent = highlight.selectedText;
+    }
+  }, [highlights, content]);
+
   if (loading) return <div className="p-8 text-center text-gray-400">Loading lesson...</div>;
 
   const hasPrevSection = sections.length > 0 && visibleSection !== null && sections.findIndex((s) => s.id === visibleSection) > 0;
@@ -187,18 +210,14 @@ export default function LessonView({ subjectId, module, onStartQuiz }: Props) {
             {THEME_ICONS[theme]}
           </button>
           <div className="h-3 w-px bg-gray-600" />
-          <button onClick={() => setShowTOC(!showTOC)} className={`px-2 py-0.5 text-xs rounded ${showTOC ? "bg-indigo-600 text-white" : "bg-gray-700 hover:bg-gray-600"}`}>
-            Sections
-          </button>
-          <div className="h-3 w-px bg-gray-600" />
           <button onClick={() => scrollSection("prev")} disabled={!hasPrevSection} className="px-2 py-0.5 text-xs bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-30">↑ Sec</button>
           <button onClick={() => scrollSection("next")} disabled={!hasNextSection} className="px-2 py-0.5 text-xs bg-gray-700 hover:bg-gray-600 rounded disabled:opacity-30">↓ Sec</button>
           <div className="h-3 w-px bg-gray-600" />
-          <button onClick={() => setShowSidebar(!showSidebar)} className={`px-2 py-0.5 text-xs rounded ${showSidebar ? "bg-indigo-600 text-white" : "bg-gray-700 hover:bg-gray-600"}`}>
-            Notes ({notes.length})
-          </button>
-          <button onClick={() => setShowAI(!showAI)} className={`px-2 py-0.5 text-xs rounded ${showAI ? "bg-indigo-600 text-white" : "bg-gray-700 hover:bg-gray-600"}`}>
-            Ask AI
+          <button
+            onClick={() => setSidebarTab(sidebarTab ? null : "sections")}
+            className={`px-2 py-0.5 text-xs rounded ${sidebarTab ? "bg-indigo-600 text-white" : "bg-gray-700 hover:bg-gray-600"}`}
+          >
+            Sidebar
           </button>
           <div className="h-3 w-px bg-gray-600" />
           <button
@@ -218,7 +237,12 @@ export default function LessonView({ subjectId, module, onStartQuiz }: Props) {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6" ref={contentRef} onScroll={handleScroll}>
+        <div
+          className="flex-1 overflow-y-auto p-6"
+          ref={contentRef}
+          onScroll={handleScroll}
+          onMouseUp={handleTextSelection}
+        >
           <div className={`book-content book-${theme}`} style={{ fontSize: `${fontSize}px` }}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
@@ -231,87 +255,37 @@ export default function LessonView({ subjectId, module, onStartQuiz }: Props) {
         </div>
       </div>
 
-      {showTOC && (
-        <aside className="w-56 bg-gray-850 border-l border-gray-700 overflow-y-auto p-3 shrink-0">
-          <h3 className="text-xs font-semibold text-gray-300 mb-2 uppercase tracking-wider">Sections</h3>
-          {sections.length === 0 && <p className="text-xs text-gray-500">No sections found.</p>}
-          {sections.map((section) => {
-            const secBm = bookmarks.find((b) => b.sectionID === section.id);
-            return (
-              <div key={section.id} className="flex items-center group">
-                <button
-                  onClick={() => scrollToSection(section.id)}
-                  className={`flex-1 text-left py-1 pr-1 text-xs rounded transition-colors ${
-                    visibleSection === section.id
-                      ? "bg-indigo-600/20 text-indigo-300 border-l-2 border-indigo-400"
-                      : "text-gray-400 hover:text-gray-200 hover:bg-gray-800 border-l-2 border-transparent"
-                  }`}
-                  style={{ paddingLeft: `${12 + (section.level - 1) * 16}px` }}
-                >
-                  {section.heading}
-                </button>
-                <button
-                  onClick={async () => {
-                    if (secBm) {
-                      await handleDeleteBookmark(secBm.id);
-                    } else {
-                      const bookmark = await api.storage.addBookmark({
-                        subjectID: subjectId,
-                        moduleID: module.id,
-                        title: `${module.name} – ${section.heading}`,
-                        sectionID: section.id,
-                        scrollPosition: 0,
-                      });
-                      setBookmarks((prev) => [...prev, bookmark]);
-                    }
-                  }}
-                  className="opacity-0 group-hover:opacity-100 px-1 text-xs text-gray-500 hover:text-amber-400 transition-all"
-                  title={secBm ? "Remove section bookmark" : "Bookmark this section"}
-                >
-                  {secBm ? "★" : "☆"}
-                </button>
-              </div>
-            );
-          })}
-        </aside>
-      )}
-
-      {showSidebar && (
-        <aside className="w-64 bg-gray-850 border-l border-gray-700 overflow-y-auto p-3 shrink-0">
-          <h3 className="text-xs font-semibold text-gray-300 mb-2 uppercase tracking-wider">Notes ({notes.length})</h3>
-          {notes.length === 0 && <p className="text-xs text-gray-500">No notes yet.</p>}
-          {notes.map((note) => (
-            <div key={note.id} className="bg-gray-800 rounded p-2 mb-1.5">
-              <p className="text-xs text-gray-300">{note.content}</p>
-              <p className="text-xs text-gray-600 mt-0.5">{new Date(note.createdAt).toLocaleDateString()}</p>
-            </div>
+      {showHighlightPicker && highlightSelection && (
+        <div
+          className="fixed z-50 flex gap-1 bg-gray-800 border border-gray-600 rounded-lg p-1.5 shadow-xl"
+          style={{ left: highlightPickerPos.x, top: highlightPickerPos.y, transform: "translate(-50%, -100%)" }}
+        >
+          {Object.entries(HIGHLIGHT_COLORS).map(([name, color]) => (
+            <button
+              key={name}
+              onClick={() => handleAddHighlight(name)}
+              className="w-6 h-6 rounded-full border-2 border-gray-600 hover:border-white transition-colors"
+              style={{ backgroundColor: color }}
+              title={name}
+            />
           ))}
-        </aside>
+        </div>
       )}
 
-      {showAI && (
-        <aside className="w-72 bg-gray-850 border-l border-gray-700 overflow-y-auto p-3 shrink-0 flex flex-col">
-          <h3 className="text-xs font-semibold text-gray-300 mb-2 uppercase tracking-wider">Ask AI</h3>
-          <textarea
-            value={aiQuestion}
-            onChange={(e) => setAiQuestion(e.target.value)}
-            placeholder="Ask about this lesson..."
-            className="w-full bg-gray-800 border border-gray-600 rounded p-2 text-xs text-gray-200 placeholder-gray-500 resize-none h-16 mb-1.5"
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAskAI(); } }}
-          />
-          <button
-            onClick={handleAskAI}
-            disabled={aiThinking || !aiQuestion.trim()}
-            className="px-3 py-1 text-xs bg-indigo-600 hover:bg-indigo-500 rounded disabled:opacity-50 mb-2"
-          >
-            {aiThinking ? "Thinking..." : "Ask"}
-          </button>
-          {aiResponse && (
-            <div className="bg-gray-800 rounded p-2 text-xs text-gray-300 whitespace-pre-wrap">
-              {aiResponse}
-            </div>
-          )}
-        </aside>
+      {sidebarTab && (
+        <Sidebar
+          sections={sections}
+          visibleSection={visibleSection}
+          highlights={highlights}
+          bookmarks={bookmarks}
+          content={content}
+          subjectId={subjectId}
+          moduleId={module.id}
+          onScrollToSection={scrollToSection}
+          onDeleteHighlight={deleteHighlight}
+          onToggleSectionBookmark={handleToggleSectionBookmark}
+          onDeleteBookmark={handleDeleteBookmark}
+        />
       )}
     </div>
   );

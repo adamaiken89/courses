@@ -38,18 +38,25 @@ const defaultProps = {
 
 afterEach(restoreFetch);
 
+function mockAll(opts?: { content?: string }) {
+  mockFetch({
+    "/api/storage/bookmarks/module": [],
+    "/api/storage/highlights": [],
+    "/lesson": opts?.content ? { content: opts.content } : { content: "" },
+    "/sections": [],
+    "/notes": [],
+  });
+}
+
 describe("LessonView snapshots", () => {
   test("loading state", () => {
+    mockAll();
     const { container } = render(<LessonView {...defaultProps} />);
     expect(container.innerHTML).toMatchSnapshot();
   });
 
   test("content loaded", async () => {
-    mockFetch({
-      "/lesson": { content: mockContent },
-      "/sections": mockSections,
-      "/notes": mockNotes,
-    });
+    mockAll({ content: mockContent });
     const { container } = render(<LessonView {...defaultProps} />);
     await waitFor(() =>
       expect(container.textContent).toContain("Introduction")
