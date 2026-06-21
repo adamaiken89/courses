@@ -12,10 +12,12 @@ enum DesignConstants {
     static let progressContent: CGFloat = 16
     static let pageSection: CGFloat = 20
     static let pageWide: CGFloat = 24
+    static let gridRow: CGFloat = 16
   }
 
   enum Padding {
     static let border: CGFloat = 1
+    static let borderSelected: CGFloat = 2
     static let extraCompact: CGFloat = 8
     static let card: CGFloat = 12
     static let section: CGFloat = 14
@@ -26,8 +28,11 @@ enum DesignConstants {
     static let horizontalDefault: CGFloat = 8
     static let verticalTight: CGFloat = 4
     static let verticalDefault: CGFloat = 6
+    static let verticalCompact: CGFloat = 2
+    static let verticalSmall: CGFloat = 3
     static let leadingTight: CGFloat = 4
     static let topTight: CGFloat = 8
+    static let sectionIndent: CGFloat = 32
   }
 
   enum Font {
@@ -38,5 +43,57 @@ enum DesignConstants {
     static let body = SwiftUI.Font.body
     static let subheadline = SwiftUI.Font.subheadline
     static let caption = SwiftUI.Font.caption
+  }
+
+  enum CornerRadius {
+    static let small: CGFloat = 6
+    static let medium: CGFloat = 8
+    static let large: CGFloat = 10
+    static let extraLarge: CGFloat = 12
+  }
+
+  enum Size {
+    static let windowMinWidth: CGFloat = 500
+    static let windowMinHeight: CGFloat = 500
+    static let logoLarge: CGFloat = 48
+    static let logoSettings: CGFloat = 32
+    static let quizCheckbox: CGFloat = 24
+    static let sidebarWidth: CGFloat = 320
+    static let sidebarMinWidth: CGFloat = 220
+    static let sidebarMaxWidth: CGFloat = 300
+    static let contentMinWidth: CGFloat = 400
+    static let settingsWindowWidth: CGFloat = 450
+    static let settingsWindowHeight: CGFloat = 500
+    static let gridCardMin: CGFloat = 280
+    static let gridCardMax: CGFloat = 400
+    static let selectionIndicator: CGFloat = 3
+    static let sectionBulletWidth: CGFloat = 1
+    static let sectionBulletHeight: CGFloat = 12
+    static let gridSpacing: CGFloat = 16
+    static let progressViewScale: CGFloat = 0.8
+  }
+
+  enum FontSize {
+    static let quizIcon: CGFloat = 64
+    static let settingsLabel: CGFloat = 10
+    static let settingsTitle: CGFloat = 24
+    static let lessonDefault: CGFloat = 14
+    static let headingOffset: CGFloat = 6
+    static let subheadingOffset: CGFloat = 2
+    static let codeOffset: CGFloat = -1
+  }
+
+  enum Opacity {
+    static let codeBlockBackground: Double = 0.5
+    static let difficultyBadge: Double = 0.1
+    static let subjectCardBorder: Double = 0.3
+    static let quizOptionCircleFill: Double = 0.2
+    static let quizFeedbackCorrect: Double = 0.08
+    static let quizFeedbackIncorrect: Double = 0.08
+    static let quizFeedbackCorrectStrong: Double = 0.3
+    static let quizFeedbackIncorrectStrong: Double = 0.3
+    static let quizOptionBorder: Double = 0.3
+    static let askAIErrorBackground: Double = 0.08
+    static let settingsLogo: Double = 0.6
   }
 }

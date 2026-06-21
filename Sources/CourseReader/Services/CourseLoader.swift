@@ -66,13 +66,18 @@ final class CourseLoader {
     return QuizQuestion.load(from: quizURL)
   }
 
-  private func findModuleDir(subjectsDir: URL, subject: Subject, module: ModuleMeta) -> URL? {
-    let moduleDir =
+  func findModuleDir(subjectsDir: URL, subject: Subject, module: ModuleMeta) -> URL? {
+    let modulesDir =
       subjectsDir
       .appendingPathComponent(subject.directoryName)
       .appendingPathComponent("modules")
-      .appendingPathComponent(module.directoryName)
-    return FileManager.default.fileExists(atPath: moduleDir.path) ? moduleDir : nil
+    let padded = String(format: "%02d", module.id)
+    guard
+      let entries = try? FileManager.default.contentsOfDirectory(
+        at: modulesDir, includingPropertiesForKeys: nil
+      )
+    else { return nil }
+    return entries.first(where: { $0.lastPathComponent.hasPrefix(padded) && $0.hasDirectoryPath })
   }
 
   func loadSRSDeck(subjectId: String) -> SRSDeck {

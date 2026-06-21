@@ -23,7 +23,7 @@ Sources/CourseReader/
 ├── Models/            # Subject (yaml), QuizQuestion (yaml), SRSCard/SRSDeck (json)
 ├── Services/          # CourseLoader, GeminiService, QuizEngine
 ├── ViewModels/        # CourseViewModel (@Observable @MainActor singleton)
-└── Views/             # ContentView, SubjectListView, ModuleListView, LessonView, QuizView, AskAIView, SettingsView
+└── Views/             # ContentView, SubjectListView, ReaderView, LessonView, QuizView, ReviewView, AskAIView, SettingsView
 ```
 
 ## Key conventions
@@ -45,7 +45,13 @@ Subjects live in `subjects/<dir>/`. Each subject has:
 - `modules/<NN-name>/quiz.yaml` — parsed by `parseQuizYAML()` (manual YAML parser)
 - `srs/deck.json` — SM-2 SRS deck (JSON via `Codable`)
 
-Subject directory name becomes `Subject.id`. Module directory name derived from id + slug (`syllabus.yaml` `name` → kebab-case). Exact match required for loading.
+Subject directory name becomes `Subject.id`.
+
+**Module directory matching**: `CourseLoader.findModuleDir` scans `modules/<id>/` directory for entries starting with zero-padded module ID (`NN-`). No slug computation — actual disk names can differ from syllabus `name`. This handles manual short directory names (e.g., `01-architecture-overview` for module named "React 19 Architecture Overview").
+
+## YAML parser
+
+`Subject.parse` (Subject.swift:24-164) is a hand-written line-by-line parser. Module properties checked BEFORE top-level keys — prevents `prerequisites:`, `name:` etc. inside module entries from triggering top-level parsing modes. Parser state reset on each top-level key.
 
 ## Data loading
 
@@ -61,7 +67,13 @@ Subject directory name becomes `Subject.id`. Module directory name derived from 
 
 ## Testing
 
-Test target `CourseReaderTests` exists but has no tests yet. Add tests in `Tests/CourseReaderTests/`. Run via `make test`.
+Tests in `Tests/CourseReaderTests/CourseLoaderTests.swift` cover:
+- `Subject.parse` — valid YAML, missing fields, empty modules, special chars, comments, prerequisites
+- `CourseLoader.findModuleDir` — prefix scan matches mismatched dir names, partial prefix (e.g., `02` matches `02`), missing module returns nil
+- `CourseLoader.loadSubjects(from:)` — skips `srs/` dir, empty dir returns empty
+- `Subject.from(directory:url:)` — missing syllabus returns nil
+
+Test fixtures created at runtime in tmp dirs via `FileManager`, cleaned up via `defer`. Run via `make test`.
 
 ## Project structure quirks
 
@@ -70,6 +82,14 @@ Test target `CourseReaderTests` exists but has no tests yet. Add tests in `Tests
 - No `.xcodeproj`. SPM-only. Xcode can open via `Package.swift`.
 - No `Resources/` directory with real files yet (placeholder only).
 - `scripts/make-app-bundle.sh` bundles binary + Info.plist + generates icon (may fail silently on some systems).
+- `findModuleDir` is internal (not private) — testable directly from test target.
+- `ModuleMeta.directoryName` removed — dead code after switching to prefix scan.
+
+## Design tokens
+
+Design tokens defined in `DesignConstants` (spacing, padding, fonts), `AppColors` (colors), and view modifier extensions (corner radii, button sizes).
+
+**Rule**: Never hardcode numeric spacing/padding/font/color. Use `DesignConstants`/`AppColors`/modifier extensions exclusively.
 
 ## Style
 

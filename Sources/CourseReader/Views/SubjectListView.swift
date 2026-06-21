@@ -17,9 +17,16 @@ struct SubjectListView: View {
 
   private var header: some View {
     VStack(alignment: .leading, spacing: DesignConstants.Spacing.relatedContent) {
-      Text(loc("Course Reader"))
-        .font(DesignConstants.Font.title)
-        .fontWeight(.bold)
+      HStack(spacing: DesignConstants.Spacing.sectionHeader) {
+        Image("logo")
+          .resizable()
+          .frame(width: DesignConstants.Size.logoLarge, height: DesignConstants.Size.logoLarge)
+          .clipShape(RoundedRectangle(cornerRadius: DesignConstants.CornerRadius.large))
+
+        Text(loc("Course Reader"))
+          .font(DesignConstants.Font.title)
+          .fontWeight(.bold)
+      }
 
       Text(loc("Select a subject to begin studying"))
         .font(DesignConstants.Font.subheadline)
@@ -30,8 +37,13 @@ struct SubjectListView: View {
 
   private var subjectGrid: some View {
     LazyVGrid(
-      columns: [GridItem(.adaptive(minimum: 280, maximum: 400), spacing: 16)],
-      spacing: 16
+      columns: [
+        GridItem(
+          .adaptive(
+            minimum: DesignConstants.Size.gridCardMin, maximum: DesignConstants.Size.gridCardMax),
+          spacing: DesignConstants.Spacing.gridRow)
+      ],
+      spacing: DesignConstants.Spacing.gridRow
     ) {
       ForEach(viewModel.subjects) { subject in
         SubjectCardView(subject: subject)
@@ -57,8 +69,8 @@ struct SubjectCardView: View {
 
         Text(subject.targetLevel.capitalized)
           .font(.caption)
-          .padding(.horizontal, 8)
-          .padding(.vertical, 3)
+          .padding(.horizontal, DesignConstants.Padding.horizontalDefault)
+          .padding(.vertical, DesignConstants.Padding.verticalSmall)
           .badgeBackground()
       }
 
@@ -87,8 +99,10 @@ struct SubjectCardView: View {
     .padding(DesignConstants.Padding.card)
     .cardBackground()
     .overlay(
-      RoundedRectangle(cornerRadius: 10)
-        .stroke(Color(nsColor: .separatorColor).opacity(0.3), lineWidth: 1)
+      RoundedRectangle(cornerRadius: DesignConstants.CornerRadius.large)
+        .stroke(
+          Color(nsColor: .separatorColor).opacity(DesignConstants.Opacity.subjectCardBorder),
+          lineWidth: DesignConstants.Padding.border)
     )
   }
 

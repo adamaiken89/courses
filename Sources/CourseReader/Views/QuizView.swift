@@ -27,7 +27,7 @@ struct QuizView: View {
           ? "checkmark.circle.fill"
           : "xmark.circle.fill"
       )
-      .font(.system(size: 64))
+      .font(.system(size: DesignConstants.FontSize.quizIcon))
       .foregroundStyle(
         viewModel.quizEngine.percentage >= 70
           ? AppColors.correctGreen
@@ -57,7 +57,7 @@ struct QuizView: View {
               question: question, selected: viewModel.quizEngine.selectedAnswers[question.id] ?? "")
           }
         }
-        .padding()
+        .padding(DesignConstants.Padding.group)
       }
 
       HStack(spacing: DesignConstants.Spacing.pageSection) {
@@ -113,8 +113,8 @@ extension QuizView {
         ForEach(question.tags.prefix(3), id: \.self) { tag in
           Text(tag)
             .font(.caption2)
-            .padding(.horizontal, 6)
-            .padding(.vertical, 2)
+            .padding(.horizontal, DesignConstants.Padding.horizontalTight)
+            .padding(.vertical, DesignConstants.Padding.verticalCompact)
             .badgeBackground()
         }
 
@@ -150,9 +150,11 @@ extension QuizView {
           Text(question.explanation)
             .font(.subheadline)
             .foregroundStyle(AppColors.secondaryLabel)
-            .padding()
+            .padding(DesignConstants.Padding.group)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(AppColors.aiUserBubble, in: RoundedRectangle(cornerRadius: 8))
+            .background(
+              AppColors.aiUserBubble,
+              in: RoundedRectangle(cornerRadius: DesignConstants.CornerRadius.medium))
 
           HStack {
             Spacer()
@@ -179,9 +181,9 @@ extension QuizView {
     return Text(labels[idx])
       .font(.caption2)
       .foregroundStyle(colors[idx])
-      .padding(.horizontal, 6)
-      .padding(.vertical, 2)
-      .background(colors[idx].opacity(0.1), in: Capsule())
+      .padding(.horizontal, DesignConstants.Padding.horizontalTight)
+      .padding(.vertical, DesignConstants.Padding.verticalCompact)
+      .background(colors[idx].opacity(DesignConstants.Opacity.difficultyBadge), in: Capsule())
   }
 }
 
@@ -199,10 +201,12 @@ struct OptionRow: View {
           .font(.subheadline)
           .fontWeight(.semibold)
           .foregroundStyle(foregroundColor)
-          .frame(width: 24, height: 24)
+          .frame(
+            width: DesignConstants.Size.quizCheckbox, height: DesignConstants.Size.quizCheckbox
+          )
           .background(
             Circle()
-              .fill(backgroundColor.opacity(0.2))
+              .fill(backgroundColor.opacity(DesignConstants.Opacity.quizOptionCircleFill))
           )
 
         Text(text)
@@ -221,12 +225,15 @@ struct OptionRow: View {
       }
       .padding(DesignConstants.Padding.card)
       .background(
-        RoundedRectangle(cornerRadius: 8)
+        RoundedRectangle(cornerRadius: DesignConstants.CornerRadius.medium)
           .fill(backgroundColor)
       )
       .overlay(
-        RoundedRectangle(cornerRadius: 8)
-          .stroke(borderColor, lineWidth: isSelected ? 2 : 1)
+        RoundedRectangle(cornerRadius: DesignConstants.CornerRadius.medium)
+          .stroke(
+            borderColor,
+            lineWidth: isSelected
+              ? DesignConstants.Padding.borderSelected : DesignConstants.Padding.border)
       )
     }
     .buttonStyle(.plain)
@@ -241,16 +248,22 @@ struct OptionRow: View {
 
   private var backgroundColor: Color {
     if let correct = isCorrect {
-      return correct ? AppColors.correctGreen.opacity(0.08) : AppColors.incorrectRed.opacity(0.08)
+      return correct
+        ? AppColors.correctGreen.opacity(DesignConstants.Opacity.quizFeedbackCorrect)
+        : AppColors.incorrectRed.opacity(DesignConstants.Opacity.quizFeedbackIncorrect)
     }
     return isSelected ? AppColors.quizOptionSelected : AppColors.rowBg
   }
 
   private var borderColor: Color {
     if let correct = isCorrect {
-      return correct ? AppColors.correctGreen.opacity(0.3) : AppColors.incorrectRed.opacity(0.3)
+      return correct
+        ? AppColors.correctGreen.opacity(DesignConstants.Opacity.quizFeedbackCorrectStrong)
+        : AppColors.incorrectRed.opacity(DesignConstants.Opacity.quizFeedbackIncorrectStrong)
     }
-    return isSelected ? Color.accentColor : AppColors.quizOptionBorder.opacity(0.3)
+    return isSelected
+      ? Color.accentColor
+      : AppColors.quizOptionBorder.opacity(DesignConstants.Opacity.quizOptionBorder)
   }
 }
 

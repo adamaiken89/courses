@@ -12,7 +12,9 @@ struct ContentView: View {
           destination(for: screen)
         }
     }
-    .frame(minWidth: 500, minHeight: 500)
+    .frame(
+      minWidth: DesignConstants.Size.windowMinWidth, minHeight: DesignConstants.Size.windowMinHeight
+    )
   }
 
   @ViewBuilder

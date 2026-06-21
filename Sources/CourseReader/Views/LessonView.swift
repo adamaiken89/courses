@@ -18,11 +18,11 @@ struct LessonView: View {
   var body: some View {
     HSplitView {
       lessonContent
-        .frame(minWidth: 400, maxWidth: .infinity)
+        .frame(minWidth: DesignConstants.Size.contentMinWidth, maxWidth: .infinity)
 
       if showAI {
         AskAIView(selectedText: selectedText)
-          .frame(width: 320)
+          .frame(width: DesignConstants.Size.sidebarWidth)
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -43,13 +43,12 @@ struct LessonView: View {
   }
 
   private var lessonContent: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: DesignConstants.Spacing.progressContent) {
-        moduleHeader
-        renderedContent
-      }
-      .padding(DesignConstants.Padding.group)
+    VStack(alignment: .leading, spacing: DesignConstants.Spacing.progressContent) {
+      moduleHeader
+      renderedContent
     }
+    .padding(DesignConstants.Padding.group)
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(VisualEffectBackground())
   }
 
@@ -73,6 +72,7 @@ struct LessonView: View {
       } else {
         LessonMarkdownView(
           markdown: viewModel.lessonContent,
+          fontSize: viewModel.lessonFontSize,
           selectedText: $selectedText,
           scrollTarget: effectiveScrollTarget
         )
@@ -83,14 +83,24 @@ struct LessonView: View {
 
 struct LessonMarkdownView: NSViewRepresentable {
   let markdown: String
+  let fontSize: Double
   @Binding var selectedText: String
   var scrollTarget: Binding<String?>?
+
+  private var scaled: (base: CGFloat, heading: CGFloat, subheading: CGFloat, code: CGFloat) {
+    (
+      CGFloat(fontSize), CGFloat(fontSize + DesignConstants.FontSize.headingOffset),
+      CGFloat(fontSize + DesignConstants.FontSize.subheadingOffset),
+      CGFloat(fontSize + DesignConstants.FontSize.codeOffset)
+    )
+  }
 
   func makeNSView(context: Context) -> NSScrollView {
     let scrollView = NSScrollView()
     scrollView.hasVerticalScroller = true
-    scrollView.borderType = .noBorder
+    scrollView.hasHorizontalScroller = false
     scrollView.drawsBackground = false
+    scrollView.borderType = .noBorder
 
     let textView = NSTextView()
     textView.isEditable = false
@@ -99,6 +109,13 @@ struct LessonMarkdownView: NSViewRepresentable {
     textView.textContainerInset = NSSize(width: 0, height: 4)
     textView.delegate = context.coordinator
 
+    textView.isHorizontallyResizable = false
+    textView.isVerticallyResizable = true
+    textView.autoresizingMask = [.width]
+    textView.textContainer?.containerSize = NSSize(
+      width: textView.frame.width, height: CGFloat.greatestFiniteMagnitude)
+    textView.textContainer?.widthTracksTextView = true
+
     scrollView.documentView = textView
     return scrollView
   }
@@ -106,10 +123,13 @@ struct LessonMarkdownView: NSViewRepresentable {
   func updateNSView(_ scrollView: NSScrollView, context: Context) {
     guard let textView = scrollView.documentView as? NSTextView else { return }
 
-    if context.coordinator.lastMarkdown != markdown {
-      let attrs = parseMarkdown(markdown)
+    if context.coordinator.lastMarkdown != markdown
+      || context.coordinator.lastFontSize != fontSize
+    {
+      let attrs = parseMarkdown(markdown, fontSize: fontSize)
       textView.textStorage?.setAttributedString(attrs)
       context.coordinator.lastMarkdown = markdown
+      context.coordinator.lastFontSize = fontSize
       context.coordinator.lastScrolledTarget = nil
     }
 
@@ -119,17 +139,27 @@ struct LessonMarkdownView: NSViewRepresentable {
   }
 
   func makeCoordinator() -> Coordinator {
-    Coordinator(selectedText: $selectedText)
+    let s = scaled
+    return Coordinator(
+      selectedText: $selectedText,
+      headingFontSize: s.heading,
+      subheadingFontSize: s.subheading
+    )
   }
 
   @MainActor
   class Coordinator: NSObject, NSTextViewDelegate {
     @Binding var selectedText: String
     var lastMarkdown: String?
+    var lastFontSize: Double?
     var lastScrolledTarget: String?
+    let headingFontSize: CGFloat
+    let subheadingFontSize: CGFloat
 
-    init(selectedText: Binding<String>) {
+    init(selectedText: Binding<String>, headingFontSize: CGFloat, subheadingFontSize: CGFloat) {
       _selectedText = selectedText
+      self.headingFontSize = headingFontSize
+      self.subheadingFontSize = subheadingFontSize
     }
 
     func textViewDidChangeSelection(_ notification: Notification) {
@@ -147,9 +177,11 @@ struct LessonMarkdownView: NSViewRepresentable {
       guard let storage = textView.textStorage else { return }
 
       var foundRange: NSRange?
-      storage.enumerateAttribute(.font, in: NSRange(location: 0, length: storage.length), options: []) { value, range, stop in
+      storage.enumerateAttribute(
+        .font, in: NSRange(location: 0, length: storage.length), options: []
+      ) { value, range, stop in
         guard let font = value as? NSFont else { return }
-        if font.pointSize == 20 || font.pointSize == 16 {
+        if font.pointSize == headingFontSize || font.pointSize == subheadingFontSize {
           let text = storage.attributedSubstring(from: range).string
           if text == heading {
             foundRange = range
@@ -165,21 +197,20 @@ struct LessonMarkdownView: NSViewRepresentable {
     }
   }
 
-  private func parseMarkdown(_ md: String) -> NSAttributedString {
+  private func parseMarkdown(_ md: String, fontSize: Double) -> NSAttributedString {
     let result = NSMutableAttributedString()
 
-    let baseFont = NSFont.systemFont(ofSize: 14)
-    let boldFont = NSFont.boldSystemFont(ofSize: 14)
-    let headingFont = NSFont.boldSystemFont(ofSize: 20)
-    let subheadingFont = NSFont.boldSystemFont(ofSize: 16)
-    let codeFont = NSFont.monospacedSystemFont(ofSize: 13, weight: .regular)
+    let baseFont = NSFont.systemFont(ofSize: fontSize)
+    let boldFont = NSFont.boldSystemFont(ofSize: fontSize)
+    let headingFont = NSFont.boldSystemFont(ofSize: fontSize + 6)
+    let subheadingFont = NSFont.boldSystemFont(ofSize: fontSize + 2)
+    let codeFont = NSFont.monospacedSystemFont(ofSize: fontSize - 1, weight: .regular)
 
     let lines = md.components(separatedBy: .newlines)
     var inCodeBlock = false
     var codeBlockLines: [String] = []
     var inTable = false
     var tableLines: [[String]] = []
-    var inList = false
 
     for line in lines {
       let trimmed = line.trimmingCharacters(in: .whitespaces)
@@ -190,7 +221,8 @@ struct LessonMarkdownView: NSViewRepresentable {
           let attrs: [NSAttributedString.Key: Any] = [
             .font: codeFont,
             .foregroundColor: NSColor.secondaryLabelColor,
-            .backgroundColor: NSColor.controlBackgroundColor.withAlphaComponent(0.5),
+            .backgroundColor: NSColor.controlBackgroundColor.withAlphaComponent(
+              DesignConstants.Opacity.codeBlockBackground),
           ]
           let codeStr = NSAttributedString(string: code + "\n", attributes: attrs)
           result.append(codeStr)
@@ -218,7 +250,7 @@ struct LessonMarkdownView: NSViewRepresentable {
         tableLines.append(cells)
         continue
       } else if inTable {
-        appendTable(result, tableLines, baseFont)
+        appendTable(result, tableLines, baseFont, fontSize: fontSize)
         tableLines = []
         inTable = false
       }
@@ -295,7 +327,7 @@ struct LessonMarkdownView: NSViewRepresentable {
     }
 
     if inTable {
-      appendTable(result, tableLines, baseFont)
+      appendTable(result, tableLines, baseFont, fontSize: fontSize)
     }
 
     return result
@@ -306,7 +338,7 @@ struct LessonMarkdownView: NSViewRepresentable {
   ) -> NSAttributedString {
     let result = NSMutableAttributedString()
 
-    var remaining = line as NSString
+    let remaining = line as NSString
     var pos = 0
 
     while pos < remaining.length {
@@ -351,7 +383,7 @@ struct LessonMarkdownView: NSViewRepresentable {
   }
 
   private func appendTable(
-    _ result: NSMutableAttributedString, _ lines: [[String]], _ baseFont: NSFont
+    _ result: NSMutableAttributedString, _ lines: [[String]], _ baseFont: NSFont, fontSize: Double
   ) {
     guard !lines.isEmpty else { return }
     let separatorLine = lines.first { line in
@@ -363,7 +395,7 @@ struct LessonMarkdownView: NSViewRepresentable {
     for row in dataLines {
       let formatted = row.joined(separator: "  │  ")
       let attrs: [NSAttributedString.Key: Any] = [
-        .font: NSFont.monospacedSystemFont(ofSize: 12, weight: .regular),
+        .font: NSFont.monospacedSystemFont(ofSize: fontSize - 1, weight: .regular),
         .foregroundColor: NSColor.labelColor,
       ]
       result.append(NSAttributedString(string: "\(formatted)\n", attributes: attrs))

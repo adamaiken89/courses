@@ -39,70 +39,6 @@ struct Subject: Codable, Identifiable, Hashable {
       let trimmed = line.trimmingCharacters(in: .whitespaces)
       if trimmed.hasPrefix("#") { continue }
 
-      if trimmed.hasPrefix("subject:") {
-        subject = String(trimmed.dropFirst(8)).trimmingCharacters(in: .whitespaces)
-          .trimmingCharacters(in: CharacterSet(charactersIn: "\"'"))
-        inObjectives = false
-        inPrereqs = false
-        inModules = false
-        continue
-      }
-      if trimmed.hasPrefix("time_budget_hours:") {
-        timeBudget = Int(String(trimmed.dropFirst(18)).trimmingCharacters(in: .whitespaces)) ?? 40
-        inObjectives = false
-        inPrereqs = false
-        inModules = false
-        continue
-      }
-      if trimmed.hasPrefix("target_level:") {
-        targetLevel = String(trimmed.dropFirst(13)).trimmingCharacters(in: .whitespaces)
-          .trimmingCharacters(in: CharacterSet(charactersIn: "\"'"))
-        inObjectives = false
-        inPrereqs = false
-        inModules = false
-        continue
-      }
-      if trimmed.hasPrefix("domain:") {
-        domain = String(trimmed.dropFirst(7)).trimmingCharacters(in: .whitespaces)
-          .trimmingCharacters(in: CharacterSet(charactersIn: "\"'"))
-        inObjectives = false
-        inPrereqs = false
-        inModules = false
-        continue
-      }
-      if trimmed.hasPrefix("prerequisites:") {
-        inPrereqs = true
-        inObjectives = false
-        inModules = false
-        continue
-      }
-      if trimmed.hasPrefix("learning_objectives:") {
-        inObjectives = true
-        inPrereqs = false
-        inModules = false
-        continue
-      }
-      if trimmed.hasPrefix("modules:") {
-        inModules = true
-        inObjectives = false
-        inPrereqs = false
-        continue
-      }
-
-      if inPrereqs, trimmed.hasPrefix("-") {
-        prereqs.append(
-          String(trimmed.dropFirst(1)).trimmingCharacters(in: .whitespaces).trimmingCharacters(
-            in: CharacterSet(charactersIn: "\"'")))
-        continue
-      }
-
-      if inObjectives, trimmed.hasPrefix("-") {
-        objectives.append(
-          String(trimmed.dropFirst(1)).trimmingCharacters(in: .whitespaces).trimmingCharacters(
-            in: CharacterSet(charactersIn: "\"'")))
-        continue
-      }
-
       if inModules {
         if trimmed.hasPrefix("- id:") {
           if let m = currentModule {
@@ -143,6 +79,65 @@ struct Subject: Codable, Identifiable, Hashable {
             }
           }
         }
+        continue
+      }
+
+      if trimmed.hasPrefix("subject:") {
+        subject = String(trimmed.dropFirst(8)).trimmingCharacters(in: .whitespaces)
+          .trimmingCharacters(in: CharacterSet(charactersIn: "\"'"))
+        inObjectives = false
+        inPrereqs = false
+        continue
+      }
+      if trimmed.hasPrefix("time_budget_hours:") {
+        timeBudget = Int(String(trimmed.dropFirst(18)).trimmingCharacters(in: .whitespaces)) ?? 40
+        inObjectives = false
+        inPrereqs = false
+        continue
+      }
+      if trimmed.hasPrefix("target_level:") {
+        targetLevel = String(trimmed.dropFirst(13)).trimmingCharacters(in: .whitespaces)
+          .trimmingCharacters(in: CharacterSet(charactersIn: "\"'"))
+        inObjectives = false
+        inPrereqs = false
+        continue
+      }
+      if trimmed.hasPrefix("domain:") {
+        domain = String(trimmed.dropFirst(7)).trimmingCharacters(in: .whitespaces)
+          .trimmingCharacters(in: CharacterSet(charactersIn: "\"'"))
+        inObjectives = false
+        inPrereqs = false
+        continue
+      }
+      if trimmed.hasPrefix("prerequisites:") {
+        inPrereqs = true
+        inObjectives = false
+        continue
+      }
+      if trimmed.hasPrefix("learning_objectives:") {
+        inObjectives = true
+        inPrereqs = false
+        continue
+      }
+      if trimmed.hasPrefix("modules:") {
+        inModules = true
+        inObjectives = false
+        inPrereqs = false
+        continue
+      }
+
+      if inPrereqs, trimmed.hasPrefix("-") {
+        prereqs.append(
+          String(trimmed.dropFirst(1)).trimmingCharacters(in: .whitespaces).trimmingCharacters(
+            in: CharacterSet(charactersIn: "\"'")))
+        continue
+      }
+
+      if inObjectives, trimmed.hasPrefix("-") {
+        objectives.append(
+          String(trimmed.dropFirst(1)).trimmingCharacters(in: .whitespaces).trimmingCharacters(
+            in: CharacterSet(charactersIn: "\"'")))
+        continue
       }
     }
     if let m = currentModule {
@@ -171,17 +166,4 @@ struct ModuleMeta: Codable, Identifiable, Hashable {
   let timeHours: Double
   let prerequisites: [Int]
   let topics: [String]
-
-  var directoryName: String {
-    let padded = String(format: "%02d", id)
-    let slug =
-      name
-      .lowercased()
-      .replacingOccurrences(of: " & ", with: "-and-")
-      .replacingOccurrences(of: " ", with: "-")
-      .replacingOccurrences(of: ",", with: "")
-      .replacingOccurrences(of: "(", with: "")
-      .replacingOccurrences(of: ")", with: "")
-    return "\(padded)-\(slug)"
-  }
 }

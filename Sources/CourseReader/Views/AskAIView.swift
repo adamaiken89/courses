@@ -65,7 +65,9 @@ struct AskAIView: View {
         .font(.subheadline)
         .padding(DesignConstants.Padding.extraCompact)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppColors.highlightBg, in: RoundedRectangle(cornerRadius: 6))
+        .background(
+          AppColors.highlightBg,
+          in: RoundedRectangle(cornerRadius: DesignConstants.CornerRadius.small))
     }
   }
 
@@ -75,10 +77,12 @@ struct AskAIView: View {
         .textFieldStyle(.plain)
         .font(.body)
         .padding(DesignConstants.Padding.card)
-        .background(AppColors.cardBg, in: RoundedRectangle(cornerRadius: 8))
+        .background(
+          AppColors.cardBg, in: RoundedRectangle(cornerRadius: DesignConstants.CornerRadius.medium)
+        )
         .overlay(
-          RoundedRectangle(cornerRadius: 8)
-            .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
+          RoundedRectangle(cornerRadius: DesignConstants.CornerRadius.medium)
+            .stroke(Color(nsColor: .separatorColor), lineWidth: DesignConstants.Padding.border)
         )
 
       HStack {
@@ -96,12 +100,12 @@ struct AskAIView: View {
   private var loadingIndicator: some View {
     HStack(spacing: DesignConstants.Spacing.relatedContent) {
       ProgressView()
-        .scaleEffect(0.8)
+        .scaleEffect(DesignConstants.Size.progressViewScale)
       Text("Thinking...")
         .font(.subheadline)
         .foregroundStyle(AppColors.secondaryLabel)
     }
-    .padding()
+    .padding(DesignConstants.Padding.group)
   }
 
   private var aiResponseView: some View {
@@ -122,7 +126,9 @@ struct AskAIView: View {
           .frame(maxWidth: .infinity, alignment: .leading)
       }
       .padding(DesignConstants.Padding.card)
-      .background(AppColors.aiBubbleBg, in: RoundedRectangle(cornerRadius: 8))
+      .background(
+        AppColors.aiBubbleBg,
+        in: RoundedRectangle(cornerRadius: DesignConstants.CornerRadius.medium))
     }
   }
 
@@ -135,7 +141,9 @@ struct AskAIView: View {
         .foregroundStyle(AppColors.incorrectRed)
     }
     .padding(DesignConstants.Padding.card)
-    .background(AppColors.incorrectRed.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+    .background(
+      AppColors.incorrectRed.opacity(DesignConstants.Opacity.askAIErrorBackground),
+      in: RoundedRectangle(cornerRadius: DesignConstants.CornerRadius.medium))
   }
 
   private var apiKeyMissingView: some View {
@@ -149,7 +157,7 @@ struct AskAIView: View {
         .foregroundStyle(AppColors.secondaryLabel)
         .multilineTextAlignment(.center)
     }
-    .padding()
+    .padding(DesignConstants.Padding.group)
     .frame(maxWidth: .infinity)
     .cardBackground()
   }

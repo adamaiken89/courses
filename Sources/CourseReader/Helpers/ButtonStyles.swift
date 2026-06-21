@@ -4,13 +4,13 @@ extension View {
   func primaryButton() -> some View {
     self.buttonStyle(.borderedProminent)
       .controlSize(.large)
-      .buttonBorderShape(.roundedRectangle(radius: 8))
+      .buttonBorderShape(.roundedRectangle(radius: DesignConstants.CornerRadius.medium))
   }
 
   func secondaryButton() -> some View {
     self.buttonStyle(.bordered)
       .controlSize(.regular)
-      .buttonBorderShape(.roundedRectangle(radius: 8))
+      .buttonBorderShape(.roundedRectangle(radius: DesignConstants.CornerRadius.medium))
   }
 
   func inlineButton() -> some View {

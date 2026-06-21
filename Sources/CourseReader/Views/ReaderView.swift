@@ -8,21 +8,16 @@ struct ReaderView: View {
   var body: some View {
     HSplitView {
       readerSidebar
-        .frame(minWidth: 220, maxWidth: 300)
+        .frame(
+          minWidth: DesignConstants.Size.sidebarMinWidth,
+          maxWidth: DesignConstants.Size.sidebarMaxWidth)
 
       readerContent
-        .frame(minWidth: 400, maxWidth: .infinity)
+        .frame(minWidth: DesignConstants.Size.contentMinWidth, maxWidth: .infinity)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .navigationTitle(subject.displayName)
     .toolbar {
-      ToolbarItem {
-        Button(action: startQuiz) {
-          Label("Quiz", systemImage: "checkmark.circle")
-        }
-        .help("Take quiz for current module")
-        .disabled(viewModel.readerSelectedModule == nil)
-      }
       ToolbarItem {
         Button(action: startReview) {
           Label("Review", systemImage: "arrow.counterclockwise")
@@ -98,7 +93,10 @@ struct ReaderView: View {
       .background(isSelected ? AppColors.rowBg : Color.clear)
       .overlay(
         isSelected
-          ? Rectangle().fill(Color.accentColor).frame(width: 3).frame(maxWidth: .infinity, alignment: .leading)
+          ? Rectangle().fill(Color.accentColor).frame(
+            width: DesignConstants.Size.selectionIndicator
+          ).frame(
+            maxWidth: .infinity, alignment: .leading)
           : nil, alignment: .leading
       )
 
@@ -115,14 +113,16 @@ struct ReaderView: View {
           HStack(spacing: DesignConstants.Spacing.sectionHeader) {
             Rectangle()
               .fill(AppColors.secondaryLabel)
-              .frame(width: 1, height: 12)
+              .frame(
+                width: DesignConstants.Size.sectionBulletWidth,
+                height: DesignConstants.Size.sectionBulletHeight)
 
             Text(section.heading)
               .font(.caption)
               .foregroundStyle(AppColors.secondaryLabel)
               .lineLimit(1)
           }
-          .padding(.leading, DesignConstants.Padding.group + 16)
+          .padding(.leading, DesignConstants.Padding.sectionIndent)
           .padding(.trailing, DesignConstants.Padding.group)
           .padding(.vertical, DesignConstants.Padding.verticalTight)
           .frame(maxWidth: .infinity, alignment: .leading)
@@ -154,11 +154,6 @@ struct ReaderView: View {
         }
       }
     }
-  }
-
-  private func startQuiz() {
-    guard let module = viewModel.readerSelectedModule else { return }
-    viewModel.startQuiz(subject: subject, module: module)
   }
 
   private func startReview() {

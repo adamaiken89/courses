@@ -36,7 +36,18 @@ final class CourseViewModel {
   let courseLoader = CourseLoader.shared
   let gemini = GeminiService.shared
 
-  private init() {}
+  var lessonFontSize: Double = DesignConstants.FontSize.lessonDefault {
+    didSet {
+      UserDefaults.standard.set(lessonFontSize, forKey: "lessonFontSize")
+    }
+  }
+
+  private init() {
+    let saved = UserDefaults.standard.double(forKey: "lessonFontSize")
+    if saved != 0 {
+      lessonFontSize = saved
+    }
+  }
 
   func loadSubjects() {
     subjects = courseLoader.loadSubjects()

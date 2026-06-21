@@ -2,6 +2,7 @@ import SwiftUI
 
 @main
 struct CourseReaderApp: App {
+  @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
   @State private var viewModel = CourseViewModel.shared
 
   var body: some Scene {
