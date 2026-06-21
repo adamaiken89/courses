@@ -21,8 +21,8 @@ struct ContentView: View {
     case .subjectList:
       SubjectListView()
 
-    case .moduleList(let subject):
-      ModuleListView(subject: subject)
+    case .reader(let subject):
+      ReaderView(subject: subject)
 
     case .lesson(let subject, let module):
       LessonView(subject: subject, module: module)

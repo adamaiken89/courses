@@ -49,13 +49,9 @@ final class CourseLoader {
 
   func loadLesson(subject: Subject, module: ModuleMeta) -> String {
     guard let subjectsDir else { return "" }
-    let lessonURL =
-      subjectsDir
-      .appendingPathComponent(subject.directoryName)
-      .appendingPathComponent("modules")
-      .appendingPathComponent(module.directoryName)
-      .appendingPathComponent("lesson.md")
-
+    guard let moduleDir = findModuleDir(subjectsDir: subjectsDir, subject: subject, module: module)
+    else { return "" }
+    let lessonURL = moduleDir.appendingPathComponent("lesson.md")
     guard let data = try? Data(contentsOf: lessonURL),
       let content = String(data: data, encoding: .utf8)
     else { return "" }
@@ -64,14 +60,19 @@ final class CourseLoader {
 
   func loadQuiz(subject: Subject, module: ModuleMeta) -> [QuizQuestion] {
     guard let subjectsDir else { return [] }
-    let quizURL =
+    guard let moduleDir = findModuleDir(subjectsDir: subjectsDir, subject: subject, module: module)
+    else { return [] }
+    let quizURL = moduleDir.appendingPathComponent("quiz.yaml")
+    return QuizQuestion.load(from: quizURL)
+  }
+
+  private func findModuleDir(subjectsDir: URL, subject: Subject, module: ModuleMeta) -> URL? {
+    let moduleDir =
       subjectsDir
       .appendingPathComponent(subject.directoryName)
       .appendingPathComponent("modules")
       .appendingPathComponent(module.directoryName)
-      .appendingPathComponent("quiz.yaml")
-
-    return QuizQuestion.load(from: quizURL)
+    return FileManager.default.fileExists(atPath: moduleDir.path) ? moduleDir : nil
   }
 
   func loadSRSDeck(subjectId: String) -> SRSDeck {

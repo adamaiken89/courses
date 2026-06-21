@@ -3,8 +3,8 @@ import Observation
 
 enum AppScreen: Hashable {
   case subjectList
-  case moduleList(Subject)
   case lesson(Subject, ModuleMeta)
+  case reader(Subject)
   case quiz(Subject, ModuleMeta)
   case askAI(Subject, ModuleMeta)
   case review(Subject)
@@ -27,6 +27,11 @@ final class CourseViewModel {
   var aiError: String?
   var navigationPath: [AppScreen] = [.subjectList]
 
+  var readerSubject: Subject?
+  var readerSelectedModule: ModuleMeta?
+  var readerSections: [ModuleSection] = []
+  var readerScrollTarget: String?
+
   let quizEngine = QuizEngine()
   let courseLoader = CourseLoader.shared
   let gemini = GeminiService.shared
@@ -39,14 +44,27 @@ final class CourseViewModel {
 
   func selectSubject(_ subject: Subject) {
     selectedSubject = subject
-    navigationPath.append(.moduleList(subject))
+    openReader(subject)
   }
 
-  func selectModule(_ module: ModuleMeta) {
-    guard let subject = selectedSubject else { return }
-    selectedModule = module
+  func openReader(_ subject: Subject) {
+    readerSubject = subject
+    if let first = subject.modules.first {
+      selectReaderModule(first)
+    }
+    navigationPath.append(.reader(subject))
+  }
+
+  func selectReaderModule(_ module: ModuleMeta) {
+    guard let subject = readerSubject else { return }
+    readerSelectedModule = module
     lessonContent = courseLoader.loadLesson(subject: subject, module: module)
-    navigationPath.append(.lesson(subject, module))
+    readerSections = ModuleSection.parse(from: lessonContent)
+    readerScrollTarget = nil
+  }
+
+  func scrollReaderToSection(_ section: ModuleSection) {
+    readerScrollTarget = section.heading
   }
 
   func startQuiz(subject: Subject, module: ModuleMeta) {
@@ -93,6 +111,10 @@ final class CourseViewModel {
     aiQuestion = ""
     aiResponse = ""
     aiError = nil
+    readerSubject = nil
+    readerSelectedModule = nil
+    readerSections = []
+    readerScrollTarget = nil
     quizEngine.reset()
   }
 }

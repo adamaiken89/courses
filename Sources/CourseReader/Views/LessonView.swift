@@ -5,9 +5,15 @@ struct LessonView: View {
   private var viewModel
   let subject: Subject
   let module: ModuleMeta
+  var scrollTarget: Binding<String?>?
 
   @State private var showAI = false
   @State private var selectedText = ""
+  @State private var internalScrollTarget: String? = nil
+
+  private var effectiveScrollTarget: Binding<String?> {
+    scrollTarget ?? Binding(get: { internalScrollTarget }, set: { internalScrollTarget = $0 })
+  }
 
   var body: some View {
     HSplitView {
@@ -67,7 +73,8 @@ struct LessonView: View {
       } else {
         LessonMarkdownView(
           markdown: viewModel.lessonContent,
-          selectedText: $selectedText
+          selectedText: $selectedText,
+          scrollTarget: effectiveScrollTarget
         )
       }
     }
@@ -77,6 +84,7 @@ struct LessonView: View {
 struct LessonMarkdownView: NSViewRepresentable {
   let markdown: String
   @Binding var selectedText: String
+  var scrollTarget: Binding<String?>?
 
   func makeNSView(context: Context) -> NSScrollView {
     let scrollView = NSScrollView()
@@ -98,16 +106,27 @@ struct LessonMarkdownView: NSViewRepresentable {
   func updateNSView(_ scrollView: NSScrollView, context: Context) {
     guard let textView = scrollView.documentView as? NSTextView else { return }
 
-    let attrs = parseMarkdown(markdown)
-    textView.textStorage?.setAttributedString(attrs)
+    if context.coordinator.lastMarkdown != markdown {
+      let attrs = parseMarkdown(markdown)
+      textView.textStorage?.setAttributedString(attrs)
+      context.coordinator.lastMarkdown = markdown
+      context.coordinator.lastScrolledTarget = nil
+    }
+
+    if let target = scrollTarget?.wrappedValue {
+      context.coordinator.scrollToHeading(target, in: textView)
+    }
   }
 
   func makeCoordinator() -> Coordinator {
     Coordinator(selectedText: $selectedText)
   }
 
+  @MainActor
   class Coordinator: NSObject, NSTextViewDelegate {
     @Binding var selectedText: String
+    var lastMarkdown: String?
+    var lastScrolledTarget: String?
 
     init(selectedText: Binding<String>) {
       _selectedText = selectedText
@@ -118,6 +137,30 @@ struct LessonMarkdownView: NSViewRepresentable {
       let range = textView.selectedRange()
       if range.length > 0 {
         selectedText = (textView.string as NSString).substring(with: range)
+      }
+    }
+
+    func scrollToHeading(_ heading: String, in textView: NSTextView) {
+      guard heading != lastScrolledTarget else { return }
+      lastScrolledTarget = heading
+
+      guard let storage = textView.textStorage else { return }
+
+      var foundRange: NSRange?
+      storage.enumerateAttribute(.font, in: NSRange(location: 0, length: storage.length), options: []) { value, range, stop in
+        guard let font = value as? NSFont else { return }
+        if font.pointSize == 20 || font.pointSize == 16 {
+          let text = storage.attributedSubstring(from: range).string
+          if text == heading {
+            foundRange = range
+            stop.pointee = ObjCBool(true)
+          }
+        }
+      }
+
+      if let foundRange {
+        textView.scrollRangeToVisible(foundRange)
+        textView.setSelectedRange(foundRange)
       }
     }
   }
