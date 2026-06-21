@@ -19,7 +19,7 @@ struct AskAIView: View {
     HStack {
       Image(systemName: "sparkles")
         .foregroundStyle(Color.accentColor)
-      Text("Ask AI")
+      Text(loc("Ask AI"))
         .font(.headline)
       Spacer()
     }
@@ -57,7 +57,7 @@ struct AskAIView: View {
 
   private var highlightedContext: some View {
     VStack(alignment: .leading, spacing: DesignConstants.Spacing.sectionHeader) {
-      Text("Selected Text")
+      Text(loc("Selected Text"))
         .font(.caption)
         .foregroundStyle(AppColors.secondaryLabel)
 
@@ -73,7 +73,7 @@ struct AskAIView: View {
 
   private var questionInput: some View {
     VStack(spacing: DesignConstants.Spacing.relatedContent) {
-      TextField("Ask a question about the content...", text: Bindable(viewModel).aiQuestion)
+      TextField(loc("Ask a question about the content..."), text: Bindable(viewModel).aiQuestion)
         .textFieldStyle(.plain)
         .font(.body)
         .padding(DesignConstants.Padding.card)
@@ -87,7 +87,7 @@ struct AskAIView: View {
 
       HStack {
         Spacer()
-        Button("Ask") {
+        Button(loc("Ask")) {
           viewModel.highlightedText = selectedText
           viewModel.askAI()
         }
@@ -101,7 +101,7 @@ struct AskAIView: View {
     HStack(spacing: DesignConstants.Spacing.relatedContent) {
       ProgressView()
         .scaleEffect(DesignConstants.Size.progressViewScale)
-      Text("Thinking...")
+      Text(loc("Thinking..."))
         .font(.subheadline)
         .foregroundStyle(AppColors.secondaryLabel)
     }
@@ -114,7 +114,7 @@ struct AskAIView: View {
         Image(systemName: "sparkles")
           .font(.caption)
           .foregroundStyle(Color.accentColor)
-        Text("Response")
+        Text(loc("Response"))
           .font(.caption)
           .foregroundStyle(AppColors.secondaryLabel)
       }
@@ -142,7 +142,7 @@ struct AskAIView: View {
     }
     .padding(DesignConstants.Padding.card)
     .background(
-      AppColors.incorrectRed.opacity(DesignConstants.Opacity.askAIErrorBackground),
+      AppColors.incorrectRed,
       in: RoundedRectangle(cornerRadius: DesignConstants.CornerRadius.medium))
   }
 
@@ -152,7 +152,7 @@ struct AskAIView: View {
         .font(.title2)
         .foregroundStyle(AppColors.secondaryLabel)
 
-      Text("Set your Gemini API key in Settings to use AI features")
+      Text(loc("Set your Gemini API key in Settings to use AI features"))
         .font(.caption)
         .foregroundStyle(AppColors.secondaryLabel)
         .multilineTextAlignment(.center)

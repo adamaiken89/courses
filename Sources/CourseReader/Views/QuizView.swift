@@ -33,13 +33,15 @@ struct QuizView: View {
           ? AppColors.correctGreen
           : AppColors.incorrectRed)
 
-      Text(viewModel.quizEngine.percentage >= 70 ? "Quiz Passed" : "Keep Studying")
+      Text(viewModel.quizEngine.percentage >= 70 ? loc("Quiz Passed") : loc("Keep Studying"))
         .font(DesignConstants.Font.title)
         .fontWeight(.bold)
 
       VStack(spacing: DesignConstants.Spacing.relatedContent) {
-        Text("Score: \(viewModel.quizEngine.score.correct)/\(viewModel.quizEngine.score.total)")
-          .font(.title2)
+        Text(
+          loc("Score: \(viewModel.quizEngine.score.correct)/\(viewModel.quizEngine.score.total)")
+        )
+        .font(.title2)
 
         Text(String(format: "%.0f%%", viewModel.quizEngine.percentage))
           .font(.largeTitle)
@@ -61,12 +63,12 @@ struct QuizView: View {
       }
 
       HStack(spacing: DesignConstants.Spacing.pageSection) {
-        Button("Back to Lesson") {
+        Button(loc("Back to Lesson")) {
           viewModel.goBack()
         }
         .secondaryButton()
 
-        Button("Retake Quiz") {
+        Button(loc("Retake Quiz")) {
           viewModel.quizEngine.load(viewModel.quizEngine.questions)
         }
         .primaryButton()
@@ -86,22 +88,24 @@ struct QuizView: View {
 
   private var progressHeader: some View {
     HStack {
-      Text("Module Quiz")
+      Text(loc("Module Quiz"))
         .font(DesignConstants.Font.headline)
         .fontWeight(.bold)
 
       Spacer()
 
-      Text("\(viewModel.quizEngine.currentIndex + 1) of \(viewModel.quizEngine.questions.count)")
-        .font(.subheadline)
-        .foregroundStyle(AppColors.secondaryLabel)
-        .monospacedDigit()
+      Text(
+        loc("\(viewModel.quizEngine.currentIndex + 1) of \(viewModel.quizEngine.questions.count)")
+      )
+      .font(.subheadline)
+      .foregroundStyle(AppColors.secondaryLabel)
+      .monospacedDigit()
     }
     .padding(.bottom, DesignConstants.Padding.section)
   }
 
   private var emptyState: some View {
-    Text("No questions available.")
+    Text(loc("No questions available."))
       .foregroundStyle(AppColors.secondaryLabel)
   }
 }
@@ -158,7 +162,7 @@ extension QuizView {
 
           HStack {
             Spacer()
-            Button(selected == question.correctOption ? "Next Question" : "Continue") {
+            Button(selected == question.correctOption ? loc("Next Question") : loc("Continue")) {
               withAnimation {
                 viewModel.quizEngine.nextQuestion()
               }
@@ -176,14 +180,14 @@ extension QuizView {
     let colors: [Color] = [
       AppColors.correctGreen, AppColors.secondaryLabel, AppColors.incorrectRed,
     ]
-    let labels = ["Easy", "Medium", "Hard"]
+    let labels = [loc("Easy"), loc("Medium"), loc("Hard")]
     let idx = min(level - 1, 2)
     return Text(labels[idx])
       .font(.caption2)
       .foregroundStyle(colors[idx])
       .padding(.horizontal, DesignConstants.Padding.horizontalTight)
       .padding(.vertical, DesignConstants.Padding.verticalCompact)
-      .background(colors[idx].opacity(DesignConstants.Opacity.difficultyBadge), in: Capsule())
+      .background(colors[idx], in: Capsule())
   }
 }
 
@@ -206,7 +210,7 @@ struct OptionRow: View {
           )
           .background(
             Circle()
-              .fill(backgroundColor.opacity(DesignConstants.Opacity.quizOptionCircleFill))
+              .fill(backgroundColor)
           )
 
         Text(text)
@@ -249,8 +253,8 @@ struct OptionRow: View {
   private var backgroundColor: Color {
     if let correct = isCorrect {
       return correct
-        ? AppColors.correctGreen.opacity(DesignConstants.Opacity.quizFeedbackCorrect)
-        : AppColors.incorrectRed.opacity(DesignConstants.Opacity.quizFeedbackIncorrect)
+        ? AppColors.correctGreen
+        : AppColors.incorrectRed
     }
     return isSelected ? AppColors.quizOptionSelected : AppColors.rowBg
   }
@@ -258,12 +262,12 @@ struct OptionRow: View {
   private var borderColor: Color {
     if let correct = isCorrect {
       return correct
-        ? AppColors.correctGreen.opacity(DesignConstants.Opacity.quizFeedbackCorrectStrong)
-        : AppColors.incorrectRed.opacity(DesignConstants.Opacity.quizFeedbackIncorrectStrong)
+        ? AppColors.correctGreen
+        : AppColors.incorrectRed
     }
     return isSelected
       ? Color.accentColor
-      : AppColors.quizOptionBorder.opacity(DesignConstants.Opacity.quizOptionBorder)
+      : AppColors.quizOptionBorder
   }
 }
 
@@ -289,12 +293,14 @@ struct QuestionReviewCard: View {
           .fontWeight(.medium)
       }
 
-      Text("Correct: \(question.correctOption). \(question.options[question.correctOption] ?? "")")
-        .font(.caption)
-        .foregroundStyle(AppColors.correctGreen)
+      Text(
+        loc("Correct: \(question.correctOption). \(question.options[question.correctOption] ?? "")")
+      )
+      .font(.caption)
+      .foregroundStyle(AppColors.correctGreen)
 
       if selected != question.correctOption {
-        Text("Your answer: \(selected). \(question.options[selected] ?? "")")
+        Text(loc("Your answer: \(selected). \(question.options[selected] ?? "")"))
           .font(.caption)
           .foregroundStyle(AppColors.incorrectRed)
       }

@@ -40,6 +40,9 @@ struct ContentView: View {
 
     case .settings:
       SettingsView()
+
+    case .bookmarks:
+      BookmarksView()
     }
   }
 }

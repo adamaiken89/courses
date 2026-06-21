@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 enum DesignConstants {
@@ -33,6 +34,8 @@ enum DesignConstants {
     static let leadingTight: CGFloat = 4
     static let topTight: CGFloat = 8
     static let sectionIndent: CGFloat = 32
+    static let sectionSubIndent: CGFloat = 16
+    static let codeBlock: CGFloat = 12
   }
 
   enum Font {
@@ -71,29 +74,31 @@ enum DesignConstants {
     static let sectionBulletHeight: CGFloat = 12
     static let gridSpacing: CGFloat = 16
     static let progressViewScale: CGFloat = 0.8
+    static let scrollDetectionOffset: CGFloat = 40
   }
 
   enum FontSize {
     static let quizIcon: CGFloat = 64
     static let settingsLabel: CGFloat = 10
     static let settingsTitle: CGFloat = 24
-    static let lessonDefault: CGFloat = 14
-    static let headingOffset: CGFloat = 6
-    static let subheadingOffset: CGFloat = 2
+    static let emptyIcon: CGFloat = 48
+    static let lessonDefault: CGFloat = 17
+    static let headingOffset: CGFloat = 8
+    static let subheadingOffset: CGFloat = 4
     static let codeOffset: CGFloat = -1
+    static let h1Offset: CGFloat = 12
+    static let h4Offset: CGFloat = 2
+    static let h5Offset: CGFloat = 0
+    static let h6Offset: CGFloat = -2
   }
 
-  enum Opacity {
-    static let codeBlockBackground: Double = 0.5
-    static let difficultyBadge: Double = 0.1
-    static let subjectCardBorder: Double = 0.3
-    static let quizOptionCircleFill: Double = 0.2
-    static let quizFeedbackCorrect: Double = 0.08
-    static let quizFeedbackIncorrect: Double = 0.08
-    static let quizFeedbackCorrectStrong: Double = 0.3
-    static let quizFeedbackIncorrectStrong: Double = 0.3
-    static let quizOptionBorder: Double = 0.3
-    static let askAIErrorBackground: Double = 0.08
-    static let settingsLogo: Double = 0.6
+  enum HeaderColors {
+    static let h1 = NSColor.controlAccentColor
+    static let h2 = NSColor.labelColor
+    static let h3 = NSColor.secondaryLabelColor
+    static let h4 = NSColor.secondaryLabelColor
+    static let h5 = NSColor.secondaryLabelColor
+    static let h6 = NSColor.tertiaryLabelColor
   }
+
 }

@@ -20,9 +20,9 @@ struct ReaderView: View {
     .toolbar {
       ToolbarItem {
         Button(action: startReview) {
-          Label("Review", systemImage: "arrow.counterclockwise")
+          Label(loc("Review"), systemImage: "arrow.counterclockwise")
         }
-        .help("SRS review")
+        .help(loc("SRS review"))
       }
     }
   }
@@ -34,7 +34,6 @@ struct ReaderView: View {
         moduleList
       }
     }
-    .background(VisualEffectBackground())
   }
 
   private var subjectHeader: some View {
@@ -43,7 +42,7 @@ struct ReaderView: View {
         .font(DesignConstants.Font.headline)
         .fontWeight(.bold)
 
-      Text("\(subject.modules.count) modules \u{2022} \(subject.timeBudgetHours)h")
+      Text("\(loc("\(subject.modules.count) modules")) \u{2022} \(subject.timeBudgetHours)h")
         .font(.caption)
         .foregroundStyle(AppColors.secondaryLabel)
     }
@@ -67,7 +66,7 @@ struct ReaderView: View {
       Button(action: { viewModel.selectReaderModule(module) }) {
         HStack(spacing: DesignConstants.Spacing.sectionHeader) {
           VStack(alignment: .leading, spacing: DesignConstants.Spacing.labelPair) {
-            Text("Module \(module.id)")
+            Text(loc("Module \(module.id)"))
               .font(.caption2)
               .foregroundStyle(Color.accentColor)
               .fontWeight(.semibold)
@@ -107,22 +106,47 @@ struct ReaderView: View {
   }
 
   private func sectionList(_ sections: [ModuleSection]) -> some View {
-    VStack(alignment: .leading, spacing: DesignConstants.Spacing.zero) {
+    let activeIds: Set<String> = {
+      guard let current = viewModel.readerVisibleSectionId,
+            let idx = sections.firstIndex(where: { $0.id == current })
+      else { return [] }
+      var ids: Set<String> = [current]
+      var ancestorLevel = sections[idx].level
+      for i in (0..<idx).reversed() where ancestorLevel > 1 {
+        let s = sections[i]
+        if s.level < ancestorLevel {
+          ids.insert(s.id)
+          ancestorLevel = s.level
+        }
+      }
+      return ids
+    }()
+    return VStack(alignment: .leading, spacing: DesignConstants.Spacing.zero) {
       ForEach(sections) { section in
+        let isActive = activeIds.contains(section.id)
+        let isSubSection = section.level >= 3
+        let leadingIndent =
+          isSubSection
+          ? DesignConstants.Padding.sectionIndent + DesignConstants.Padding.sectionSubIndent
+          : DesignConstants.Padding.sectionIndent
+
         Button(action: { viewModel.scrollReaderToSection(section) }) {
           HStack(spacing: DesignConstants.Spacing.sectionHeader) {
             Rectangle()
-              .fill(AppColors.secondaryLabel)
+              .fill(isActive ? Color.accentColor : AppColors.secondaryLabel)
               .frame(
                 width: DesignConstants.Size.sectionBulletWidth,
-                height: DesignConstants.Size.sectionBulletHeight)
+                height: isSubSection
+                  ? DesignConstants.Size.sectionBulletHeight - 2
+                  : DesignConstants.Size.sectionBulletHeight)
 
             Text(section.heading)
-              .font(.caption)
-              .foregroundStyle(AppColors.secondaryLabel)
+              .font(isSubSection ? .caption2 : .caption)
+              .foregroundStyle(isActive ? Color.accentColor : AppColors.secondaryLabel)
+              .fontWeight(isActive ? .semibold : .regular)
               .lineLimit(1)
           }
-          .padding(.leading, DesignConstants.Padding.sectionIndent)
+          .padding(.leading, leadingIndent)
           .padding(.trailing, DesignConstants.Padding.group)
           .padding(.vertical, DesignConstants.Padding.verticalTight)
           .frame(maxWidth: .infinity, alignment: .leading)
@@ -141,19 +165,27 @@ struct ReaderView: View {
         LessonView(
           subject: subject,
           module: module,
-          scrollTarget: Bindable(viewModel).readerScrollTarget
+          scrollTarget: Bindable(viewModel).readerScrollTarget,
+          visibleSectionId: Bindable(viewModel).readerVisibleSectionId
         )
       } else {
         VStack(spacing: DesignConstants.Spacing.pageSection) {
           Image(systemName: "book")
             .font(.largeTitle)
             .foregroundStyle(AppColors.secondaryLabel)
-          Text("Select a module to begin reading")
+          Text(loc("Select a module to begin reading"))
             .font(.headline)
             .foregroundStyle(AppColors.secondaryLabel)
         }
       }
     }
+    .transition(
+      .asymmetric(
+        insertion: .opacity.combined(with: .move(edge: .trailing)),
+        removal: .opacity.combined(with: .move(edge: .leading))
+      )
+    )
+    .animation(.easeInOut(duration: 0.35), value: viewModel.readerSelectedModule?.id)
   }
 
   private func startReview() {

@@ -9,14 +9,14 @@ struct SettingsView: View {
     Form {
       Section {
         VStack(alignment: .leading, spacing: DesignConstants.Spacing.progressContent) {
-          Text("Google AI (Gemini) Configuration")
+          Text(loc("Google AI (Gemini) Configuration"))
             .font(.headline)
 
-          Text("Enter your Gemini API key to enable AI-powered Q&A on course content.")
+          Text(loc("Enter your Gemini API key to enable AI-powered Q&A on course content."))
             .font(.subheadline)
             .foregroundStyle(AppColors.secondaryLabel)
 
-          SecureField("API Key", text: $apiKey)
+          SecureField(loc("API Key"), text: $apiKey)
             .textFieldStyle(.roundedBorder)
             .font(.body)
             .onAppear {
@@ -27,7 +27,7 @@ struct SettingsView: View {
 
           HStack {
             Spacer()
-            Button("Save") {
+            Button(loc("Save")) {
               UserDefaults.standard.set(apiKey, forKey: "geminiAPIKey")
             }
             .primaryButton()
@@ -36,15 +36,15 @@ struct SettingsView: View {
         }
         .padding()
       } header: {
-        Text("AI Settings")
+        Text(loc("AI Settings"))
       }
 
       Section {
         VStack(alignment: .leading, spacing: DesignConstants.Spacing.relatedContent) {
-          Text("Course Directory")
+          Text(loc("Course Directory"))
             .font(.headline)
 
-          Text("Courses are loaded from the subjects/ directory.")
+          Text(loc("Courses are loaded from the subjects/ directory."))
             .font(.subheadline)
             .foregroundStyle(AppColors.secondaryLabel)
 
@@ -58,16 +58,16 @@ struct SettingsView: View {
         }
         .padding()
       } header: {
-        Text("Storage")
+        Text(loc("Storage"))
       }
 
       Section {
         VStack(alignment: .leading, spacing: DesignConstants.Spacing.relatedContent) {
-          Text("Lesson Font Size: \(Int(viewModel.lessonFontSize)) pt")
+          Text(loc("Lesson Font Size: \(Int(viewModel.lessonFontSize)) pt"))
             .font(.headline)
 
           Slider(value: Bindable(viewModel).lessonFontSize, in: 10...24, step: 1) {
-            Text("Font Size")
+            Text(loc("Font Size"))
           }
 
           HStack {
@@ -82,7 +82,7 @@ struct SettingsView: View {
         }
         .padding()
       } header: {
-        Text("Display")
+        Text(loc("Display"))
       }
     }
     .formStyle(.grouped)
@@ -96,7 +96,7 @@ struct SettingsView: View {
         .frame(width: DesignConstants.Size.logoSettings, height: DesignConstants.Size.logoSettings)
         .clipShape(RoundedRectangle(cornerRadius: DesignConstants.CornerRadius.small))
         .padding(DesignConstants.Padding.card)
-        .opacity(DesignConstants.Opacity.settingsLogo)
+
     }
   }
 }

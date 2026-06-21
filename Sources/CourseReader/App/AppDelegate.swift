@@ -58,7 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
       try? FileManager.default.removeItem(at: tempDir)
       let alert = NSAlert()
       alert.alertStyle = .critical
-      alert.messageText = "Import Failed"
+      alert.messageText = loc("Import Failed")
       alert.informativeText = error.localizedDescription
       alert.runModal()
       return false

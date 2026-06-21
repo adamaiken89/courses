@@ -104,13 +104,13 @@ enum GeminiError: LocalizedError {
   var errorDescription: String? {
     switch self {
     case .noAPIKey:
-      return "No API key set. Add your Gemini API key in Settings."
+      return loc("No API key set. Add your Gemini API key in Settings.")
     case .networkError:
-      return "Network error. Check your connection."
+      return loc("Network error. Check your connection.")
     case .apiError(let code, let msg):
-      return "API error (\(code)): \(msg)"
+      return loc("API error (\(code)): \(msg)")
     case .invalidResponse:
-      return "Invalid response from API."
+      return loc("Invalid response from API.")
     }
   }
 }

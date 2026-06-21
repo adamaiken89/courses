@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 @main
 struct CourseReaderApp: App {
@@ -13,12 +14,13 @@ struct CourseReaderApp: App {
         .frame(minWidth: 500, minHeight: 500)
         .onAppear {
           viewModel.loadSubjects()
+          try? StorageService.shared.setup()
         }
     }
     .windowResizability(.contentMinSize)
     .commands {
       CommandGroup(replacing: .appInfo) {
-        Button("About Course Reader") {
+        Button(loc("About Course Reader")) {
           NSApplication.shared.orderFrontStandardAboutPanel(nil)
         }
       }

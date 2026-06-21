@@ -5,7 +5,7 @@ struct VisualEffectBackground: NSViewRepresentable {
     let view = NSVisualEffectView()
     view.blendingMode = .behindWindow
     view.state = .active
-    view.material = .hudWindow
+    view.material = .headerView
     return view
   }
 

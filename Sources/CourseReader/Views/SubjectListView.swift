@@ -16,21 +16,21 @@ struct SubjectListView: View {
   }
 
   private var header: some View {
-    VStack(alignment: .leading, spacing: DesignConstants.Spacing.relatedContent) {
-      HStack(spacing: DesignConstants.Spacing.sectionHeader) {
-        Image("logo")
-          .resizable()
-          .frame(width: DesignConstants.Size.logoLarge, height: DesignConstants.Size.logoLarge)
-          .clipShape(RoundedRectangle(cornerRadius: DesignConstants.CornerRadius.large))
+    HStack(spacing: DesignConstants.Spacing.sectionHeader) {
+      Image("logo")
+        .resizable()
+        .frame(width: DesignConstants.Size.logoLarge, height: DesignConstants.Size.logoLarge)
+        .clipShape(RoundedRectangle(cornerRadius: DesignConstants.CornerRadius.large))
 
+      VStack(alignment: .leading, spacing: DesignConstants.Spacing.relatedContent) {
         Text(loc("Course Reader"))
           .font(DesignConstants.Font.title)
           .fontWeight(.bold)
-      }
 
-      Text(loc("Select a subject to begin studying"))
-        .font(DesignConstants.Font.subheadline)
-        .foregroundStyle(AppColors.secondaryLabel)
+        Text(loc("Select a subject to begin studying"))
+          .font(DesignConstants.Font.subheadline)
+          .foregroundStyle(AppColors.secondaryLabel)
+      }
     }
     .padding(.bottom, DesignConstants.Padding.section)
   }
@@ -87,7 +87,7 @@ struct SubjectCardView: View {
       }
 
       HStack(spacing: DesignConstants.Spacing.relatedContent) {
-        Label("\(subject.modules.count) modules", systemImage: "book")
+        Label(loc("\(subject.modules.count) modules"), systemImage: "book")
           .font(.caption)
           .foregroundStyle(AppColors.secondaryLabel)
 
@@ -101,7 +101,7 @@ struct SubjectCardView: View {
     .overlay(
       RoundedRectangle(cornerRadius: DesignConstants.CornerRadius.large)
         .stroke(
-          Color(nsColor: .separatorColor).opacity(DesignConstants.Opacity.subjectCardBorder),
+          Color(nsColor: .separatorColor),
           lineWidth: DesignConstants.Padding.border)
     )
   }

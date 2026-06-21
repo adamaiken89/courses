@@ -13,6 +13,7 @@ struct SRSCard: Codable, Identifiable {
   var repetitions: Int
   var nextReviewDate: Date
   var lastReviewed: Date?
+  var isStarred: Bool
 
   var isDue: Bool {
     nextReviewDate <= Date()
@@ -31,7 +32,8 @@ struct SRSCard: Codable, Identifiable {
       interval: 0,
       repetitions: 0,
       nextReviewDate: Date(),
-      lastReviewed: nil
+      lastReviewed: nil,
+      isStarred: false
     )
   }
 
@@ -60,7 +62,29 @@ struct SRSDeck: Codable {
     cards.values.filter { $0.isDue }.sorted { $0.nextReviewDate < $1.nextReviewDate }
   }
 
+  var starredCards: [SRSCard] {
+    cards.values.filter { $0.isStarred }.sorted { $0.nextReviewDate < $1.nextReviewDate }
+  }
+
+  var allCardsSorted: [SRSCard] {
+    cards.values.sorted { $0.nextReviewDate < $1.nextReviewDate }
+  }
+
   func dueCards(for subjectId: String) -> [SRSCard] {
     dueCards.filter { $0.subjectId == subjectId }
+  }
+
+  func starredCards(for subjectId: String) -> [SRSCard] {
+    starredCards.filter { $0.subjectId == subjectId }
+  }
+
+  func allCards(for subjectId: String) -> [SRSCard] {
+    allCardsSorted.filter { $0.subjectId == subjectId }
+  }
+
+  mutating func toggleStar(cardId: String) {
+    guard var card = cards[cardId] else { return }
+    card.isStarred.toggle()
+    cards[cardId] = card
   }
 }
