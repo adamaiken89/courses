@@ -22,12 +22,23 @@ src/
 │   ├── App.tsx          # View stack router + layout
 │   ├── api.ts           # HTTP client → localhost:50001
 │   ├── index.css        # Tailwind + book prose styles
-│   └── components/
-│       ├── LessonView.tsx     # Markdown reader w/ section nav, AI sidebar, notes
-│       ├── SubjectListView.tsx# Subject grid with module stats
-│       ├── QuizView.tsx       # MCQ quiz with scoring
-│       ├── ReviewView.tsx     # SRS spaced repetition review
-│       └── SettingsView.tsx   # Gemini API key config
+│   ├── components/
+│   │   ├── LessonView.tsx     # Markdown reader w/ section nav, AI sidebar, notes
+│   │   ├── SubjectListView.tsx# Subject grid with module stats
+│   │   ├── QuizView.tsx       # MCQ quiz with scoring
+│   │   ├── ReviewView.tsx     # SRS spaced repetition review
+│   │   ├── SettingsView.tsx   # Gemini API key config
+│   │   ├── Sidebar.tsx        # Section nav, notes, highlights, AI sidebar
+│   │   └── ui.tsx             # Shared CVA variants (button, toggle, tab, etc.)
+│   ├── hooks/
+│   │   ├── useBookmarks.ts    # Bookmark CRUD hook
+│   │   └── useHighlights.ts   # Highlights CRUD hook
+│   └── stores/
+│       ├── viewStore.ts       # Zustand view stack (Subject, ModuleMeta, View union)
+│       └── settingsStore.ts   # Font size, theme settings
+├── types/               # Ambient module declarations
+│   ├── js-yaml.d.ts     # Declaration for js-yaml (no @types package)
+│   └── three.d.ts       # Declaration for three (electrobun dependency)
 └── bun/                 # Bun backend (HTTP server, port 50001)
     ├── index.ts         # Router (Bun.serve), window creation, all API handlers
     ├── types.ts         # Shared types: Subject, ModuleMeta, QuizQuestion, SRSCard, etc.
@@ -93,6 +104,12 @@ Book-like prose styles defined in `.book-content` CSS class in `index.css`:
 - GFM table support via `remarkGfm`
 - Section-based navigation with scroll tracking
 - Adjustable font size (10-28px)
+
+## Module declarations
+
+`src/types/` holds ambient `.d.ts` files for packages lacking `@types`:
+- `js-yaml.d.ts` — `load`/`dump` signatures
+- `three.d.ts` — bare `declare module "three"` (electrobun dependency)
 
 ## Project structure quirks
 
