@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "../api";
-import type { Bookmark } from "../components/Sidebar";
+import type { Bookmark } from "../components/sidebar-types";
 
 interface UseBookmarksReturn {
   bookmarks: Bookmark[];

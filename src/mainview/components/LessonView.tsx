@@ -7,8 +7,9 @@ import { api } from '../api';
 import { useBookmarks } from '../hooks/useBookmarks';
 import { useHighlights } from '../hooks/useHighlights';
 import { useSettingsStore } from '../stores/settingsStore';
-import Sidebar, { Section } from './Sidebar';
-import { navButtonVariants, toggleVariants } from './ui';
+import { Section } from './sidebar-types';
+import { toggleVariants } from './ui';
+import StudyTools from './StudyTools';
 
 import type { Theme } from "../stores/settingsStore";
 interface ModuleMeta {
@@ -83,7 +84,6 @@ export default function LessonView({ subjectId, module, initialSectionID, onStar
   const [loading, setLoading] = useState(true);
   const [sections, setSections] = useState<Section[]>([]);
   const [visibleSection, setVisibleSection] = useState<string | null>(null);
-  const [sidebarTab, setSidebarTab] = useState<"sections" | "notes" | "highlights" | "ai" | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   const [highlightSelection, setHighlightSelection] = useState<{ text: string; range: Range } | null>(null);
@@ -98,6 +98,8 @@ export default function LessonView({ subjectId, module, initialSectionID, onStar
   const { highlights, addHighlight, deleteHighlight } = useHighlights(subjectId, module.id);
 
   const [wideMode, setWideMode] = useState(false);
+  const [showTools, setShowTools] = useState(false);
+  const [showSections, setShowSections] = useState(true);
 
   const fontSize = useSettingsStore((s) => s.fontSize);
   const theme = useSettingsStore((s) => s.theme);
@@ -173,13 +175,6 @@ export default function LessonView({ subjectId, module, initialSectionID, onStar
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
-  const scrollSection = (dir: "prev" | "next") => {
-    if (!visibleSection) return;
-    const idx = sections.findIndex((s) => s.id === visibleSection);
-    const target = dir === "next" ? idx + 1 : idx - 1;
-    if (target >= 0 && target < sections.length) scrollToSection(sections[target].id);
-  };
-
   useEffect(() => {
     if (!contentRef.current) return;
     const container = contentRef.current;
@@ -219,13 +214,67 @@ export default function LessonView({ subjectId, module, initialSectionID, onStar
     }
   }, [highlights, content]);
 
-  if (loading) return <div className="p-8 text-center text-gray-400">Loading lesson...</div>;
-
   const hasPrevSection = sections.length > 0 && visibleSection !== null && sections.findIndex((s) => s.id === visibleSection) > 0;
   const hasNextSection = sections.length > 0 && visibleSection !== null && sections.findIndex((s) => s.id === visibleSection) < sections.length - 1;
 
+  const scrollSection = (dir: "prev" | "next") => {
+    if (!visibleSection) return;
+    const idx = sections.findIndex((s) => s.id === visibleSection);
+    const target = dir === "next" ? idx + 1 : idx - 1;
+    if (target >= 0 && target < sections.length) scrollToSection(sections[target].id);
+  };
+
+  const currentSectionIdx = visibleSection ? sections.findIndex((s) => s.id === visibleSection) : -1;
+  const prevSectionName = currentSectionIdx > 0 ? sections[currentSectionIdx - 1].heading : undefined;
+  const nextSectionName = currentSectionIdx >= 0 && currentSectionIdx < sections.length - 1 ? sections[currentSectionIdx + 1].heading : undefined;
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement).tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (showHighlightPicker) return;
+      switch (e.key) {
+        case "ArrowUp": e.preventDefault(); if (hasPrevSection) scrollSection("prev"); break;
+        case "ArrowDown": e.preventDefault(); if (hasNextSection) scrollSection("next"); break;
+        case "ArrowLeft": e.preventDefault(); if (hasPrevModule && onPrevModule) onPrevModule(); break;
+        case "ArrowRight": e.preventDefault(); if (hasNextModule && onNextModule) onNextModule(); break;
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [hasPrevSection, hasNextSection, hasPrevModule, hasNextModule, onPrevModule, onNextModule, showHighlightPicker]);
+
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    const handler = (e: WheelEvent) => {
+      const absX = Math.abs(e.deltaX);
+      const absY = Math.abs(e.deltaY);
+      if (absX > 40 && absX > absY * 1.5) {
+        e.preventDefault();
+        if (e.deltaX > 0 && hasNextModule && onNextModule) onNextModule();
+        else if (e.deltaX < 0 && hasPrevModule && onPrevModule) onPrevModule();
+      }
+    };
+    el.addEventListener("wheel", handler, { passive: false });
+    return () => el.removeEventListener("wheel", handler);
+  }, [hasPrevModule, hasNextModule, onPrevModule, onNextModule]);
+
+  if (loading) return <div className="p-8 text-center text-gray-400">Loading lesson...</div>;
+
   return (
     <div className="flex flex-1 overflow-hidden">
+      {showTools && (
+        <StudyTools
+          subjectId={subjectId}
+          moduleId={module.id}
+          moduleName={module.name}
+          sections={sections}
+          visibleSection={visibleSection}
+          content={content}
+          onClose={() => setShowTools(false)}
+        />
+      )}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <div className="bg-gray-800 border-b border-gray-700 px-4 py-1.5 flex items-center gap-2 shrink-0">
           <button onClick={decFontSize} className="px-2 py-0.5 text-xs bg-gray-700 hover:bg-gray-600 rounded" title="Decrease font size">A-</button>
@@ -243,67 +292,78 @@ export default function LessonView({ subjectId, module, initialSectionID, onStar
           >
             {wideMode ? "Wide" : "Narrow"}
           </button>
-          <button
-            onClick={() => setSidebarTab(sidebarTab ? null : "sections")}
-            className={toggleVariants({ active: !!sidebarTab })}
-          >
-            Sidebar
-          </button>
           <div className="h-3 w-px bg-gray-600" />
           <button
             onClick={handleToggleBookmark}
             className={toggleVariants({ active: hasActiveBookmark })}
             title={visibleSection ? "Bookmark this section" : "Bookmark this module"}
           >
-            {hasActiveBookmark ? "★" : "☆"} Bookmark
-          </button>
-          <div className="flex-1" />
-          <button onClick={onStartQuiz} className="px-3 py-0.5 text-xs bg-emerald-700 hover:bg-emerald-600 rounded">
-            Quiz
-          </button>
+  {hasActiveBookmark ? "★" : "☆"} Bookmark
+  </button>
+  <div className="h-3 w-px bg-gray-600" />
+  <button
+    onClick={() => setShowTools(!showTools)}
+    className={toggleVariants({ active: showTools })}
+    title="Toggle study tools panel"
+  >
+    Tools
+  </button>
+  <button
+    onClick={() => setShowSections(!showSections)}
+    className={toggleVariants({ active: showSections })}
+    title="Toggle sections panel"
+  >
+    Sections
+  </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-6 relative" ref={contentRef} onScroll={handleScroll} onMouseUp={handleTextSelection}>
-          {/* Floating navigation */}
-          {(hasPrevSection || hasNextSection || hasPrevModule || hasNextModule) && (
-            <div className="fixed right-4 bottom-[156px] z-50 max-h-[200px] overflow-y-auto flex flex-col gap-1 bg-gray-800/90 backdrop-blur-sm border border-gray-700 rounded-lg p-1 shadow-lg">
-              {hasPrevModule && (
-                <button
-                  onClick={onPrevModule}
-                  className={navButtonVariants()}
-                  title={prevModuleName ? `Previous module: ${prevModuleName}` : "Previous module"}
-                >
-                  ← Prev Module
-                </button>
-              )}
-              {hasPrevSection && (
+        {/* Right-side floating panel: sections + nav */}
+        {showSections && (
+        <div className="relative h-0 z-50">
+          <div className="absolute right-4 top-2 w-64 bg-gray-800 border border-gray-700 rounded-lg shadow-xl flex flex-col">
+            {sections.length > 0 && (
+              <>
+                <div className="shrink-0 px-2.5 py-1.5 border-b border-gray-700 flex items-center justify-between">
+                  <span className="text-xs font-semibold text-indigo-400">Sections</span>
+                  <span className="text-[10px] text-gray-500">{sections.length}</span>
+                </div>
+                <div className="overflow-y-auto max-h-[280px]">
+                  {sections.map((s, i) => (
+                    <button
+                      key={s.id}
+                      onClick={() => scrollToSection(s.id)}
+                      className="w-full text-left px-2.5 py-1.5 text-xs transition-colors flex items-center gap-2"
+                      style={s.id === visibleSection ? { backgroundColor: '#4f46e5', color: '#fff' } : { color: '#9ca3af', backgroundColor: 'transparent' }}
+                      onMouseEnter={(e) => { if (s.id !== visibleSection) e.currentTarget.style.backgroundColor = '#374151'; }}
+                      onMouseLeave={(e) => { if (s.id !== visibleSection) e.currentTarget.style.backgroundColor = 'transparent'; }}
+                    >
+                      <span className="shrink-0 w-5 text-right" style={s.id === visibleSection ? { color: '#a5b4fc' } : { color: '#6b7280' }}>{String(i + 1).padStart(2, "0")}</span>
+                      <span className="truncate">{s.heading}</span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+            <div className="flex justify-center py-3 px-2.5">
+              <div className="bg-gray-800/50 rounded-xl p-2 flex flex-col items-center gap-1">
                 <button
                   onClick={() => scrollSection("prev")}
-                  className={navButtonVariants()}
+                  disabled={!hasPrevSection}
+                  className={`w-10 h-10 flex items-center justify-center rounded-xl text-base font-mono font-bold transition-all duration-100 ${
+                    hasPrevSection
+                      ? "bg-gradient-to-b from-gray-600 to-gray-700 text-gray-100 border border-gray-500 border-b-[3px] shadow-md shadow-black/30 hover:from-indigo-500 hover:to-indigo-700 hover:border-indigo-400 hover:shadow-indigo-500/25 active:border-b active:mt-[3px] active:shadow-sm"
+                      : "bg-gray-800 text-gray-600 border border-gray-700 border-b-[3px] cursor-not-allowed"
+                  }`}
+                  title="Previous section (↑)"
                 >
-                  ↑ Section
+                  ^
                 </button>
-              )}
-              {hasNextSection && (
-                <button
-                  onClick={() => scrollSection("next")}
-                  className={navButtonVariants()}
-                >
-                  ↓ Section
-                </button>
-              )}
-              {hasNextModule && (
-                <button
-                  onClick={onNextModule}
-                  className={navButtonVariants()}
-                  title={nextModuleName ? `Next module: ${nextModuleName}` : "Next module"}
-                >
-                  Next Module →
-                </button>
-              )}
+              </div>
             </div>
-          )}
+          </div>
+        </div>)}
 
+        <div className="flex-1 overflow-y-auto p-6" ref={contentRef} onScroll={handleScroll} onMouseUp={handleTextSelection}>
           <div className={`book-content book-${theme}${wideMode ? " book-content-wide" : ""}`} style={{ fontSize: `${fontSize}px` }}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
@@ -339,22 +399,6 @@ export default function LessonView({ subjectId, module, initialSectionID, onStar
             ✕
           </button>
         </div>
-      )}
-
-      {sidebarTab && (
-        <Sidebar
-          sections={sections}
-          visibleSection={visibleSection}
-          highlights={highlights}
-          bookmarks={bookmarks}
-          content={content}
-          subjectId={subjectId}
-          moduleId={module.id}
-          onScrollToSection={scrollToSection}
-          onDeleteHighlight={deleteHighlight}
-          onToggleSectionBookmark={handleToggleSectionBookmark}
-          onDeleteBookmark={handleDeleteBookmark}
-        />
       )}
     </div>
   );

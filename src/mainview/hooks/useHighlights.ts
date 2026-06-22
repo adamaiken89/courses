@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "../api";
-import type { Highlight } from "../components/Sidebar";
+import type { Highlight } from "../components/sidebar-types";
 
 interface UseHighlightsReturn {
   highlights: Highlight[];

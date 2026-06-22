@@ -1,16 +1,16 @@
 import { useState, useEffect } from "react";
+import LandingView from "./components/LandingView";
+import SubjectListView from "./components/SubjectListView";
 import LessonView from "./components/LessonView";
 import QuizView from "./components/QuizView";
 import ReviewView from "./components/ReviewView";
 import SettingsView from "./components/SettingsView";
+import ModuleListView from "./components/ModuleListView";
 import CourseSwitcher from "./components/CourseSwitcher";
+import ModuleSwitcher from "./components/ModuleSwitcher";
 import { api } from "./api";
 import { useViewStore } from "./stores/viewStore";
 import type { Subject, ModuleMeta } from "../bun/types";
-import clsx from "clsx";
-import { toggleVariants } from "./components/ui";
-
-// SubjectListView removed - course switcher replaces dedicated course list page
 
 interface Bookmark {
   id: string;
@@ -35,12 +35,8 @@ export default function App() {
       setLoading(false);
       return;
     }
-    api.subjects.list().then((subjects: Subject[]) => {
-      if (subjects.length > 0) {
-        replace({ type: "lesson", subject: subjects[0], module: subjects[0].modules[0] });
-      }
-      setLoading(false);
-    });
+    replace({ type: "landing" });
+    setLoading(false);
   }, [currentView]);
 
   const handleSelectModule = (subject: Subject, module: ModuleMeta) => {
@@ -59,18 +55,45 @@ export default function App() {
     replace({ type: "lesson", subject, module: subject.modules[0] });
   };
 
+  const handleSelectSubject = (subject: Subject) => {
+    push({ type: "moduleList", subject });
+  };
+
   if (loading || !currentView) {
     return <div className="min-h-screen bg-gray-900 text-gray-400 flex items-center justify-center">Loading...</div>;
   }
 
   switch (currentView.type) {
+    case "landing":
+      return <LandingView />;
+
+    case "subjectList":
+      return (
+        <SubjectListView
+          onSelectSubject={handleSelectSubject}
+          onOpenSettings={() => push({ type: "settings" })}
+          onOpenBookmarks={() => push({ type: "bookmarks" })}
+        />
+      );
+
+    case "moduleList":
+      return (
+        <ModuleListView
+          subject={currentView.subject}
+          onSelectModule={(m) => handleSelectModule(currentView.subject, m)}
+          onBack={pop}
+          onOpenSettings={() => push({ type: "settings" })}
+          onOpenBookmarks={() => push({ type: "bookmarks" })}
+        />
+      );
+
     case "lesson":
       return (
         <LessonPage
           subject={currentView.subject}
           module={currentView.module}
           initialSectionID={currentView.sectionID}
-          onBack={pop}
+          onBack={() => replace({ type: "moduleList", subject: currentView.subject })}
           onSelectModule={(m) => handleSelectModule(currentView.subject, m)}
           onStartQuiz={() => handleStartQuiz(currentView.subject, currentView.module)}
           onStartReview={() => handleStartReview(currentView.subject)}
@@ -132,60 +155,34 @@ function LessonPage({
   onSwitchCourse: (subject: Subject) => void;
 }) {
   const push = useViewStore((s) => s.push);
-  const [showNav, setShowNav] = useState(false);
   const currentIdx = subject.modules.findIndex((m) => m.id === module.id);
   const hasPrev = currentIdx > 0;
   const hasNext = currentIdx < subject.modules.length - 1;
 
   return (
     <div className="flex h-screen bg-gray-900">
-      {showNav && (
-        <aside className="w-64 bg-gray-850 border-r border-gray-700 overflow-y-auto shrink-0">
-          <div className="p-4 border-b border-gray-700">
-            <h2 className="text-sm font-semibold text-indigo-400">{subject.displayName}</h2>
-            <p className="text-xs text-gray-500 mt-0.5">{subject.modules.length} modules</p>
-          </div>
-          <div className="p-2">
-            {subject.modules.map((m, i) => (
-              <button
-                key={m.id}
-                onClick={() => { onSelectModule(m); setShowNav(false); }}
-                className={clsx(
-                  "w-full text-left p-2 rounded-lg text-sm transition-colors",
-                  m.id === module.id
-                    ? "bg-indigo-600 text-white shadow-md shadow-indigo-900/50"
-                    : "text-gray-400 hover:bg-gray-700 hover:text-gray-200"
-                )}
-              >
-                <span className={clsx("text-xs mr-2", m.id === module.id ? "text-indigo-200" : "text-gray-500")}>{String(i + 1).padStart(2, "0")}</span>
-                <span className="break-words">{m.name}</span>
-              </button>
-            ))}
-          </div>
-        </aside>
-      )}
-
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="bg-gray-800 border-b border-gray-700 px-4 py-2 flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-3">
-            <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors">← Back</button>
-            <div className="h-4 w-px bg-gray-600" />
-            <button onClick={() => setShowNav(!showNav)} className={toggleVariants({ active: showNav })}>
-              Modules
-            </button>
-          </div>
+        <header className="bg-gray-800 border-b border-gray-700 px-4 py-2 flex items-center gap-3 shrink-0">
+          <button onClick={onBack} className="text-gray-400 hover:text-white transition-colors text-sm shrink-0 min-w-0 mr-2">
+            ← {subject.displayName}
+          </button>
           <div className="flex-1 flex justify-center">
-            <CourseSwitcher currentSubjectId={subject.id} onSelect={onSwitchCourse} />
+            <ModuleSwitcher
+              modules={subject.modules}
+              currentModuleId={module.id}
+              onSelect={onSelectModule}
+            />
           </div>
-          <div className="flex items-center gap-2">
-            <button onClick={onOpenBookmarks} className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded">
-              Bookmarks
+          <div className="flex items-center gap-1.5">
+            <div className="h-4 w-px bg-gray-600" />
+            <button onClick={onStartQuiz} className="px-2 py-1 text-xs bg-emerald-700 hover:bg-emerald-600 rounded">
+              Quiz
             </button>
-            <button onClick={() => push({ type: "settings" })} className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded">
-              Settings
-            </button>
-            <button onClick={onStartReview} className="px-3 py-1 text-sm bg-amber-700 hover:bg-amber-600 rounded transition-colors">
+            <button onClick={onStartReview} className="px-2 py-1 text-xs bg-amber-700 hover:bg-amber-600 rounded">
               Review
+            </button>
+            <button onClick={() => push({ type: "settings" })} className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded" title="Settings">
+              ⚙
             </button>
           </div>
         </header>
