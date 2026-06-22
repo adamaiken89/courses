@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, existsSync, mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 import * as yaml from "js-yaml";
-import type { Subject, ModuleMeta, QuizQuestion, SRSDeck, SRSCard } from "./types";
+import type { Subject, ModuleMeta, QuizQuestion, SRSDeck } from "./types";
 
 const POSSIBLE_PATHS = [
   join(import.meta.dir, "..", "..", "subjects"),
@@ -94,19 +94,19 @@ export function loadSubjects(): Subject[] {
 
 export function loadLesson(subjectId: string, moduleId: number): string {
   const subjectsDir = findSubjectsDir();
-  if (!subjectsDir) return "";
+  if (!subjectsDir) throw new Error("Subjects directory not found");
   const modDir = findModuleDir(subjectsDir, subjectId, moduleId);
-  if (!modDir) return "";
+  if (!modDir) throw new Error(`Module ${moduleId} not found for subject ${subjectId}`);
   const lessonPath = join(modDir, "lesson.md");
-  if (!existsSync(lessonPath)) return "";
+  if (!existsSync(lessonPath)) throw new Error(`Lesson not found for module ${moduleId}`);
   return readFileSync(lessonPath, "utf-8");
 }
 
 export function loadQuiz(subjectId: string, moduleId: number): QuizQuestion[] {
   const subjectsDir = findSubjectsDir();
-  if (!subjectsDir) return [];
+  if (!subjectsDir) throw new Error("Subjects directory not found");
   const modDir = findModuleDir(subjectsDir, subjectId, moduleId);
-  if (!modDir) return [];
+  if (!modDir) throw new Error(`Module ${moduleId} not found for subject ${subjectId}`);
   const quizPath = join(modDir, "quiz.yaml");
   if (!existsSync(quizPath)) return [];
   const content = readFileSync(quizPath, "utf-8");
@@ -166,47 +166,4 @@ export function parseSections(markdown: string): { id: string; heading: string; 
   }
 
   return sections;
-}
-
-export function createSRSCard(question: QuizQuestion, moduleId: number, subjectId: string, now?: Date): SRSCard {
-  const nowISO = (now || new Date()).toISOString();
-  return {
-    id: `${subjectId}-${moduleId}-${question.id}`,
-    questionId: question.id,
-    moduleId,
-    subjectId,
-    question: question.question,
-    answer: `${question.answer}. ${question.options[question.answer] || ""}`,
-    explanation: question.explanation,
-    easeFactor: 2.5,
-    interval: 0,
-    repetitions: 0,
-    nextReviewDate: nowISO,
-    lastReviewed: null,
-    isStarred: false,
-  };
-}
-
-export function performReview(card: SRSCard, correct: boolean, now?: Date): SRSCard {
-  const nowDate = now || new Date();
-  const updated = { ...card };
-
-  if (correct) {
-    updated.repetitions += 1;
-    if (updated.repetitions === 1) updated.interval = 1;
-    else if (updated.repetitions === 2) updated.interval = 6;
-    else updated.interval = Math.round(updated.interval * updated.easeFactor);
-    updated.easeFactor = Math.max(1.3, updated.easeFactor + 0.1);
-  } else {
-    updated.repetitions = 0;
-    updated.interval = 1;
-    updated.easeFactor = Math.max(1.3, updated.easeFactor - 0.2);
-  }
-
-  const nextDate = new Date(nowDate);
-  nextDate.setDate(nextDate.getDate() + updated.interval);
-  updated.nextReviewDate = nextDate.toISOString();
-  updated.lastReviewed = nowDate.toISOString();
-
-  return updated;
 }

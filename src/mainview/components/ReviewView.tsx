@@ -1,18 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../api";
 import { filterVariants } from "./ui";
-
-interface SRSCard {
-  id: string;
-  questionId: string;
-  question: string;
-  answer: string;
-  explanation: string;
-  easeFactor: number;
-  interval: number;
-  isStarred: boolean;
-  nextReviewDate: string;
-}
+import type { SRSCard, SRSDeck } from "../../../bun/types";
 
 interface Props {
   subjectId: string;
@@ -25,7 +14,7 @@ export default function ReviewView({ subjectId, onBack }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [filter, setFilter] = useState<"all" | "due" | "starred">("all");
-  const [deck, setDeck] = useState<any>({ cards: {} });
+  const [deck, setDeck] = useState<SRSDeck>({ cards: {} });
 
   const loadCards = (f: typeof filter) => {
     setLoading(true);
@@ -41,8 +30,8 @@ export default function ReviewView({ subjectId, onBack }: Props) {
     api.subjects.srs.get(subjectId).then((d) => {
       setDeck(d);
       const due = Object.values(d.cards).filter(
-        (c: any) => new Date(c.nextReviewDate) <= new Date()
-      ) as SRSCard[];
+        (c) => new Date(c.nextReviewDate) <= new Date()
+      );
       setCards(due);
       setLoading(false);
     });

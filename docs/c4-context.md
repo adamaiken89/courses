@@ -7,12 +7,12 @@ C4Context
   Person(student, "Student", "Person using CourseReader to study courses")
 
   System_Boundary(cr, "CourseReader") {
-    System(courseReader, "CourseReader", "macOS desktop study app built with SwiftUI")
+    System(courseReader, "CourseReader", "Electrobun + React 18 + TypeScript + Bun desktop study app")
   }
 
   Rel(student, courseReader, "Reads lessons, takes quizzes, reviews with SRS, asks AI questions")
 
-  System_Ext(fs, "File System", "subjects/ directory with YAML/JSON/MD course data")
+  System_Ext(fs, "File System", "subjects/ directory with YAML/MD/JSON course data")
   System_Ext(gemini, "Google Gemini API", "gemini-2.0-flash for AI Q&A")
 
   Rel(courseReader, fs, "Loads subjects, modules, lessons, quizzes, SRS decks")
@@ -24,7 +24,7 @@ C4Context
 | Element | Type | Description |
 |---------|------|-------------|
 | Student | Person | End user who studies course material |
-| CourseReader | System | macOS SwiftUI app (this project) |
+| CourseReader | System | Electrobun desktop app: React 18 + TypeScript frontend, Bun backend |
 | File System | External System | Local `subjects/` directory tree |
 | Google Gemini API | External System | `generativelanguage.googleapis.com` |
 

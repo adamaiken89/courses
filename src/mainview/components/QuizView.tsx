@@ -1,16 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { api } from "../api";
 import { answerVariants } from "./ui";
+import type { QuizQuestion } from "../../../bun/types";
 import clsx from "clsx";
-
-interface QuizQuestion {
-  id: string;
-  question: string;
-  options: Record<string, string>;
-  answer: string;
-  explanation: string;
-  difficulty: number;
-}
 
 interface Props {
   subjectId: string;

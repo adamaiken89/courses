@@ -1,8 +1,6 @@
 import { create } from "zustand";
-
-export type Theme = "dark" | "sepia" | "light";
-
-const THEMES: Theme[] = ["dark", "sepia", "light"];
+import { THEMES } from "../themes";
+import type { Theme } from "../themes";
 
 function getStored<T>(key: string, fallback: T): T {
   try { return JSON.parse(localStorage.getItem(key)!) ?? fallback; } catch { return fallback; }
@@ -14,18 +12,24 @@ function store(key: string, val: unknown) {
 interface SettingsState {
   fontSize: number;
   theme: Theme;
+  wideMode: boolean;
+  showSections: boolean;
   hasApiKey: boolean;
   incFontSize: () => void;
   decFontSize: () => void;
   setFontSize: (v: number) => void;
   cycleTheme: () => void;
   setTheme: (t: Theme) => void;
+  setWideMode: (v: boolean) => void;
+  toggleSections: () => void;
   setHasApiKey: (v: boolean) => void;
 }
 
 export const useSettingsStore = create<SettingsState>((set) => ({
   fontSize: getStored<number>("coursereader-fontsize", 16),
   theme: getStored<Theme>("coursereader-theme", "dark"),
+  wideMode: getStored<boolean>("coursereader-wide", false),
+  showSections: getStored<boolean>("coursereader-sections", true),
   hasApiKey: false,
 
   incFontSize: () =>
@@ -59,6 +63,18 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     store("coursereader-theme", t);
     set({ theme: t });
   },
+
+  setWideMode: (v) => {
+    store("coursereader-wide", v);
+    set({ wideMode: v });
+  },
+
+  toggleSections: () =>
+    set((s) => {
+      const next = !s.showSections;
+      store("coursereader-sections", next);
+      return { showSections: next };
+    }),
 
   setHasApiKey: (v) => set({ hasApiKey: v }),
 }));

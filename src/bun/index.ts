@@ -4,7 +4,7 @@ import * as Storage from "./storage";
 import * as Gemini from "./gemini";
 import { QuizEngine } from "./quiz-engine";
 import { getDueCardsForSubject, getStarredCardsForSubject, getCardsForSubject, toggleStar } from "./srs";
-import { createSRSCard, performReview } from "./course-loader";
+import { createSRSCard, performReview } from "./srs";
 import type { QuizQuestion, SRSDeck } from "./types";
 
 const DEV_SERVER_PORT = 5173;
@@ -12,7 +12,12 @@ const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
 
 const API_PORT = 50001;
 
-const quizEngine = new QuizEngine();
+let _quizEngine: QuizEngine | null = null;
+
+function getQuizEngine(): QuizEngine {
+  if (!_quizEngine) _quizEngine = new QuizEngine();
+  return _quizEngine;
+}
 
 function corsHeaders() {
   return {
@@ -159,29 +164,33 @@ const router = {
   "POST /api/quiz/start": async (_params: Record<string, string>, req: Request) => {
     const body = (await req.json()) as { subjectId: string; moduleId: number };
     const questions = CourseLoader.loadQuiz(body.subjectId, body.moduleId);
-    quizEngine.load(questions);
+    const engine = new QuizEngine();
+    engine.load(questions, body.subjectId, body.moduleId);
+    _quizEngine = engine;
     return jsonResponse(questions);
   },
-  "GET /api/quiz/state": () =>
-    jsonResponse({
-      currentIndex: quizEngine.currentIndex,
-      selectedAnswers: quizEngine.selectedAnswers,
-      isCompleted: quizEngine.isCompleted,
-      currentQuestion: quizEngine.currentQuestion,
-      score: quizEngine.score,
-      percentage: quizEngine.percentage,
-    }),
+  "GET /api/quiz/state": () => {
+    const engine = getQuizEngine();
+    return jsonResponse({
+      currentIndex: engine.currentIndex,
+      selectedAnswers: engine.selectedAnswers,
+      isCompleted: engine.isCompleted,
+      currentQuestion: engine.currentQuestion,
+      score: engine.score,
+      percentage: engine.percentage,
+    });
+  },
   "POST /api/quiz/select": async (_params: Record<string, string>, req: Request) => {
     const body = (await req.json()) as { answer: string };
-    quizEngine.selectAnswer(body.answer);
+    getQuizEngine().selectAnswer(body.answer);
     return jsonResponse({ ok: true });
   },
   "POST /api/quiz/next": () => {
-    quizEngine.nextQuestion();
+    getQuizEngine().nextQuestion();
     return jsonResponse({ ok: true });
   },
   "POST /api/quiz/reset": () => {
-    quizEngine.reset();
+    getQuizEngine().reset();
     return jsonResponse({ ok: true });
   },
 };

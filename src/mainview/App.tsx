@@ -81,7 +81,7 @@ export default function App() {
         <ModuleListView
           subject={currentView.subject}
           onSelectModule={(m) => handleSelectModule(currentView.subject, m)}
-          onBack={pop}
+          onBack={() => replace({ type: "subjectList" })}
           onOpenSettings={() => push({ type: "settings" })}
           onOpenBookmarks={() => push({ type: "bookmarks" })}
         />
@@ -122,7 +122,7 @@ export default function App() {
       );
 
     case "settings":
-      return <SettingsView onBack={pop} onSwitchCourse={handleSwitchCourse} />;
+      return <SettingsView onBack={pop} />;
 
     case "bookmarks":
       return (

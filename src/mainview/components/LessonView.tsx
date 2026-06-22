@@ -1,4 +1,4 @@
-import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import remarkGfm from 'remark-gfm';
@@ -7,17 +7,11 @@ import { api } from '../api';
 import { useBookmarks } from '../hooks/useBookmarks';
 import { useHighlights } from '../hooks/useHighlights';
 import { useSettingsStore } from '../stores/settingsStore';
+import { THEME_TOKENS, themeToCSSVars } from '../themes';
 import { Section } from './sidebar-types';
 import { toggleVariants } from './ui';
 import StudyTools from './StudyTools';
-
-import type { Theme } from "../stores/settingsStore";
-interface ModuleMeta {
-  id: number;
-  name: string;
-  timeHours: number;
-  prerequisites: number[];
-}
+import type { ModuleMeta } from '../../../bun/types';
 
 interface Props {
   subjectId: string;
@@ -69,8 +63,8 @@ const components = {
   h6: headingRenderer(6),
 };
 
-const THEME_LABELS: Record<Theme, string> = { dark: "Dark", sepia: "Sepia", light: "Light" };
-const THEME_ICONS: Record<Theme, string> = { dark: "🌙", sepia: "📜", light: "☀️" };
+const THEME_LABELS: Record<Theme, string> = { dark: "Dark", oled: "OLED", nord: "Nord", sepia: "Sepia", gruvbox: "Gruvbox", light: "Light", "solarized-dark": "Solarized", catppuccin: "Catppuccin" };
+const THEME_ICONS: Record<Theme, string> = { dark: "🌙", oled: "🖤", nord: "❄️", sepia: "📜", gruvbox: "🪵", light: "☀️", "solarized-dark": "🔆", catppuccin: "🩷" };
 
 const HIGHLIGHT_COLORS: Record<string, string> = {
   yellow: "#facc15",
@@ -97,18 +91,22 @@ export default function LessonView({ subjectId, module, initialSectionID, onStar
   } = useBookmarks(subjectId, module.id, visibleSection);
   const { highlights, addHighlight, deleteHighlight } = useHighlights(subjectId, module.id);
 
-  const [wideMode, setWideMode] = useState(false);
   const [showTools, setShowTools] = useState(false);
-  const [showSections, setShowSections] = useState(true);
 
   const fontSize = useSettingsStore((s) => s.fontSize);
   const theme = useSettingsStore((s) => s.theme);
+  const wideMode = useSettingsStore((s) => s.wideMode);
+  const setWideMode = useSettingsStore((s) => s.setWideMode);
+  const showSections = useSettingsStore((s) => s.showSections);
+  const toggleSections = useSettingsStore((s) => s.toggleSections);
   const incFontSize = useSettingsStore((s) => s.incFontSize);
   const decFontSize = useSettingsStore((s) => s.decFontSize);
   const cycleTheme = useSettingsStore((s) => s.cycleTheme);
+  const themeVars = useMemo(() => themeToCSSVars(THEME_TOKENS[theme]), [theme]);
 
   useEffect(() => {
     setLoading(true);
+    contentRef.current?.scrollTo(0, 0);
     api.subjects.lesson(subjectId, module.id).then((lesson) => {
       setContent(lesson.content);
       setLoading(false);
@@ -224,9 +222,15 @@ export default function LessonView({ subjectId, module, initialSectionID, onStar
     if (target >= 0 && target < sections.length) scrollToSection(sections[target].id);
   };
 
-  const currentSectionIdx = visibleSection ? sections.findIndex((s) => s.id === visibleSection) : -1;
-  const prevSectionName = currentSectionIdx > 0 ? sections[currentSectionIdx - 1].heading : undefined;
-  const nextSectionName = currentSectionIdx >= 0 && currentSectionIdx < sections.length - 1 ? sections[currentSectionIdx + 1].heading : undefined;
+  const sectionsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!visibleSection || !sectionsRef.current) return;
+    const el = sectionsRef.current.querySelector(`[data-section-id="${visibleSection}"]`);
+    if (el) el.scrollIntoView({ block: "nearest" });
+  }, [visibleSection]);
+
+  const LEVEL_COLORS = ['#d1d5db', '#c7d2fe', '#bae6fd', '#d9f99d', '#fde68a', '#e9d5ff'];
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -309,7 +313,7 @@ export default function LessonView({ subjectId, module, initialSectionID, onStar
     Tools
   </button>
   <button
-    onClick={() => setShowSections(!showSections)}
+    onClick={toggleSections}
     className={toggleVariants({ active: showSections })}
     title="Toggle sections panel"
   >
@@ -327,44 +331,46 @@ export default function LessonView({ subjectId, module, initialSectionID, onStar
                   <span className="text-xs font-semibold text-indigo-400">Sections</span>
                   <span className="text-[10px] text-gray-500">{sections.length}</span>
                 </div>
-                <div className="overflow-y-auto max-h-[280px]">
-                  {sections.map((s, i) => (
-                    <button
-                      key={s.id}
-                      onClick={() => scrollToSection(s.id)}
-                      className="w-full text-left px-2.5 py-1.5 text-xs transition-colors flex items-center gap-2"
-                      style={s.id === visibleSection ? { backgroundColor: '#4f46e5', color: '#fff' } : { color: '#9ca3af', backgroundColor: 'transparent' }}
-                      onMouseEnter={(e) => { if (s.id !== visibleSection) e.currentTarget.style.backgroundColor = '#374151'; }}
-                      onMouseLeave={(e) => { if (s.id !== visibleSection) e.currentTarget.style.backgroundColor = 'transparent'; }}
-                    >
-                      <span className="shrink-0 w-5 text-right" style={s.id === visibleSection ? { color: '#a5b4fc' } : { color: '#6b7280' }}>{String(i + 1).padStart(2, "0")}</span>
-                      <span className="truncate">{s.heading}</span>
-                    </button>
-                  ))}
+                <div className="overflow-y-auto max-h-[70vh]" ref={sectionsRef}>
+                  {sections.map((s) => {
+                    const isActive = s.id === visibleSection;
+                    const isBookmarked = bookmarks.some((b) => b.sectionID === s.id);
+                    const levelColor = LEVEL_COLORS[Math.min(s.level - 1, 5)];
+                    return (
+                      <button
+                        key={s.id}
+                        data-section-id={s.id}
+                        onClick={() => scrollToSection(s.id)}
+                        className="w-full text-left px-2.5 py-0.5 text-xs transition-colors"
+                        style={Object.assign(
+                          { paddingLeft: `${(s.level - 1) * 16 + 10}px` },
+                          isActive
+                            ? { backgroundColor: '#4f46e5', color: '#fff' }
+                            : { backgroundColor: 'transparent', color: levelColor }
+                        )}
+                        onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = '#374151'; }}
+                        onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'; }}
+                      >
+                        <div className="flex items-start gap-0.5" style={{ paddingRight: '2px' }}>
+                          <span className="flex-1 whitespace-normal break-words min-w-0">{s.heading}</span>
+                          <span
+                            onClick={(e) => { e.stopPropagation(); handleToggleSectionBookmark(s.id, isBookmarked, s.heading); }}
+                            className="shrink-0 cursor-pointer"
+                            style={{ color: isBookmarked ? '#fbbf24' : isActive ? '#fff' : '#4b5563' }}
+                            title={isBookmarked ? "Remove bookmark" : "Bookmark this section"}
+                          >{isBookmarked ? '★' : '☆'}</span>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
               </>
             )}
-            <div className="flex justify-center py-3 px-2.5">
-              <div className="bg-gray-800/50 rounded-xl p-2 flex flex-col items-center gap-1">
-                <button
-                  onClick={() => scrollSection("prev")}
-                  disabled={!hasPrevSection}
-                  className={`w-10 h-10 flex items-center justify-center rounded-xl text-base font-mono font-bold transition-all duration-100 ${
-                    hasPrevSection
-                      ? "bg-gradient-to-b from-gray-600 to-gray-700 text-gray-100 border border-gray-500 border-b-[3px] shadow-md shadow-black/30 hover:from-indigo-500 hover:to-indigo-700 hover:border-indigo-400 hover:shadow-indigo-500/25 active:border-b active:mt-[3px] active:shadow-sm"
-                      : "bg-gray-800 text-gray-600 border border-gray-700 border-b-[3px] cursor-not-allowed"
-                  }`}
-                  title="Previous section (↑)"
-                >
-                  ^
-                </button>
-              </div>
-            </div>
           </div>
         </div>)}
 
         <div className="flex-1 overflow-y-auto p-6" ref={contentRef} onScroll={handleScroll} onMouseUp={handleTextSelection}>
-          <div className={`book-content book-${theme}${wideMode ? " book-content-wide" : ""}`} style={{ fontSize: `${fontSize}px` }}>
+          <div className={`book-content${wideMode ? " book-content-wide" : ""}`} style={{ fontSize: `${fontSize}px`, ...themeVars }}>
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeHighlight]}

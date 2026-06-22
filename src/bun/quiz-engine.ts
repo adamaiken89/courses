@@ -5,6 +5,8 @@ export class QuizEngine {
   currentIndex = 0;
   selectedAnswers: Record<string, string> = {};
   isCompleted = false;
+  subjectId?: string;
+  moduleId?: number;
 
   get currentQuestion(): QuizQuestion | null {
     return this.currentIndex < this.questions.length ? this.questions[this.currentIndex] : null;
@@ -20,11 +22,13 @@ export class QuizEngine {
     return this.score.total > 0 ? (this.score.correct / this.score.total) * 100 : 0;
   }
 
-  load(qs: QuizQuestion[]): void {
+  load(qs: QuizQuestion[], subjectId?: string, moduleId?: number): void {
     this.questions = qs;
     this.currentIndex = 0;
     this.selectedAnswers = {};
     this.isCompleted = false;
+    this.subjectId = subjectId;
+    this.moduleId = moduleId;
   }
 
   selectAnswer(answer: string): void {

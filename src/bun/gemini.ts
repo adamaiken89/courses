@@ -1,27 +1,14 @@
+import { getGeminiKey, setGeminiKey } from "./storage";
+
 const BASE_URL =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
 function getAPIKey(): string | null {
-  try {
-    const prefs = JSON.parse(
-      require("fs").readFileSync(
-        require("path").join(process.env.HOME || "", ".coursereader", "prefs.json"),
-        "utf-8"
-      )
-    );
-    return prefs.geminiAPIKey || null;
-  } catch {
-    return null;
-  }
+  return getGeminiKey();
 }
 
 function saveAPIKey(key: string): void {
-  const path = require("path");
-  const fs = require("fs");
-  const prefsPath = path.join(process.env.HOME || "", ".coursereader", "prefs.json");
-  const dir = path.dirname(prefsPath);
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(prefsPath, JSON.stringify({ geminiAPIKey: key }, null, 2));
+  setGeminiKey(key);
 }
 
 export function hasAPIKey(): boolean {

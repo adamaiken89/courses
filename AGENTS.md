@@ -96,13 +96,17 @@ Uses `js-yaml` library (not hand-written). `parseSubject` and `parseQuiz` in `sr
 ## Reading experience
 
 Book-like prose styles defined in `.book-content` CSS class in `index.css`:
-- Warm dark theme with serif body font for reading
+- 8 themes: Dark, OLED, Nord, Sepia, Gruvbox, Light, Solarized, Catppuccin
+- Theme enum in `settingsStore.ts` type `Theme`. `cycleTheme()` for LessonView toolbar, `setTheme(t)` for SettingsView grid
+- Each theme: `.book-content.book-<theme>` block in `index.css` (text, headings, code highlighting, blockquotes, tables)
 - Decorative headers with clear h1-h6 hierarchy
 - Custom dark syntax highlighting theme (highlight.js)
 - Beautiful blockquotes with indigo accent
 - Properly nested list styling
 - GFM table support via `remarkGfm`
 - Section-based navigation with scroll tracking
+- Module switch (`onNextModule`/`onPrevModule`) scrolls content to top
+- Section panel star color: bookmarked → yellow, active section → white, inactive → grey
 - Adjustable font size (10-28px)
 
 ## Module declarations

@@ -6,162 +6,192 @@ C4Component
 
   Person(student, "Student", "Uses the app to study")
 
-  Container_Boundary(app, "macOS Desktop App") {
+  Container_Boundary(fe, "Frontend (React 18 + TypeScript + Vite)") {
 
-    Boundary(views, "Views Layer") {
-      Component(contentView, "ContentView", "SwiftUI View", "NavigationStack + screen routing via AppScreen enum")
-      Component(subjectList, "SubjectListView", "SwiftUI View", "Grid of subject cards from viewModel.subjects")
-      Component(readerView, "ReaderView", "SwiftUI View", "Split: sidebar (module list + sections) + LessonView")
-      Component(lessonView, "LessonView", "SwiftUI View", "NSTextView markdown renderer, font controls, sidebar AI")
-      Component(quizView, "QuizView", "SwiftUI View", "MCQ: progress, options, results, question review cards")
-      Component(reviewView, "ReviewView", "SwiftUI View", "SRS review — placeholder (coming soon)")
-      Component(askAIView, "AskAIView", "SwiftUI View", "Sidebar: highlighted text input, AI response display")
-      Component(settingsView, "SettingsView", "SwiftUI View", "Gemini API key, font size slider, course path display")
+    Boundary(views, "View Layer (src/mainview/components/)") {
+      Component(landing, "LandingView", "React component", "Welcome screen → pushes subjectList")
+      Component(subjectList, "SubjectListView", "React component", "Grid of subject cards from GET /api/subjects")
+      Component(moduleList, "ModuleListView", "React component", "Module cards + ← All Courses navigates to subjectList")
+      Component(lessonPage, "LessonPage", "React component (App.tsx inline)", "Header + ModuleSwitcher + LessonView")
+      Component(lessonView, "LessonView", "React component", "react-markdown renderer, section nav, AI sidebar, notes")
+      Component(quizView, "QuizView", "React component", "MCQ quiz flow via API: load, select answer, score")
+      Component(reviewView, "ReviewView", "React component", "SRS spaced repetition review via API")
+      Component(settingsView, "SettingsView", "React component", "Gemini API key, theme grid, font size slider")
+      Component(bookmarksView, "BookmarksView", "React component (App.tsx inline)", "Bookmark list, navigate/delete")
+      Component(sidebar, "Sidebar", "React component", "Section nav, notes, highlights, AI side panel")
     }
 
-    Boundary(vm, "ViewModel Layer") {
-      Component(courseVM, "CourseViewModel", "@Observable @MainActor", "Singleton. Manages subjects, navigation, lesson content, AI state, font size")
+    Boundary(routing, "Routing Layer") {
+      Component(app, "App", "React component (src/mainview/App.tsx)", "View stack router (switch on View type). No React Router")
+      Component(viewStore, "useViewStore", "Zustand store (src/mainview/stores/viewStore.ts)", "View stack: push, pop, replace, popToRoot")
+      Component(settingsStore, "useSettingsStore", "Zustand store (src/mainview/stores/settingsStore.ts)", "Font size, theme (8 themes), cycleTheme")
     }
 
-    Boundary(svc, "Services Layer") {
-      Component(courseLoader, "CourseLoader", "@MainActor final class", "Singleton. File I/O: loadSubjects, loadLesson, loadQuiz, load/save SRS")
-      Component(geminiService, "GeminiService", "@MainActor final class", "Singleton. HTTP client for gemini-2.0-flash. POST /generateContent")
-      Component(quizEngine, "QuizEngine", "@MainActor ObservableObject", "Quiz state machine: questions, currentIndex, selectedAnswers, score")
+    Boundary(hooks, "Hooks (src/mainview/hooks/)") {
+      Component(useBookmarks, "useBookmarks", "React hook", "Bookmark CRUD via API")
+      Component(useHighlights, "useHighlights", "React hook", "Highlight CRUD via API")
     }
 
-    Boundary(models, "Models Layer") {
-      Component(subject, "Subject + ModuleMeta", "Codable struct", "Parsed from syllabus.yaml (manual YAML parser)")
-      Component(quizModel, "QuizQuestion", "Codable struct", "Parsed from quiz.yaml (manual YAML parser)")
-      Component(srsModel, "SRSCard + SRSDeck", "Codable struct", "SM-2 algorithm: easeFactor, interval, repetitions, nextReviewDate")
-      Component(moduleSection, "ModuleSection", "Identifiable struct", "Parsed from lesson.md ## and ### headings")
+    Boundary(api, "API Client") {
+      Component(apiClient, "api.ts", "HTTP client module", "fetch() wrapper → localhost:50001")
     }
 
-    Boundary(helpers, "Helpers / Design System") {
-      Component(designConst, "DesignConstants", "enum", "Spacing, Padding, Font, CornerRadius, Size, FontSize, HeaderColors, Opacity")
-      Component(appColors, "AppColors", "enum", "Card/section/row/badge bg, highlight, correct/incorrect, AI bubbles")
-      Component(visualEffect, "VisualEffectBackground", "NSViewRepresentable", "NSVisualEffectView with .hudWindow material")
-      Component(viewExts, "View Extensions", "extension View", "cardBackground/sectionBackground/rowBackground/badgeBackground/windowVisualEffect")
-      Component(buttonStyles, "Button Styles", "extension View", "primaryButton/secondaryButton/inlineButton modifiers")
-      Component(syntaxHL, "SyntaxHighlighter", "enum", "Regex-based highlighting for TS/JS/Swift/Bash/JSON/YAML")
-      Component(locHelper, "Loc", "func", "String(localized:bundle:) wrapper")
-    }
-
-    Boundary(appLayer, "App / Entry") {
-      Component(appEntry, "CourseReaderApp", "@main App", "WindowGroup + Settings scene. Injects CourseViewModel via @Environment")
-      Component(appDelegate, "AppDelegate", "NSApplicationDelegate", "Handles .zip file open for course import")
+    Boundary(styles, "Styles") {
+      Component(tailwind, "Tailwind CSS", "Utility framework", "All layout and component styles")
+      Component(bookContent, "book-content CSS", "Custom CSS (index.css)", "8 themes (Dark/OLED/Nord/Sepia/Gruvbox/Light/Solarized/Catppuccin), prose styles, highlight.js")
     }
   }
 
-  System_Ext(fs, "File System", "subjects/ directory tree")
+  Container_Boundary(be, "Backend (Bun HTTP server, port 50001)") {
+
+    Boundary(handlers, "API Handlers (src/bun/index.ts)") {
+      Component(router, "Router", "Bun.serve + switch on path", "Routes: /api/subjects, /api/lessons, /api/quizzes, /api/srs, /api/storage, /api/gemini")
+    }
+
+    Boundary(services, "Backend Services") {
+      Component(courseLoader, "course-loader.ts", "Bun module", "loadSubjects(), loadLesson(), loadQuiz(), parseYAML, findModuleDir")
+      Component(quizEngine, "quiz-engine.ts", "Bun class (QuizEngine)", "State machine: questions, currentIndex, selectedAnswers, score")
+      Component(srs, "srs.ts", "Bun module", "SM-2 filter helpers: getDue, getStarred, toggleStar")
+      Component(storage, "storage.ts", "Bun module", "JSON persistence: ~/.coursereader/data.json (highlights, notes, bookmarks)")
+      Component(gemini, "gemini.ts", "Bun class (GeminiService)", "HTTP client for gemini-2.0-flash. API key from ~/.coursereader/prefs.json")
+    }
+
+    Boundary(types, "Shared Types (src/bun/types.ts)") {
+      Component(models, "Subject, ModuleMeta, QuizQuestion, SRSCard, SRSDeck, ModuleSection, Highlight, Note, Bookmark", "TypeScript interfaces", "Shared between backend and frontend")
+    }
+  }
+
+  System_Ext(fs, "File System", "subjects/ directory tree + ~/.coursereader/")
   System_Ext(geminiExt, "Google Gemini API", "generativelanguage.googleapis.com")
 
+  Rel(student, landing, "First screen on launch")
   Rel(student, subjectList, "Browses subjects")
-  Rel(student, readerView, "Reads modules")
-  Rel(student, lessonView, "Studies lesson content")
-  Rel(student, quizView, "Takes quizzes")
-  Rel(student, reviewView, "Reviews cards")
-  Rel(student, askAIView, "Asks questions")
-  Rel(student, settingsView, "Configures API key")
+  Rel(student, moduleList, "Selects module from subject")
+  Rel(student, lessonView, "Reads lesson content")
+  Rel(student, quizView, "Takes MCQ quizzes")
+  Rel(student, reviewView, "Reviews SRS cards")
+  Rel(student, settingsView, "Configures API key, theme, font")
+  Rel(student, bookmarksView, "Views saved bookmarks")
 
-  Rel(subjectList, courseVM, "Reads viewModel.subjects")
-  Rel(readerView, courseVM, "Reads viewModel.readerSubject, selects modules")
-  Rel(lessonView, courseVM, "Reads lessonContent, lessonFontSize, controls AI")
-  Rel(quizView, courseVM, "Reads quizEngine, starts/resets quizzes")
-  Rel(askAIView, courseVM, "Reads/writes aiQuestion, aiResponse, isAIThinking")
-  Rel(settingsView, courseVM, "Reads/writes lessonFontSize, gemini.hasAPIKey")
+  Rel(landing, viewStore, "push(subjectList)")
+  Rel(subjectList, viewStore, "push(moduleList) on subject select")
+  Rel(moduleList, viewStore, "replace(subjectList) on ← All Courses")
+  Rel(moduleList, viewStore, "push(lesson) on module select")
+  Rel(lessonPage, viewStore, "push(quiz/review/settings/bookmarks), replace(moduleList) on back")
+  Rel(quizView, viewStore, "pop on back")
+  Rel(reviewView, viewStore, "pop on back")
+  Rel(settingsView, viewStore, "pop on back")
+  Rel(bookmarksView, viewStore, "replace(lesson) on open, pop on back")
 
-  Rel(courseVM, courseLoader, "loadSubjects(), loadLesson(), loadQuiz()")
-  Rel(courseVM, geminiService, "askAboutHighlight()")
-  Rel(courseVM, quizEngine, "load(), selectAnswer(), nextQuestion(), reset()")
+  Rel(subjectList, apiClient, "GET /api/subjects")
+  Rel(moduleList, apiClient, "reads subject data (passed via viewStore)")
+  Rel(lessonView, apiClient, "GET /api/lessons/:subject/:module, POST /api/gemini/ask, bookmark/highlight CRUD")
+  Rel(quizView, apiClient, "GET /api/quizzes/:subject/:module, POST /api/quiz/select, GET /api/quiz/score")
+  Rel(reviewView, apiClient, "GET /api/srs/:subject, POST /api/srs/review")
+  Rel(settingsView, apiClient, "POST /api/gemini/key, GET prefs")
+  Rel(bookmarksView, apiClient, "GET /api/storage/bookmarks, DELETE /api/storage/bookmark/:id")
 
-  Rel(courseLoader, fs, "Reads syllabus.yaml, lesson.md, quiz.yaml, deck.json")
-  Rel(courseLoader, fs, "Writes deck.json")
-  Rel(geminiService, geminiExt, "POST /v1beta/models/gemini-2.0-flash:generateContent")
+  Rel(apiClient, router, "HTTP requests")
+  Rel(router, courseLoader, "loadSubjects, loadLesson, loadQuiz")
+  Rel(router, quizEngine, "createQuiz, selectAnswer, getScore")
+  Rel(router, srs, "getDueCards, reviewCard")
+  Rel(router, storage, "saveHighlight, getNotes, bookmark ops")
+  Rel(router, gemini, "askAboutHighlight")
 
-  Rel(courseLoader, subject, "Creates Subject from YAML")
-  Rel(courseLoader, quizModel, "Creates [QuizQuestion] from YAML")
-  Rel(courseLoader, srsModel, "Loads/saves SRSDeck JSON")
-  Rel(lessonView, moduleSection, "Parses sections from lesson content")
+  Rel(courseLoader, fs, "Reads subjects/<id>/syllabus.yaml, modules/<NN-*>/lesson.md, modules/<NN-*>/quiz.yaml, subjects/<id>/srs/deck.json")
+  Rel(storage, fs, "Reads/writes ~/.coursereader/data.json, ~/.coursereader/prefs.json")
+  Rel(gemini, geminiExt, "POST /v1beta/models/gemini-2.0-flash:generateContent")
 
-  Rel(contentView, subjectList, "Root screen")
-  Rel(contentView, readerView, "Navigates on subject select")
-  Rel(readerView, lessonView, "Embeds for module content")
-  Rel(lessonView, askAIView, "Opens sidebar on AI toggle")
-  Rel(appEntry, contentView, "Root view in WindowGroup")
-  Rel(appEntry, settingsView, "Settings scene")
+  Rel(courseLoader, settingsStore, "provides subject list → modules → lesson content")
+  Rel(lessonView, bookContent, "Applies .book-content.book-<theme> CSS class")
 ```
 
 ## Component Groups
 
-### Views (8 components)
+### React Views (10 components)
+
 | Component | File | Responsibility |
 |-----------|------|----------------|
-| ContentView | `Views/ContentView.swift` | NavigationStack + AppScreen routing |
-| SubjectListView | `Views/SubjectListView.swift` | Subject grid, SubjectCardView |
-| ReaderView | `Views/ReaderView.swift` | Module sidebar + embedded LessonView |
-| LessonView | `Views/LessonView.swift` | NSTextView markdown renderer, font toolbar, AI sidebar toggle |
-| QuizView | `Views/QuizView.swift` | MCQ quiz flow + results + QuestionReviewCard, OptionRow |
-| ReviewView | `Views/ReviewView.swift` | SRS review (stub — "coming soon") |
-| AskAIView | `Views/AskAIView.swift` | AI Q&A sidebar with selected text context |
-| SettingsView | `Views/SettingsView.swift` | API key save, font size slider |
+| LandingView | `src/mainview/components/LandingView.tsx` | Welcome screen, pushes subjectList |
+| SubjectListView | `src/mainview/components/SubjectListView.tsx` | Subject grid with module stats |
+| ModuleListView | `src/mainview/components/ModuleListView.tsx` | Module cards, ← All Courses → subjectList |
+| LessonPage | `src/mainview/App.tsx` (inline) | Header + ModuleSwitcher + LessonView layout |
+| LessonView | `src/mainview/components/LessonView.tsx` | Markdown reader, section nav, AI sidebar, notes |
+| QuizView | `src/mainview/components/QuizView.tsx` | MCQ quiz with scoring, API-backed |
+| ReviewView | `src/mainview/components/ReviewView.tsx` | SRS spaced repetition review |
+| SettingsView | `src/mainview/components/SettingsView.tsx` | Gemini API key, theme grid, font size |
+| BookmarksView | `src/mainview/App.tsx` (inline) | Bookmark list with open/delete |
+| Sidebar | `src/mainview/components/Sidebar.tsx` | Section nav, notes, highlights, AI panel |
 
-### ViewModel (1 component)
+### State Management (2 stores)
+
 | Component | File | Responsibility |
 |-----------|------|----------------|
-| CourseViewModel | `ViewModels/CourseViewModel.swift` | Singleton state: subjects, navigation path, lesson content, AI state, font size, quiz engine reference |
+| useViewStore | `src/mainview/stores/viewStore.ts` | View stack: push/pop/replace/popToRoot |
+| useSettingsStore | `src/mainview/stores/settingsStore.ts` | Font size (10-28px), theme (8 options) |
 
-### Services (3 components)
+### API & Hooks
+
 | Component | File | Responsibility |
 |-----------|------|----------------|
-| CourseLoader | `Services/CourseLoader.swift` | Synchronous file I/O for all course data |
-| GeminiService | `Services/GeminiService.swift` | HTTP client for gemini-2.0-flash API |
-| QuizEngine | `Services/QuizEngine.swift` | Quiz state: current question, selected answers, score |
+| api.ts | `src/mainview/api.ts` | fetch() wrapper for all backend endpoints |
+| useBookmarks | `src/mainview/hooks/useBookmarks.ts` | Bookmark CRUD hook |
+| useHighlights | `src/mainview/hooks/useHighlights.ts` | Highlights CRUD hook |
 
-### Models (4 components)
+### Backend Services (6 modules)
+
 | Component | File | Responsibility |
 |-----------|------|----------------|
-| Subject + ModuleMeta | `Models/Subject.swift` | YAML parser, syllabus data model |
-| QuizQuestion | `Models/QuizQuestion.swift` | YAML parser, question data model |
-| SRSCard + SRSDeck | `Models/SRSCard.swift` | SM-2 algorithm, card/deck model |
-| ModuleSection | `Models/ModuleSection.swift` | Section heading parser |
+| index.ts (Router) | `src/bun/index.ts` | Bun.serve, all API route handlers, window creation |
+| course-loader.ts | `src/bun/course-loader.ts` | File I/O: load subjects, lessons, quizzes; YAML parse |
+| quiz-engine.ts | `src/bun/quiz-engine.ts` | QuizEngine class: state machine for MCQ flow |
+| srs.ts | `src/bun/srs.ts` | SM-2 filter: getDue, getStarred, toggleStar |
+| storage.ts | `src/bun/storage.ts` | JSON persistence: ~/.coursereader/data.json |
+| gemini.ts | `src/bun/gemini.ts` | Gemini 2.0 Flash API client |
 
-### Helpers (7 components)
-| Component | File | Responsibility |
-|-----------|------|----------------|
-| DesignConstants | `Helpers/DesignConstants.swift` | All spacing, padding, font, size, corner radius tokens |
-| AppColors | `Helpers/AppColors.swift` | All color definitions |
-| VisualEffectBackground | `Helpers/VisualEffectBackground.swift` | NSVisualEffectView glassmorphism |
-| View+Backgrounds | `Helpers/View+Backgrounds.swift` | Card/section/row/badge background modifiers |
-| ButtonStyles | `Helpers/ButtonStyles.swift` | Primary/secondary/inline button modifiers |
-| SyntaxHighlighter | `Helpers/SyntaxHighlighter.swift` | Regex syntax highlighting for 6 languages |
-| Loc | `Helpers/Loc.swift` | Localization wrapper |
+### Models (src/bun/types.ts)
 
-### App (2 components)
-| Component | File | Responsibility |
-|-----------|------|----------------|
-| CourseReaderApp | `App/CourseReaderApp.swift` | @main entry, WindowGroup + Settings, Environment injection |
-| AppDelegate | `App/AppDelegate.swift` | .zip import handler, subjects directory resolution |
-
-## Data Flow
-
-```
-Student → View → CourseViewModel → Service → External / Model
-         ↑                                    ↓
-         └────────────────────────────────────┘
-```
-
-- **View → ViewModel**: Reads published properties, calls action methods
-- **ViewModel → Service**: Calls synchronous (CourseLoader) or async (GeminiService) methods
-- **Service → Model**: Creates model instances from file data or API responses
-- **ViewModel ← Service**: Stores results back in published properties
-- **View ← ViewModel**: SwiftUI reactive update via @Environment observation
+| Interface | Description |
+|-----------|-------------|
+| Subject | Subject metadata + modules array |
+| ModuleMeta | Module name, time, prerequisites, topics |
+| QuizQuestion | MCQ question with options + answer |
+| SRSCard | SM-2 card: easeFactor, interval, repetitions |
+| SRSDeck | Card collection (Record<string, SRSCard>) |
+| ModuleSection | Heading-based section (id, heading, level) |
+| Highlight | Selected text highlight with color |
+| Note | User note attached to highlight/section |
+| Bookmark | Bookmarked position in lesson |
 
 ## Navigation Flow
 
 ```
-SubjectListView → ReaderView (module sidebar + LessonView)
-                → AskAIView (sidebar toggled from LessonView)
-                → QuizView (started from LessonView toolbar)
-                → ReviewView (started from ReaderView toolbar)
-                → SettingsView (App menu → Settings)
+landing → subjectList
+subjectList → moduleList (select subject)
+moduleList → lesson (select module)
+moduleList → subjectList (← All Courses, replace)
+lesson → moduleList (← back, replace)
+lesson → lesson (switch module via ModuleSwitcher)
+lesson → quiz (push)
+lesson → review (push)
+lesson → settings (push)
+lesson → bookmarks (push)
+quiz → previous view (pop)
+review → previous view (pop)
+settings → previous view (pop)
+bookmarks → lesson (replace, on open), previous view (pop, on back)
 ```
+
+## Data Flow
+
+```
+Student → View Component → api.ts (fetch) → Bun HTTP server → Services → File System / Gemini API
+                              ↑                                            ↓
+                              └──────────── JSON response ────────────────┘
+```
+
+- **View → Store**: Read/write Zustand state (view stack, settings)
+- **View → API**: fetch() to localhost:50001 for all data operations
+- **Backend → Services**: Route handler calls course-loader, quiz-engine, srs, storage, gemini
+- **Services → File System**: read/write subjects/ directory tree, ~/.coursereader/
+- **Response → View**: JSON returned, React re-renders

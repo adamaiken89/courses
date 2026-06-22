@@ -9,6 +9,7 @@ interface StorageData {
   highlights: Highlight[];
   notes: Note[];
   bookmarks: Bookmark[];
+  geminiAPIKey?: string;
 }
 
 function load(): StorageData {
@@ -155,6 +156,17 @@ export function getBookmarksForModule(subjectID: string, moduleID: number): Book
 export function deleteBookmark(id: string): void {
   const data = load();
   data.bookmarks = data.bookmarks.filter((b) => b.id !== id);
+  save(data);
+}
+
+export function getGeminiKey(): string | null {
+  const data = load();
+  return data.geminiAPIKey || null;
+}
+
+export function setGeminiKey(key: string): void {
+  const data = load();
+  data.geminiAPIKey = key;
   save(data);
 }
 
