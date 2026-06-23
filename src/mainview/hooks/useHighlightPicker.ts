@@ -11,7 +11,7 @@ interface UseHighlightPickerReturn {
   showCardEditor: boolean;
   noteText: string;
   highlightSelection: HighlightSelection | null;
-  pickerPos: { x: number; y: number };
+  pickerPos: { x: number; y: number; selectionTop: number };
   handleTextSelection: () => void;
   openNoteEditor: () => void;
   openCardEditor: () => void;
@@ -27,7 +27,7 @@ export function useHighlightPicker(): UseHighlightPickerReturn {
   const [showCardEditor, setShowCardEditor] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [highlightSelection, setHighlightSelection] = useState<HighlightSelection | null>(null);
-  const [pickerPos, setPickerPos] = useState({ x: 0, y: 0 });
+  const [pickerPos, setPickerPos] = useState({ x: 0, y: 0, selectionTop: 0 });
 
   const handleTextSelection = useCallback(() => {
     const selection = window.getSelection();
@@ -41,7 +41,7 @@ export function useHighlightPicker(): UseHighlightPickerReturn {
     const range = selection.getRangeAt(0);
     const rect = range.getBoundingClientRect();
     setHighlightSelection({ text, range });
-    setPickerPos({ x: rect.left + rect.width / 2, y: rect.top - 10 });
+    setPickerPos({ x: rect.left + rect.width / 2, y: rect.bottom, selectionTop: rect.top });
     setShowHighlightPicker(true);
   }, []);
 

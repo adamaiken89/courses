@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useCourseStore } from '../stores/courseStore';
+import { selectableItemVariants } from './ui';
 import type { Course } from '../../bun/types';
 
 interface Props {
@@ -50,11 +51,7 @@ export default function CourseSwitcher({ currentCourseId, onSelect }: Props) {
                 onSelect(s);
                 setOpen(false);
               }}
-              className={`w-full text-left px-3 py-2 text-sm transition-colors ${
-                s.id === currentCourseId
-                  ? 'bg-indigo-600/20 text-indigo-300'
-                  : 'text-gray-300 hover:bg-gray-700'
-              }`}
+              className={`w-full text-left px-3 py-2 text-sm ${selectableItemVariants({ selected: s.id === currentCourseId })}`}
             >
               <div className="font-medium truncate">{s.displayName}</div>
               <div className="text-xs text-gray-500 mt-0.5">

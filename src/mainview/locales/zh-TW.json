@@ -14,7 +14,7 @@
     "modules": "單元"
   },
   "landing": {
-    "title": "歡迎使用 <1>CourseReader</1>",
+    "title": "歡迎使用 CourseReader",
     "subtitle": "桌面學習應用程式，提供結構化學習。閱讀課程、進行測驗，並透過間隔重複追蹤學習進度。",
     "lessons": "課程",
     "lessonsDesc": "按照自己的節奏閱讀結構化 Markdown 內容",
@@ -61,7 +61,8 @@
     "focusModeOn": "離開專注",
     "focusModeOff": "專注",
     "addNote": "新增筆記",
-    "createCard": "建立卡片"
+    "createCard": "建立卡片",
+    "copy": "複製"
   },
   "quiz": {
     "loadingQuiz": "正在載入測驗...",

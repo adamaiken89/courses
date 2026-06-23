@@ -203,11 +203,7 @@ export default function SettingsView({ onBack }: Props) {
               <button
                 key={t_card.id}
                 onClick={() => setTheme(t_card.id)}
-                className={`text-left p-3 rounded-xl border-2 transition-all ${
-                  theme === t_card.id
-                    ? 'border-indigo-500 bg-indigo-900/30'
-                    : 'border-gray-700 bg-gray-800/50 hover:border-gray-500'
-                }`}
+                className={`text-left ${selectableCardVariants({ selected: theme === t_card.id })}`}
               >
                 <div className="text-base">{t_card.icon}</div>
                 <div className="text-sm font-medium mt-1">{t(t_card.labelKey)}</div>
@@ -251,22 +247,14 @@ export default function SettingsView({ onBack }: Props) {
           <div className="flex gap-2">
             <button
               onClick={() => setWideMode(false)}
-              className={`flex-1 p-3 rounded-xl border-2 transition-all ${
-                !wideMode
-                  ? 'border-indigo-500 bg-indigo-900/30'
-                  : 'border-gray-700 bg-gray-800/50 hover:border-gray-500'
-              }`}
+              className={`flex-1 ${selectableCardVariants({ selected: !wideMode })}`}
             >
               <div className="text-sm font-medium">{t('settings.narrowLayout')}</div>
               <div className="text-[10px] text-gray-400 mt-0.5">{t('settings.narrowDesc')}</div>
             </button>
             <button
               onClick={() => setWideMode(true)}
-              className={`flex-1 p-3 rounded-xl border-2 transition-all ${
-                wideMode
-                  ? 'border-indigo-500 bg-indigo-900/30'
-                  : 'border-gray-700 bg-gray-800/50 hover:border-gray-500'
-              }`}
+              className={`flex-1 ${selectableCardVariants({ selected: wideMode })}`}
             >
               <div className="text-sm font-medium">{t('settings.wideLayout')}</div>
               <div className="text-[10px] text-gray-400 mt-0.5">{t('settings.wideDesc')}</div>
@@ -287,11 +275,7 @@ export default function SettingsView({ onBack }: Props) {
               <button
                 key={l.code}
                 onClick={() => useSettingsStore.getState().setLocale(l.code)}
-                className={`px-3 py-1.5 text-xs rounded-lg border transition-all ${
-                  useSettingsStore.getState().locale === l.code
-                    ? 'border-indigo-500 bg-indigo-900/30 text-indigo-300'
-                    : 'border-gray-600 text-gray-400 hover:border-gray-500'
-                }`}
+                className={`px-3 py-1.5 text-xs rounded-lg border ${selectableCardVariants({ selected: useSettingsStore.getState().locale === l.code })}`}
               >
                 {l.label}
               </button>

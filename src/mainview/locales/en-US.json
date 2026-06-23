@@ -14,7 +14,7 @@
     "modules": "Modules"
   },
   "landing": {
-    "title": "Welcome to <1>CourseReader</1>",
+    "title": "Welcome to CourseReader",
     "subtitle": "A desktop study app for structured learning. Read lessons, take quizzes, and track your progress with spaced repetition.",
     "lessons": "Lessons",
     "lessonsDesc": "Read through structured markdown content at your own pace",
@@ -61,7 +61,8 @@
     "focusModeOn": "Exit Focus",
     "focusModeOff": "Focus",
     "addNote": "Add Note",
-    "createCard": "Create Card"
+    "createCard": "Create Card",
+    "copy": "Copy"
   },
   "quiz": {
     "loadingQuiz": "Loading quiz...",

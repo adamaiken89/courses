@@ -13,7 +13,7 @@ import { useSettingsStore } from '../../stores/settingsStore';
 import { THEME_TOKENS, themeToCSSVars } from '../../themes';
 import LessonToolbar from '../lesson/LessonToolbar';
 import SectionsPanel from '../lesson/SectionsPanel';
-import HighlightPicker from '../lesson/HighlightPicker';
+import SelectionToolbar from '../lesson/SelectionToolbar';
 import NoteEditor from '../lesson/NoteEditor';
 import CardEditor from '../lesson/CardEditor';
 import StudyTools from '../StudyTools';
@@ -134,6 +134,10 @@ export default function LessonView({
     if (!highlightSelection) return;
     await addHighlight(highlightSelection.text, color);
     closeHighlightPicker();
+  };
+
+  const handleCopy = async (text: string) => {
+    await navigator.clipboard.writeText(text);
   };
 
   const handleAddAnnotation = async () => {
@@ -316,12 +320,15 @@ export default function LessonView({
       </div>
 
       {showHighlightPicker && highlightSelection && !showNoteEditor && !showCardEditor && (
-        <HighlightPicker
+        <SelectionToolbar
           x={pickerPos.x}
           y={pickerPos.y}
+          selectionTop={pickerPos.selectionTop}
+          selectedText={highlightSelection.text}
           onSelectColor={handleAddHighlight}
           onOpenNote={openNoteEditor}
           onCreateCard={openCardEditor}
+          onCopy={handleCopy}
           onCancel={closeHighlightPicker}
         />
       )}
