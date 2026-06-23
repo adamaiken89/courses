@@ -18,12 +18,11 @@ export default function BookmarksTab({
   visibleSection,
 }: BookmarksTabProps) {
   const { t } = useTranslation();
-  const {
-    bookmarks,
-    loading,
-    handleToggleBookmark,
-    handleDeleteBookmark,
-  } = useBookmarks(courseId, moduleId, visibleSection);
+  const { bookmarks, loading, handleToggleBookmark, handleDeleteBookmark } = useBookmarks(
+    courseId,
+    moduleId,
+    visibleSection,
+  );
 
   const sectionOpt = visibleSection ? sections.find((s) => s.id === visibleSection)?.heading : null;
 
@@ -56,9 +55,7 @@ export default function BookmarksTab({
         }}
         className="w-full py-1 text-xs bg-amber-700 hover:bg-amber-600 rounded mt-2"
       >
-        {bookmarks.some((b) =>
-          visibleSection ? b.sectionID === visibleSection : !b.sectionID,
-        )
+        {bookmarks.some((b) => (visibleSection ? b.sectionID === visibleSection : !b.sectionID))
           ? t('studyTools.removeBookmark')
           : t('studyTools.addBookmark')}
       </button>

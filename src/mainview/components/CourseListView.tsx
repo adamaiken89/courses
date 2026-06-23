@@ -23,8 +23,14 @@ export default function CourseListView({ onSelectCourse, onOpenSettings, onOpenB
     load();
   }, [load]);
 
-  if (loading) return <div className="p-8 text-center text-gray-400">{t('courseList.loadingCourses')}</div>;
-  if (error) return <div className="p-8 text-center text-red-400">{t('courseList.loadError')}: {error}</div>;
+  if (loading)
+    return <div className="p-8 text-center text-gray-400">{t('courseList.loadingCourses')}</div>;
+  if (error)
+    return (
+      <div className="p-8 text-center text-red-400">
+        {t('courseList.loadError')}: {error}
+      </div>
+    );
 
   return (
     <PageLayout>
@@ -50,9 +56,7 @@ export default function CourseListView({ onSelectCourse, onOpenSettings, onOpenB
 
       <PageContent>
         {courses.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
-            {t('courseList.noCourses')}
-          </div>
+          <div className="text-center py-12 text-gray-500">{t('courseList.noCourses')}</div>
         )}
 
         <div className="grid gap-4 sm:grid-cols-2">

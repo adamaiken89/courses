@@ -47,7 +47,8 @@ export default function BookmarksView({ onBack, onOpen, onSwitchCourse }: Props)
     setBookmarks((prev) => prev.filter((b) => b.id !== id));
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-400">{t('bookmarks.loadingBookmarks')}</div>;
+  if (loading)
+    return <div className="p-8 text-center text-gray-400">{t('bookmarks.loadingBookmarks')}</div>;
 
   return (
     <PageLayout>
@@ -58,9 +59,7 @@ export default function BookmarksView({ onBack, onOpen, onSwitchCourse }: Props)
       />
       <PageContent className="max-w-2xl mx-auto px-6 py-8">
         {bookmarks.length === 0 ? (
-          <p className="text-center text-gray-500 py-12">
-            {t('bookmarks.noBookmarks')}
-          </p>
+          <p className="text-center text-gray-500 py-12">{t('bookmarks.noBookmarks')}</p>
         ) : (
           <div className="space-y-3">
             {bookmarks.map((b) => {

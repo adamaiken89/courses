@@ -333,7 +333,8 @@ export default function LessonView({
     return () => el.removeEventListener('wheel', handler);
   }, [hasPrevModule, hasNextModule, onPrevModule, onNextModule]);
 
-  if (loading) return <div className="p-8 text-center text-gray-400">{t('lesson.loadingLesson')}</div>;
+  if (loading)
+    return <div className="p-8 text-center text-gray-400">{t('lesson.loadingLesson')}</div>;
 
   return (
     <div className="flex flex-1 overflow-hidden">
@@ -397,14 +398,17 @@ export default function LessonView({
           >
             {t('lesson.tools')}
           </button>
+        </div>
+
+        {!showSections && (
           <button
             onClick={toggleSections}
-            className={toggleVariants({ active: showSections })}
+            className="fixed right-4 top-24 z-50 w-10 h-10 rounded-full bg-gray-800 border border-gray-700 shadow-lg flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
             title={t('lesson.toggleSectionsPanel')}
           >
-            {t('lesson.sections')}
+            ☰
           </button>
-        </div>
+        )}
 
         {showSections && (
           <div className="relative h-0 z-50">
@@ -412,8 +416,15 @@ export default function LessonView({
               {sections.length > 0 && (
                 <>
                   <div className="shrink-0 px-2.5 py-1.5 border-b border-gray-700 flex items-center justify-between">
-                    <span className="text-xs font-semibold text-indigo-400">{t('lesson.sections')}</span>
-                    <span className="text-[10px] text-gray-500">{sections.length}</span>
+                    <span className="text-xs font-semibold text-indigo-400">
+                      {t('lesson.sections')}
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] text-gray-500">{sections.length}</span>
+                      <button onClick={toggleSections} className={toggleVariants({ active: true })}>
+                        →
+                      </button>
+                    </div>
                   </div>
                   <div className="overflow-y-auto max-h-[70vh]" ref={sectionsRef}>
                     {sections.map((s) => {
@@ -452,7 +463,11 @@ export default function LessonView({
                               style={{
                                 color: isBookmarked ? '#fbbf24' : isActive ? '#fff' : '#4b5563',
                               }}
-                              title={isBookmarked ? t('lesson.removeBookmark') : t('lesson.bookmarkSection')}
+                              title={
+                                isBookmarked
+                                  ? t('lesson.removeBookmark')
+                                  : t('lesson.bookmarkSection')
+                              }
                             >
                               {isBookmarked ? '★' : '☆'}
                             </span>

@@ -61,7 +61,8 @@ export default function ReviewView({ courseId, onBack }: Props) {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-gray-400">{t('review.loadingCards')}</div>;
+  if (loading)
+    return <div className="p-8 text-center text-gray-400">{t('review.loadingCards')}</div>;
 
   const currentCard = cards[currentIndex];
 
@@ -78,7 +79,11 @@ export default function ReviewView({ courseId, onBack }: Props) {
                 onClick={() => handleFilterChange(f)}
                 className={filterVariants({ active: filter === f })}
               >
-                {f === 'all' ? t('review.all') : f === 'due' ? t('review.due') : t('review.starred')}
+                {f === 'all'
+                  ? t('review.all')
+                  : f === 'due'
+                    ? t('review.due')
+                    : t('review.starred')}
               </button>
             ))}
           </div>

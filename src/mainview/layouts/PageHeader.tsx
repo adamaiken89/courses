@@ -34,9 +34,7 @@ export default function PageHeader({
             <div className="h-4 w-px bg-gray-600" />
           </>
         )}
-        {title && (
-          <span className="text-sm font-medium text-gray-200 truncate">{title}</span>
-        )}
+        {title && <span className="text-sm font-medium text-gray-200 truncate">{title}</span>}
       </div>
 
       {center && <div className="flex-1 flex justify-center">{center}</div>}

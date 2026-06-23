@@ -31,7 +31,9 @@ export default function ModuleSwitcher({ modules, currentModuleId, onSelect }: P
         className="px-4 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors flex items-center gap-2 min-w-[260px] w-full max-w-lg"
       >
         <span className="truncate">
-          {current ? `${String(currentIdx + 1).padStart(2, '0')} ${current.name}` : t('common.modules')}
+          {current
+            ? `${String(currentIdx + 1).padStart(2, '0')} ${current.name}`
+            : t('common.modules')}
         </span>
         <span className={`text-xs shrink-0 transition-transform ${open ? 'rotate-180' : ''}`}>
           ▾

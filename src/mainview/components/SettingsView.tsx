@@ -17,11 +17,36 @@ const THEME_CARDS: ThemeCard[] = [
   { id: 'dark', icon: '🌙', labelKey: 'settings.themes.dark', descKey: 'settings.themes.darkDesc' },
   { id: 'oled', icon: '🖤', labelKey: 'settings.themes.oled', descKey: 'settings.themes.oledDesc' },
   { id: 'nord', icon: '❄️', labelKey: 'settings.themes.nord', descKey: 'settings.themes.nordDesc' },
-  { id: 'sepia', icon: '📜', labelKey: 'settings.themes.sepia', descKey: 'settings.themes.sepiaDesc' },
-  { id: 'gruvbox', icon: '🪵', labelKey: 'settings.themes.gruvbox', descKey: 'settings.themes.gruvboxDesc' },
-  { id: 'light', icon: '☀️', labelKey: 'settings.themes.light', descKey: 'settings.themes.lightDesc' },
-  { id: 'solarized-dark', icon: '🔆', labelKey: 'settings.themes.solarized', descKey: 'settings.themes.solarizedDesc' },
-  { id: 'catppuccin', icon: '🩷', labelKey: 'settings.themes.catppuccin', descKey: 'settings.themes.catppuccinDesc' },
+  {
+    id: 'sepia',
+    icon: '📜',
+    labelKey: 'settings.themes.sepia',
+    descKey: 'settings.themes.sepiaDesc',
+  },
+  {
+    id: 'gruvbox',
+    icon: '🪵',
+    labelKey: 'settings.themes.gruvbox',
+    descKey: 'settings.themes.gruvboxDesc',
+  },
+  {
+    id: 'light',
+    icon: '☀️',
+    labelKey: 'settings.themes.light',
+    descKey: 'settings.themes.lightDesc',
+  },
+  {
+    id: 'solarized-dark',
+    icon: '🔆',
+    labelKey: 'settings.themes.solarized',
+    descKey: 'settings.themes.solarizedDesc',
+  },
+  {
+    id: 'catppuccin',
+    icon: '🩷',
+    labelKey: 'settings.themes.catppuccin',
+    descKey: 'settings.themes.catppuccinDesc',
+  },
 ];
 
 interface Props {
@@ -81,9 +106,7 @@ export default function SettingsView({ onBack }: Props) {
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
-              placeholder={
-                hasApiKey ? t('settings.apiKeySet') : t('settings.apiKeyPlaceholder')
-              }
+              placeholder={hasApiKey ? t('settings.apiKeySet') : t('settings.apiKeyPlaceholder')}
               className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-500"
             />
             <button
@@ -114,7 +137,9 @@ export default function SettingsView({ onBack }: Props) {
               >
                 <div className="text-base">{t_card.icon}</div>
                 <div className="text-sm font-medium mt-1">{t(t_card.labelKey)}</div>
-                <div className="text-[10px] text-gray-400 mt-0.5 leading-tight">{t(t_card.descKey)}</div>
+                <div className="text-[10px] text-gray-400 mt-0.5 leading-tight">
+                  {t(t_card.descKey)}
+                </div>
               </button>
             ))}
           </div>

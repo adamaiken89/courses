@@ -69,9 +69,7 @@ export default function StudyTools({
             visibleSection={visibleSection}
           />
         )}
-        {activeTab === 'highlights' && (
-          <HighlightsTab courseId={courseId} moduleId={moduleId} />
-        )}
+        {activeTab === 'highlights' && <HighlightsTab courseId={courseId} moduleId={moduleId} />}
         {activeTab === 'bookmarks' && (
           <BookmarksTab
             courseId={courseId}

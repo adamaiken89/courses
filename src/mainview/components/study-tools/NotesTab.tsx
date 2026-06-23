@@ -60,7 +60,9 @@ export default function NotesTab({ courseId, moduleId, sections, visibleSection 
   return (
     <div className="space-y-3">
       {sectionOpt && (
-        <p className="text-[10px] text-gray-500 italic">{t('studyTools.currentSection', { section: sectionOpt })}</p>
+        <p className="text-[10px] text-gray-500 italic">
+          {t('studyTools.currentSection', { section: sectionOpt })}
+        </p>
       )}
       <textarea
         value={newNoteContent}

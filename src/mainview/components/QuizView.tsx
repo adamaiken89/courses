@@ -101,7 +101,8 @@ export default function QuizView({ courseId, moduleId, onBack }: Props) {
                   >
                     <p className="font-medium mb-1">{q.question}</p>
                     <p className="text-gray-400 text-xs">
-                      {t('quiz.yourAnswer')} {selectedAnswers[q.id]}. {t('quiz.correctAnswer')} {q.answer}
+                      {t('quiz.yourAnswer')} {selectedAnswers[q.id]}. {t('quiz.correctAnswer')}{' '}
+                      {q.answer}
                     </p>
                     <p className="text-gray-500 text-xs mt-1">{q.explanation}</p>
                   </div>
@@ -141,7 +142,9 @@ export default function QuizView({ courseId, moduleId, onBack }: Props) {
         <div className="bg-gray-800 rounded-xl p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-xs bg-indigo-600 px-2 py-0.5 rounded">Q{currentQuestion.id}</span>
-            <span className="text-xs text-gray-400">{t('quiz.difficulty', { level: currentQuestion.difficulty })}</span>
+            <span className="text-xs text-gray-400">
+              {t('quiz.difficulty', { level: currentQuestion.difficulty })}
+            </span>
           </div>
           <h2 className="text-lg font-medium mb-6">{currentQuestion.question}</h2>
 
