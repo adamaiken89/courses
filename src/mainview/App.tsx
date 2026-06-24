@@ -1,22 +1,22 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import BookmarksPage from './pages/BookmarksPage';
-import CourseListPage from './pages/CourseListPage';
-import DashboardPage from './pages/DashboardPage';
-
-import ModuleListPage from './pages/ModuleListPage';
 import SearchOverlay from './components/SearchOverlay';
-import SettingsPage from './pages/SettingsPage';
-import LessonPage from './pages/LessonPage';
-import QuizPage from './pages/QuizPage';
-import ReviewPage from './pages/ReviewPage';
-import UserCardReviewPage from './pages/UserCardReviewPage';
 import { useCourseStore } from './stores/courseStore';
 import { useViewStore } from './stores/viewStore';
 import { useSyncStore } from './stores/syncStore';
 
 import type { Course, ModuleMeta } from '../bun/types';
+
+const BookmarksPage = lazy(() => import('./pages/BookmarksPage'));
+const CourseListPage = lazy(() => import('./pages/CourseListPage'));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const ModuleListPage = lazy(() => import('./pages/ModuleListPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const LessonPage = lazy(() => import('./pages/LessonPage'));
+const QuizPage = lazy(() => import('./pages/QuizPage'));
+const ReviewPage = lazy(() => import('./pages/ReviewPage'));
+const UserCardReviewPage = lazy(() => import('./pages/UserCardReviewPage'));
 
 export default function App() {
   const { t } = useTranslation();
@@ -194,7 +194,9 @@ export default function App() {
 
   return (
     <>
-      {viewContent}
+      <Suspense fallback={<div className="min-h-screen bg-gray-900 text-gray-400 flex items-center justify-center">{t('common.loading')}</div>}>
+        {viewContent}
+      </Suspense>
       <button
         onClick={() => setSearchOpen(true)}
         className="fixed bottom-4 left-4 z-50 w-10 h-10 rounded-full bg-indigo-600 hover:bg-indigo-500 shadow-lg flex items-center justify-center text-white transition-colors"

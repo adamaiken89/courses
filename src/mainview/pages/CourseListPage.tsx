@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useCourseStore } from '../stores/courseStore';
 
 import PageLayout from '../layouts/PageLayout';
+import PageHeader from '../layouts/PageHeader';
 import PageContent from '../layouts/PageContent';
 import type { Course } from '../../bun/types';
 
@@ -35,28 +36,33 @@ export default function CourseListPage({ onSelectCourse, onOpenSettings, onOpenB
 
   return (
     <PageLayout>
+      <PageHeader
+        title="CourseReader"
+        actions={
+          <>
+            <button
+              onClick={onOpenDashboard}
+              className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+              title={t('dashboard.title')}
+            >
+              📊
+            </button>
+            <button
+              onClick={onOpenBookmarks}
+              className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+            >
+              {t('common.bookmarks')}
+            </button>
+            <button
+              onClick={onOpenSettings}
+              className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+            >
+              {t('common.settings')}
+            </button>
+          </>
+        }
+      />
       <PageContent>
-        <div className="flex items-center justify-end gap-1.5 mb-4">
-          <button
-            onClick={onOpenDashboard}
-            className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-            title={t('dashboard.title')}
-          >
-            📊
-          </button>
-          <button
-            onClick={onOpenBookmarks}
-            className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-          >
-            {t('common.bookmarks')}
-          </button>
-          <button
-            onClick={onOpenSettings}
-            className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-          >
-            {t('common.settings')}
-          </button>
-        </div>
         {courses.length === 0 && (
           <div className="text-center py-12 text-gray-500">{t('courseList.noCourses')}</div>
         )}
