@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useOptimistic } from 'react';
 import { api } from '../api';
 import type { Section } from '../components/sidebar-types';
 
@@ -29,6 +29,10 @@ export function useLesson(
   const [sections, setSections] = useState<Section[]>([]);
   const [visibleSection, setVisibleSection] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState(false);
+  const [optimisticIsCompleted, toggleOptimistic] = useOptimistic<boolean, 1>(
+    isCompleted,
+    (state) => !state,
+  );
   const [totalModules, setTotalModules] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null) as DivRef;
@@ -64,6 +68,7 @@ export function useLesson(
   }, [sections]);
 
   const handleToggleCompleted = useCallback(async () => {
+    toggleOptimistic(1);
     const result = await api.storage.toggleCompleted(courseId, moduleId);
     setIsCompleted(result.completed);
     const count = await api.storage.completedCount(courseId);
@@ -76,7 +81,7 @@ export function useLesson(
         type: 'reading',
       }).catch(() => {});
     }
-  }, [courseId, moduleId]);
+  }, [courseId, moduleId, toggleOptimistic]);
 
   useEffect(() => {
     setLoading(true);
@@ -107,7 +112,7 @@ export function useLesson(
     loading,
     sections,
     visibleSection,
-    isCompleted,
+    isCompleted: optimisticIsCompleted,
     totalModules,
     completedCount,
     contentRef,

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useTransition } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api';
 import type { SearchResult } from '../../bun/search';
@@ -16,6 +16,7 @@ const TYPE_ICONS: Record<string, string> = {
 
 export default function SearchOverlay({ onClose, onNavigate }: SearchOverlayProps) {
   const { t } = useTranslation();
+  const [, startTransition] = useTransition();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
@@ -68,7 +69,7 @@ export default function SearchOverlay({ onClose, onNavigate }: SearchOverlayProp
             ref={inputRef}
             type="text"
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => startTransition(() => setQuery(e.target.value))}
             placeholder={t('search.placeholder')}
             className="flex-1 bg-transparent text-sm text-gray-200 placeholder-gray-500 outline-none"
           />

@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import BackToCourseList from '../components/BackToCourseList';
 
 interface PageHeaderProps {
   onBack?: () => void;
@@ -23,6 +24,8 @@ export default function PageHeader({
   return (
     <header className="relative z-40 bg-gray-800 border-b border-gray-700 px-4 py-2 flex items-center gap-3 shrink-0">
       <div className="flex items-center gap-3 min-w-0">
+        <BackToCourseList />
+        <div className="h-4 w-px bg-gray-600" />
         {onBack && (
           <>
             <button

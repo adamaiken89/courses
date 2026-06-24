@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState, useTransition } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import SearchOverlay from './components/SearchOverlay';
@@ -24,6 +24,7 @@ export default function App() {
   const push = useViewStore((s) => s.push);
   const pop = useViewStore((s) => s.pop);
   const replace = useViewStore((s) => s.replace);
+  const [, startTransition] = useTransition();
   const currentView = views[views.length - 1];
   const courses = useCourseStore((s) => s.courses);
   const loadCourses = useCourseStore((s) => s.load);
@@ -72,26 +73,26 @@ export default function App() {
       const course = courses.find((c) => c.id === courseID);
       const mod = course?.modules.find((m) => m.id === moduleID);
       if (course && mod) {
-        push({ type: 'lesson', course, module: mod });
+        startTransition(() => push({ type: 'lesson', course, module: mod }));
       }
     },
-    [courses, push],
+    [courses, push, startTransition],
   );
 
   const handleSelectModule = (course: Course, module: ModuleMeta) => {
-    push({ type: 'lesson', course, module });
+    startTransition(() => push({ type: 'lesson', course, module }));
   };
 
   const handleStartReview = (course: Course) => {
-    push({ type: 'review', course });
+    startTransition(() => push({ type: 'review', course }));
   };
 
   const handleSwitchCourse = (course: Course) => {
-    replace({ type: 'lesson', course, module: course.modules[0] });
+    startTransition(() => replace({ type: 'lesson', course, module: course.modules[0] }));
   };
 
   const handleSelectCourse = (course: Course) => {
-    push({ type: 'moduleList', course });
+    startTransition(() => push({ type: 'moduleList', course }));
   };
 
   if (loading || !currentView) {
@@ -120,7 +121,6 @@ export default function App() {
           course={currentView.course}
           onSelectModule={(m) => handleSelectModule(currentView.course, m)}
           onSelectCourse={handleSelectCourse}
-          onBack={() => replace({ type: 'courseList' })}
           onOpenSettings={() => push({ type: 'settings' })}
           onOpenBookmarks={() => push({ type: 'bookmarks' })}
           onOpenDashboard={() => push({ type: 'dashboard' })}

@@ -14,7 +14,8 @@
     "edit": "編輯",
     "delete": "刪除",
     "deleteBookmark": "刪除書籤",
-    "modules": "單元"
+    "modules": "單元",
+    "courseReader": "← CourseReader"
   },
   "landing": {
     "title": "歡迎使用 CourseReader",
@@ -37,7 +38,6 @@
     "noCourses": "找不到課程"
   },
   "moduleList": {
-    "allCourses": "← 所有課程",
     "modules": "{{count}} 個單元"
   },
   "lesson": {

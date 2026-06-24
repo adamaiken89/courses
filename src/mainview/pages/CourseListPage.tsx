@@ -37,7 +37,6 @@ export default function CourseListPage({ onSelectCourse, onOpenSettings, onOpenB
   return (
     <PageLayout>
       <PageHeader
-        title="CourseReader"
         actions={
           <>
             <button

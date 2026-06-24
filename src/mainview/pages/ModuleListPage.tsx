@@ -9,7 +9,6 @@ interface Props {
   course: Course;
   onSelectModule: (module: ModuleMeta) => void;
   onSelectCourse: (course: Course) => void;
-  onBack: () => void;
   onOpenSettings: () => void;
   onOpenBookmarks: () => void;
   onOpenDashboard: () => void;
@@ -19,7 +18,6 @@ export default function ModuleListPage({
   course,
   onSelectModule,
   onSelectCourse,
-  onBack,
   onOpenSettings,
   onOpenBookmarks,
   onOpenDashboard,
@@ -29,8 +27,7 @@ export default function ModuleListPage({
   return (
     <PageLayout>
       <PageHeader
-        onBack={onBack}
-        backLabel={t('moduleList.allCourses')}
+        title={course.displayName}
         center={<CourseSwitcher currentCourseId={course.id} onSelect={onSelectCourse} />}
         actions={
           <>

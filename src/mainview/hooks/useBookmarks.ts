@@ -1,6 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useOptimistic } from 'react';
 import { api } from '../api';
 import type { Bookmark } from '../components/sidebar-types';
+
+type OptimisticAction =
+  | { type: 'add'; bookmark: Bookmark }
+  | { type: 'delete'; id: string };
 
 interface UseBookmarksReturn {
   bookmarks: Bookmark[];
@@ -21,6 +25,23 @@ export function useBookmarks(
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [optimisticBookmarks, addOptimistic] = useOptimistic(
+    bookmarks,
+    (state, action: OptimisticAction) => {
+      if (action.type === 'delete') {
+        return state.filter((b) => b.id !== action.id);
+      }
+      if (action.type === 'add') {
+        return state.some(
+          (b) => b.moduleID === action.bookmark.moduleID && b.sectionID === action.bookmark.sectionID,
+        )
+          ? state
+          : [...state, action.bookmark];
+      }
+      return state;
+    },
+  );
+
   useEffect(() => {
     setLoading(true);
     api.storage
@@ -30,8 +51,8 @@ export function useBookmarks(
       .finally(() => setLoading(false));
   }, [courseId, moduleId]);
 
-  const sectionBookmark = bookmarks.find((b) => b.sectionID === visibleSection);
-  const moduleBookmark = bookmarks.find((b) => !b.sectionID);
+  const sectionBookmark = optimisticBookmarks.find((b) => b.sectionID === visibleSection);
+  const moduleBookmark = optimisticBookmarks.find((b) => !b.sectionID);
   const hasActiveBookmark = visibleSection ? !!sectionBookmark : !!moduleBookmark;
   const activeBookmarkId = visibleSection ? sectionBookmark?.id : moduleBookmark?.id;
 
@@ -39,11 +60,22 @@ export function useBookmarks(
     async (title: string, sectionID: string | null) => {
       const existing = sectionID
         ? bookmarks.find((b) => b.sectionID === sectionID)
-        : moduleBookmark;
+        : bookmarks.find((b) => !b.sectionID);
       if (existing) {
+        addOptimistic({ type: 'delete', id: existing.id });
         await api.storage.deleteBookmark(existing.id);
         setBookmarks((prev) => prev.filter((b) => b.id !== existing.id));
       } else {
+        const temp: Bookmark = {
+          id: `optimistic-${Date.now()}`,
+          courseID: courseId,
+          moduleID: moduleId,
+          title,
+          sectionID,
+          scrollPosition: 0,
+          createdAt: new Date().toISOString(),
+        };
+        addOptimistic({ type: 'add', bookmark: temp });
         const bookmark = await api.storage.addBookmark({
           courseID: courseId,
           moduleID: moduleId,
@@ -54,16 +86,17 @@ export function useBookmarks(
         setBookmarks((prev) => [...prev, bookmark]);
       }
     },
-    [bookmarks, moduleBookmark, courseId, moduleId],
+    [bookmarks, courseId, moduleId, addOptimistic],
   );
 
   const handleDeleteBookmark = useCallback(async (id: string) => {
+    addOptimistic({ type: 'delete', id });
     await api.storage.deleteBookmark(id);
     setBookmarks((prev) => prev.filter((b) => b.id !== id));
-  }, []);
+  }, [addOptimistic]);
 
   return {
-    bookmarks,
+    bookmarks: optimisticBookmarks,
     loading,
     handleToggleBookmark,
     handleDeleteBookmark,
