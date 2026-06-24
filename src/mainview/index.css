@@ -280,10 +280,29 @@ body {
   margin-top: 0.5em;
 }
 
-/* Tables (GFM) */
-.book-content table {
-  width: 100%;
+/* Tables (GFM) — horizontal scroll when wider than container */
+.book-content .table-wrapper {
+  overflow-x: auto;
   margin: 1.2em 0;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 6px;
+}
+.book-content .table-wrapper::-webkit-scrollbar {
+  height: 6px;
+}
+.book-content .table-wrapper::-webkit-scrollbar-track {
+  background: transparent;
+}
+.book-content .table-wrapper::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 3px;
+}
+.book-content .table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.4);
+}
+.book-content .table-wrapper table {
+  width: 100%;
+  min-width: 100%;
   border-collapse: collapse;
   font-size: 0.9em;
 }

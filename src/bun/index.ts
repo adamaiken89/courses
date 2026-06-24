@@ -1,3 +1,6 @@
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { serve } from 'bun';
 import { BrowserWindow, Updater } from 'electrobun/bun';
 import * as CourseLoader from './course-loader';
 import * as Storage from './storage';
@@ -27,374 +30,385 @@ function getQuizEngine(): QuizEngine {
   return _quizEngine;
 }
 
-function corsHeaders() {
-  return {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
-}
+const app = new Hono();
 
-function jsonResponse(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { 'Content-Type': 'application/json', ...corsHeaders() },
-  });
-}
+app.use('/*', cors());
+app.onError((err, c) => c.json({ error: err.message }, 500));
+app.notFound((c) => c.json({ error: 'Not found' }, 404));
 
-const router = {
-  'GET /api/stats/:courseId': (params: Record<string, string>) => {
-    try {
-      return jsonResponse(Stats.getCourseStats(params.courseId));
-    } catch (e) {
-      return jsonResponse({ error: (e as Error).message }, 404);
-    }
-  },
-  'GET /api/stats/global': () => jsonResponse(Stats.getGlobalStats()),
-  'POST /api/stats/session': async (_params: Record<string, string>, req: Request) => {
-    const body = (await req.json()) as {
-      courseID: string;
-      moduleID: number;
-      durationMinutes: number;
-      type: 'reading' | 'quiz' | 'review';
-      score?: number;
-      total?: number;
-    };
-    Storage.addStudySession(body);
-    return jsonResponse({ ok: true });
-  },
-  'GET /api/search': (_params: Record<string, string>, req: Request) => {
-    const url = new URL(req.url);
-    const q = url.searchParams.get('q') || '';
-    return jsonResponse(Search.searchAll(q));
-  },
-  'GET /api/courses': () => jsonResponse(CourseLoader.loadCourses()),
-  'GET /api/courses/:courseId/modules': (_params: Record<string, string>) => {
-    const courses = CourseLoader.loadCourses();
-    const course = courses.find((s) => s.id === _params.courseId);
-    return jsonResponse(course?.modules || []);
-  },
-  'GET /api/courses/:courseId/modules/:moduleId/lesson': (params: Record<string, string>) => {
-    return jsonResponse({
-      content: CourseLoader.loadLesson(params.courseId, Number(params.moduleId)),
-    });
-  },
-  'GET /api/courses/:courseId/modules/:moduleId/quiz': (params: Record<string, string>) => {
-    return jsonResponse(CourseLoader.loadQuiz(params.courseId, Number(params.moduleId)));
-  },
-  'GET /api/courses/:courseId/modules/:moduleId/sections': (params: Record<string, string>) => {
-    const content = CourseLoader.loadLesson(params.courseId, Number(params.moduleId));
-    return jsonResponse(CourseLoader.parseSections(content));
-  },
-  'GET /api/courses/:courseId/srs': (params: Record<string, string>) => {
-    const deck = CourseLoader.loadSRSDeck(params.courseId);
-    return jsonResponse(deck);
-  },
-  'POST /api/courses/:courseId/srs': async (params: Record<string, string>, req: Request) => {
-    const body = (await req.json()) as { cardId: string };
-    const deck = CourseLoader.loadSRSDeck(params.courseId);
-    const updated = toggleStar(deck, body.cardId);
-    CourseLoader.saveSRSDeck(updated, params.courseId);
-    return jsonResponse(updated);
-  },
-  'POST /api/courses/:courseId/srs/review': async (
-    params: Record<string, string>,
-    req: Request,
-  ) => {
-    const body = (await req.json()) as { cardId: string; correct: boolean; deck: SRSDeck };
-    const deck = body.deck || CourseLoader.loadSRSDeck(params.courseId);
-    const card = deck.cards[body.cardId];
-    if (!card) return jsonResponse({ error: 'Card not found' }, 404);
-    const updatedCard = performReview(card, body.correct);
-    deck.cards[body.cardId] = updatedCard;
-    CourseLoader.saveSRSDeck(deck, params.courseId);
-    return jsonResponse(updatedCard);
-  },
-  'POST /api/courses/:courseId/srs/create': async (
-    params: Record<string, string>,
-    req: Request,
-  ) => {
-    const body = (await req.json()) as { question: QuizQuestion; moduleId: number };
-    const card = createSRSCard(body.question, body.moduleId, params.courseId);
-    const deck = CourseLoader.loadSRSDeck(params.courseId);
-    deck.cards[card.id] = card;
-    CourseLoader.saveSRSDeck(deck, params.courseId);
-    return jsonResponse(card);
-  },
-  'GET /api/courses/:courseId/srs/filter/:filter': (params: Record<string, string>) => {
-    const deck = CourseLoader.loadSRSDeck(params.courseId);
-    switch (params.filter) {
-      case 'due':
-        return jsonResponse(getDueCardsForCourse(deck, params.courseId));
-      case 'starred':
-        return jsonResponse(getStarredCardsForCourse(deck, params.courseId));
-      default:
-        return jsonResponse(getCardsForCourse(deck, params.courseId));
-    }
-  },
-  'GET /api/storage/highlights': (_params: Record<string, string>, req: Request) => {
-    const url = new URL(req.url);
-    const courseID = url.searchParams.get('courseID')!;
-    const moduleID = Number(url.searchParams.get('moduleID'));
-    return jsonResponse(Storage.getHighlightsForModule(courseID, moduleID));
-  },
-  'POST /api/storage/highlights': async (_params: Record<string, string>, req: Request) => {
-    const body = (await req.json()) as {
-      courseID: string;
-      moduleID: number;
-      selectedText: string;
-      startOffset: number;
-      endOffset: number;
-      color?: string;
-    };
-    const highlight = Storage.addHighlight(
-      body.courseID,
-      body.moduleID,
-      body.selectedText,
-      body.startOffset,
-      body.endOffset,
-      body.color,
-    );
-    return jsonResponse(highlight, 201);
-  },
-  'DELETE /api/storage/highlights/:id': (params: Record<string, string>) => {
-    Storage.deleteHighlight(params.id);
-    return jsonResponse({ ok: true });
-  },
-  'GET /api/storage/notes': (_params: Record<string, string>, req: Request) => {
-    const url = new URL(req.url);
-    const courseID = url.searchParams.get('courseID')!;
-    const moduleID = Number(url.searchParams.get('moduleID'));
-    return jsonResponse(Storage.getNotesForModule(courseID, moduleID));
-  },
-  'POST /api/storage/notes': async (_params: Record<string, string>, req: Request) => {
-    const body = (await req.json()) as {
-      courseID: string;
-      moduleID: number;
-      content: string;
-      highlightID?: string;
-      sectionID?: string;
-    };
-    const note = Storage.addNote(
-      body.courseID,
-      body.moduleID,
-      body.content,
-      body.highlightID,
-      body.sectionID,
-    );
-    return jsonResponse(note, 201);
-  },
-  'PUT /api/storage/notes/:id': async (params: Record<string, string>, req: Request) => {
-    const body = (await req.json()) as { content: string };
-    Storage.updateNote(params.id, body.content);
-    return jsonResponse({ ok: true });
-  },
-  'POST /api/storage/annotations': async (_params: Record<string, string>, req: Request) => {
-    const body = (await req.json()) as {
-      courseID: string;
-      moduleID: number;
-      selectedText: string;
-      startOffset: number;
-      endOffset: number;
-      color: string;
-      noteContent: string;
-    };
-    const result = Storage.addAnnotation(body);
-    return jsonResponse(result, 201);
-  },
-  'DELETE /api/storage/notes/:id': (params: Record<string, string>) => {
-    Storage.deleteNote(params.id);
-    return jsonResponse({ ok: true });
-  },
-  'GET /api/storage/bookmarks': () => jsonResponse(Storage.getAllBookmarks()),
-  'GET /api/storage/bookmarks/course/:courseID': (params: Record<string, string>) =>
-    jsonResponse(Storage.getBookmarksForCourse(params.courseID)),
-  'POST /api/storage/bookmarks': async (_params: Record<string, string>, req: Request) => {
-    const body = (await req.json()) as {
-      courseID: string;
-      moduleID: number;
-      title: string;
-      sectionID?: string;
-      scrollPosition?: number;
-    };
-    const bookmark = Storage.addBookmark(
-      body.courseID,
-      body.moduleID,
-      body.title,
-      body.sectionID,
-      body.scrollPosition,
-    );
-    return jsonResponse(bookmark, 201);
-  },
-  'DELETE /api/storage/bookmarks/:id': (params: Record<string, string>) => {
-    Storage.deleteBookmark(params.id);
-    return jsonResponse({ ok: true });
-  },
-  'GET /api/storage/bookmarks/module/:courseID/:moduleID': (params: Record<string, string>) =>
-    jsonResponse(Storage.getBookmarksForModule(params.courseID, Number(params.moduleID))),
-  'GET /api/storage/check-bookmark': (_params: Record<string, string>, req: Request) => {
-    const url = new URL(req.url);
-    const courseID = url.searchParams.get('courseID')!;
-    const moduleID = Number(url.searchParams.get('moduleID'));
-    return jsonResponse(Storage.isBookmarked(courseID, moduleID));
-  },
-  'GET /api/storage/completed': (_params: Record<string, string>, req: Request) => {
-    const url = new URL(req.url);
-    const courseID = url.searchParams.get('courseID')!;
-    const moduleID = Number(url.searchParams.get('moduleID'));
-    return jsonResponse({ completed: Storage.isModuleCompleted(courseID, moduleID) });
-  },
-  'POST /api/storage/completed': async (_params: Record<string, string>, req: Request) => {
-    const body = (await req.json()) as { courseID: string; moduleID: number };
-    const completed = Storage.toggleModuleCompleted(body.courseID, body.moduleID);
-    return jsonResponse({ completed });
-  },
-  'GET /api/storage/completed/count': (_params: Record<string, string>, req: Request) => {
-    const url = new URL(req.url);
-    const courseID = url.searchParams.get('courseID')!;
-    return jsonResponse({ count: Storage.getCompletedModuleCount(courseID) });
-  },
-  'GET /api/gemini/key': () => jsonResponse({ hasKey: Gemini.hasAPIKey() }),
-  'POST /api/gemini/key': async (_params: Record<string, string>, req: Request) => {
-    const body = (await req.json()) as { key: string };
-    Gemini.setAPIKey(body.key);
-    return jsonResponse({ ok: true });
-  },
-  'POST /api/gemini/ask': async (_params: Record<string, string>, req: Request) => {
-    const body = (await req.json()) as { question: string; context: string };
-    try {
-      const response = await Gemini.askGemini(body.question, body.context);
-      return jsonResponse({ response });
-    } catch (err) {
-      return jsonResponse({ error: (err as Error).message }, 400);
-    }
-  },
-  'POST /api/quiz/start': async (_params: Record<string, string>, req: Request) => {
-    const body = (await req.json()) as { courseId: string; moduleId: number };
-    const questions = CourseLoader.loadQuiz(body.courseId, body.moduleId);
-    const engine = new QuizEngine();
-    engine.load(questions, body.courseId, body.moduleId);
-    _quizEngine = engine;
-    return jsonResponse(questions);
-  },
-  'GET /api/quiz/state': () => {
-    const engine = getQuizEngine();
-    return jsonResponse({
-      currentIndex: engine.currentIndex,
-      selectedAnswers: engine.selectedAnswers,
-      isCompleted: engine.isCompleted,
-      currentQuestion: engine.currentQuestion,
-      score: engine.score,
-      percentage: engine.percentage,
-    });
-  },
-  'POST /api/quiz/select': async (_params: Record<string, string>, req: Request) => {
-    const body = (await req.json()) as { answer: string };
-    getQuizEngine().selectAnswer(body.answer);
-    return jsonResponse({ ok: true });
-  },
-  'POST /api/quiz/next': () => {
-    getQuizEngine().nextQuestion();
-    return jsonResponse({ ok: true });
-  },
-  'POST /api/quiz/reset': () => {
-    getQuizEngine().reset();
-    return jsonResponse({ ok: true });
-  },
+// --- Stats ---
 
-  // --- UserCard routes ---
-
-  'GET /api/usercards': (_params: Record<string, string>, req: Request) => {
-    const url = new URL(req.url);
-    const courseId = url.searchParams.get('courseId') || undefined;
-    const moduleId = url.searchParams.get('moduleId')
-      ? Number(url.searchParams.get('moduleId'))
-      : undefined;
-    return jsonResponse(Storage.getUserCards(courseId, moduleId));
-  },
-
-  'POST /api/usercards': async (_params: Record<string, string>, req: Request) => {
-    const body = (await req.json()) as {
-      courseId: string;
-      moduleId: number;
-      front: string;
-      back: string;
-    };
-    const card = Storage.addUserCard(body.courseId, body.moduleId, body.front, body.back);
-    return jsonResponse(card, 201);
-  },
-
-  'DELETE /api/usercards/:id': (params: Record<string, string>) => {
-    Storage.deleteUserCard(params.id);
-    return jsonResponse({ ok: true });
-  },
-
-  'POST /api/usercards/:id/review': async (params: Record<string, string>, req: Request) => {
-    const body = (await req.json()) as { correct: boolean };
-    const card = Storage.reviewUserCard(params.id, body.correct);
-    if (!card) return jsonResponse({ error: 'Card not found' }, 404);
-    return jsonResponse(card);
-  },
-
-  'POST /api/usercards/:id/star': (params: Record<string, string>) => {
-    const card = Storage.toggleUserCardStar(params.id);
-    if (!card) return jsonResponse({ error: 'Card not found' }, 404);
-    return jsonResponse(card);
-  },
-
-  // --- Sync routes ---
-
-  'GET /api/sync/status': () => {
-    const config = Storage.getSyncConfig();
-    return jsonResponse({
-      lastSyncTime: config.lastSyncTime,
-      lastSyncedCommit: config.lastSyncedCommit,
-      isSyncing: Sync.isSyncing(),
-      remoteRepoURL: config.remoteRepoURL,
-    });
-  },
-
-  'POST /api/sync/start': async () => {
-    const result = await Sync.syncCourses();
-    return jsonResponse(result);
-  },
-
-  'POST /api/sync/config': async (_params: Record<string, string>, req: Request) => {
-    const body = (await req.json()) as { remoteRepoURL: string };
-    Storage.saveSyncConfig({ remoteRepoURL: body.remoteRepoURL });
-    return jsonResponse({ ok: true });
-  },
-};
-
-function matchRoute(
-  method: string,
-  urlPath: string,
-): { handler: Function; params: Record<string, string> } | null {
-  for (const [routePattern, handler] of Object.entries(router)) {
-    const [routeMethod, routePath] = routePattern.split(' ');
-    if (routeMethod !== method) continue;
-
-    const routeParts = routePath.split('/');
-    const urlParts = urlPath.split('?').shift()!.split('/');
-
-    if (routeParts.length !== urlParts.length) continue;
-
-    const params: Record<string, string> = {};
-    let match = true;
-
-    for (let i = 0; i < routeParts.length; i++) {
-      if (routeParts[i].startsWith(':')) {
-        params[routeParts[i].slice(1)] = urlParts[i];
-      } else if (routeParts[i] !== urlParts[i]) {
-        match = false;
-        break;
-      }
-    }
-
-    if (match) return { handler: handler as Function, params };
+app.get('/api/stats/:courseId', (c) => {
+  try {
+    return c.json(Stats.getCourseStats(c.req.param('courseId')));
+  } catch (e) {
+    return c.json({ error: (e as Error).message }, 404);
   }
-  return null;
-}
+});
+
+app.get('/api/stats/global', (c) => c.json(Stats.getGlobalStats()));
+
+app.post('/api/stats/session', async (c) => {
+  const body = (await c.req.json()) as {
+    courseID: string;
+    moduleID: number;
+    durationMinutes: number;
+    type: 'reading' | 'quiz' | 'review';
+    score?: number;
+    total?: number;
+  };
+  Storage.addStudySession(body);
+  return c.json({ ok: true });
+});
+
+// --- Search ---
+
+app.get('/api/search', (c) => {
+  const q = c.req.query('q') || '';
+  return c.json(Search.searchAll(q));
+});
+
+// --- Courses ---
+
+app.get('/api/courses', (c) => c.json(CourseLoader.loadCourses()));
+
+app.get('/api/courses/:courseId/modules', (c) => {
+  const courses = CourseLoader.loadCourses();
+  const course = courses.find((s) => s.id === c.req.param('courseId'));
+  return c.json(course?.modules || []);
+});
+
+// --- Lesson & Quiz ---
+
+app.get('/api/courses/:courseId/modules/:moduleId/lesson', (c) => {
+  return c.json({
+    content: CourseLoader.loadLesson(c.req.param('courseId'), Number(c.req.param('moduleId'))),
+  });
+});
+
+app.get('/api/courses/:courseId/modules/:moduleId/quiz', (c) => {
+  return c.json(CourseLoader.loadQuiz(c.req.param('courseId'), Number(c.req.param('moduleId'))));
+});
+
+app.get('/api/courses/:courseId/modules/:moduleId/sections', (c) => {
+  const content = CourseLoader.loadLesson(c.req.param('courseId'), Number(c.req.param('moduleId')));
+  return c.json(CourseLoader.parseSections(content));
+});
+
+// --- SRS ---
+
+app.get('/api/courses/:courseId/srs', (c) => {
+  const deck = CourseLoader.loadSRSDeck(c.req.param('courseId'));
+  return c.json(deck);
+});
+
+app.post('/api/courses/:courseId/srs', async (c) => {
+  const body = (await c.req.json()) as { cardId: string };
+  const courseId = c.req.param('courseId');
+  const deck = CourseLoader.loadSRSDeck(courseId);
+  const updated = toggleStar(deck, body.cardId);
+  CourseLoader.saveSRSDeck(updated, courseId);
+  return c.json(updated);
+});
+
+app.post('/api/courses/:courseId/srs/review', async (c) => {
+  const body = (await c.req.json()) as { cardId: string; correct: boolean; deck: SRSDeck };
+  const courseId = c.req.param('courseId');
+  const deck = body.deck || CourseLoader.loadSRSDeck(courseId);
+  const card = deck.cards[body.cardId];
+  if (!card) return c.json({ error: 'Card not found' }, 404);
+  const updatedCard = performReview(card, body.correct);
+  deck.cards[body.cardId] = updatedCard;
+  CourseLoader.saveSRSDeck(deck, courseId);
+  return c.json(updatedCard);
+});
+
+app.post('/api/courses/:courseId/srs/create', async (c) => {
+  const body = (await c.req.json()) as { question: QuizQuestion; moduleId: number };
+  const courseId = c.req.param('courseId');
+  const card = createSRSCard(body.question, body.moduleId, courseId);
+  const deck = CourseLoader.loadSRSDeck(courseId);
+  deck.cards[card.id] = card;
+  CourseLoader.saveSRSDeck(deck, courseId);
+  return c.json(card);
+});
+
+app.get('/api/courses/:courseId/srs/filter/:filter', (c) => {
+  const deck = CourseLoader.loadSRSDeck(c.req.param('courseId'));
+  switch (c.req.param('filter')) {
+    case 'due':
+      return c.json(getDueCardsForCourse(deck, c.req.param('courseId')));
+    case 'starred':
+      return c.json(getStarredCardsForCourse(deck, c.req.param('courseId')));
+    default:
+      return c.json(getCardsForCourse(deck, c.req.param('courseId')));
+  }
+});
+
+// --- Storage: Highlights ---
+
+app.get('/api/storage/highlights', (c) => {
+  const courseID = c.req.query('courseID')!;
+  const moduleID = Number(c.req.query('moduleID'));
+  return c.json(Storage.getHighlightsForModule(courseID, moduleID));
+});
+
+app.post('/api/storage/highlights', async (c) => {
+  const body = (await c.req.json()) as {
+    courseID: string;
+    moduleID: number;
+    selectedText: string;
+    startOffset: number;
+    endOffset: number;
+    color?: string;
+  };
+  const highlight = Storage.addHighlight(
+    body.courseID,
+    body.moduleID,
+    body.selectedText,
+    body.startOffset,
+    body.endOffset,
+    body.color,
+  );
+  return c.json(highlight, 201);
+});
+
+app.delete('/api/storage/highlights/:id', (c) => {
+  Storage.deleteHighlight(c.req.param('id'));
+  return c.json({ ok: true });
+});
+
+// --- Storage: Notes ---
+
+app.get('/api/storage/notes', (c) => {
+  const courseID = c.req.query('courseID')!;
+  const moduleID = Number(c.req.query('moduleID'));
+  return c.json(Storage.getNotesForModule(courseID, moduleID));
+});
+
+app.post('/api/storage/notes', async (c) => {
+  const body = (await c.req.json()) as {
+    courseID: string;
+    moduleID: number;
+    content: string;
+    highlightID?: string;
+    sectionID?: string;
+  };
+  const note = Storage.addNote(
+    body.courseID,
+    body.moduleID,
+    body.content,
+    body.highlightID,
+    body.sectionID,
+  );
+  return c.json(note, 201);
+});
+
+app.put('/api/storage/notes/:id', async (c) => {
+  const body = (await c.req.json()) as { content: string };
+  Storage.updateNote(c.req.param('id'), body.content);
+  return c.json({ ok: true });
+});
+
+app.post('/api/storage/annotations', async (c) => {
+  const body = (await c.req.json()) as {
+    courseID: string;
+    moduleID: number;
+    selectedText: string;
+    startOffset: number;
+    endOffset: number;
+    color: string;
+    noteContent: string;
+  };
+  const result = Storage.addAnnotation(body);
+  return c.json(result, 201);
+});
+
+app.delete('/api/storage/notes/:id', (c) => {
+  Storage.deleteNote(c.req.param('id'));
+  return c.json({ ok: true });
+});
+
+// --- Storage: Bookmarks ---
+
+app.get('/api/storage/bookmarks', (c) => c.json(Storage.getAllBookmarks()));
+
+app.get('/api/storage/bookmarks/course/:courseID', (c) =>
+  c.json(Storage.getBookmarksForCourse(c.req.param('courseID'))),
+);
+
+app.post('/api/storage/bookmarks', async (c) => {
+  const body = (await c.req.json()) as {
+    courseID: string;
+    moduleID: number;
+    title: string;
+    sectionID?: string;
+    scrollPosition?: number;
+  };
+  const bookmark = Storage.addBookmark(
+    body.courseID,
+    body.moduleID,
+    body.title,
+    body.sectionID,
+    body.scrollPosition,
+  );
+  return c.json(bookmark, 201);
+});
+
+app.delete('/api/storage/bookmarks/:id', (c) => {
+  Storage.deleteBookmark(c.req.param('id'));
+  return c.json({ ok: true });
+});
+
+app.get('/api/storage/bookmarks/module/:courseID/:moduleID', (c) =>
+  c.json(Storage.getBookmarksForModule(c.req.param('courseID'), Number(c.req.param('moduleID')))),
+);
+
+app.get('/api/storage/check-bookmark', (c) => {
+  const courseID = c.req.query('courseID')!;
+  const moduleID = Number(c.req.query('moduleID'));
+  return c.json(Storage.isBookmarked(courseID, moduleID));
+});
+
+// --- Storage: Completion ---
+
+app.get('/api/storage/completed', (c) => {
+  const courseID = c.req.query('courseID')!;
+  const moduleID = Number(c.req.query('moduleID'));
+  return c.json({ completed: Storage.isModuleCompleted(courseID, moduleID) });
+});
+
+app.post('/api/storage/completed', async (c) => {
+  const body = (await c.req.json()) as { courseID: string; moduleID: number };
+  const completed = Storage.toggleModuleCompleted(body.courseID, body.moduleID);
+  return c.json({ completed });
+});
+
+app.get('/api/storage/completed/count', (c) => {
+  const courseID = c.req.query('courseID')!;
+  return c.json({ count: Storage.getCompletedModuleCount(courseID) });
+});
+
+// --- Gemini ---
+
+app.get('/api/gemini/key', (c) => c.json({ hasKey: Gemini.hasAPIKey() }));
+
+app.post('/api/gemini/key', async (c) => {
+  const body = (await c.req.json()) as { key: string };
+  Gemini.setAPIKey(body.key);
+  return c.json({ ok: true });
+});
+
+app.post('/api/gemini/ask', async (c) => {
+  const body = (await c.req.json()) as { question: string; context: string };
+  try {
+    const response = await Gemini.askGemini(body.question, body.context);
+    return c.json({ response });
+  } catch (err) {
+    return c.json({ error: (err as Error).message }, 400);
+  }
+});
+
+// --- Quiz Engine ---
+
+app.post('/api/quiz/start', async (c) => {
+  const body = (await c.req.json()) as { courseId: string; moduleId: number };
+  const questions = CourseLoader.loadQuiz(body.courseId, body.moduleId);
+  const engine = new QuizEngine();
+  engine.load(questions, body.courseId, body.moduleId);
+  _quizEngine = engine;
+  return c.json(questions);
+});
+
+app.get('/api/quiz/state', (c) => {
+  const engine = getQuizEngine();
+  return c.json({
+    currentIndex: engine.currentIndex,
+    selectedAnswers: engine.selectedAnswers,
+    isCompleted: engine.isCompleted,
+    currentQuestion: engine.currentQuestion,
+    score: engine.score,
+    percentage: engine.percentage,
+  });
+});
+
+app.post('/api/quiz/select', async (c) => {
+  const body = (await c.req.json()) as { answer: string };
+  getQuizEngine().selectAnswer(body.answer);
+  return c.json({ ok: true });
+});
+
+app.post('/api/quiz/next', (c) => {
+  getQuizEngine().nextQuestion();
+  return c.json({ ok: true });
+});
+
+app.post('/api/quiz/reset', (c) => {
+  getQuizEngine().reset();
+  return c.json({ ok: true });
+});
+
+// --- UserCard ---
+
+app.get('/api/usercards', (c) => {
+  const courseId = c.req.query('courseId') || undefined;
+  const moduleId = c.req.query('moduleId') ? Number(c.req.query('moduleId')) : undefined;
+  return c.json(Storage.getUserCards(courseId, moduleId));
+});
+
+app.post('/api/usercards', async (c) => {
+  const body = (await c.req.json()) as {
+    courseId: string;
+    moduleId: number;
+    front: string;
+    back: string;
+  };
+  const card = Storage.addUserCard(body.courseId, body.moduleId, body.front, body.back);
+  return c.json(card, 201);
+});
+
+app.delete('/api/usercards/:id', (c) => {
+  Storage.deleteUserCard(c.req.param('id'));
+  return c.json({ ok: true });
+});
+
+app.post('/api/usercards/:id/review', async (c) => {
+  const body = (await c.req.json()) as { correct: boolean };
+  const card = Storage.reviewUserCard(c.req.param('id'), body.correct);
+  if (!card) return c.json({ error: 'Card not found' }, 404);
+  return c.json(card);
+});
+
+app.post('/api/usercards/:id/star', (c) => {
+  const card = Storage.toggleUserCardStar(c.req.param('id'));
+  if (!card) return c.json({ error: 'Card not found' }, 404);
+  return c.json(card);
+});
+
+// --- Sync ---
+
+app.get('/api/sync/status', (c) => {
+  const config = Storage.getSyncConfig();
+  return c.json({
+    lastSyncTime: config.lastSyncTime,
+    lastSyncedCommit: config.lastSyncedCommit,
+    isSyncing: Sync.isSyncing(),
+    remoteRepoURL: config.remoteRepoURL,
+  });
+});
+
+app.post('/api/sync/start', async (c) => {
+  const result = await Sync.syncCourses();
+  return c.json(result);
+});
+
+app.post('/api/sync/config', async (c) => {
+  const body = (await c.req.json()) as { remoteRepoURL: string };
+  Storage.saveSyncConfig({ remoteRepoURL: body.remoteRepoURL });
+  return c.json({ ok: true });
+});
+
+// --- Start server ---
 
 async function getMainViewUrl(): Promise<string> {
   const channel = await Updater.localInfo.channel();
@@ -410,26 +424,9 @@ async function getMainViewUrl(): Promise<string> {
   return `views://mainview/index.html?apiPort=${API_PORT}`;
 }
 
-const server = Bun.serve({
+const server = serve({
   port: API_PORT,
-  async fetch(req) {
-    const url = new URL(req.url);
-
-    if (req.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers: corsHeaders() });
-    }
-
-    const route = matchRoute(req.method, url.pathname);
-    if (route) {
-      try {
-        return await route.handler(route.params, req);
-      } catch (err) {
-        return jsonResponse({ error: (err as Error).message }, 500);
-      }
-    }
-
-    return jsonResponse({ error: 'Not found' }, 404);
-  },
+  fetch: app.fetch,
 });
 
 console.log(`API server running at http://localhost:${API_PORT}`);

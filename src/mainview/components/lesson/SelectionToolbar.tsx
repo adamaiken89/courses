@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { HIGHLIGHT_COLORS } from '../rehype-highlight-text';
 
@@ -14,21 +14,39 @@ interface SelectionToolbarProps {
   onCancel: () => void;
 }
 
-export default function SelectionToolbar({
-  x,
-  y,
-  selectionTop,
-  selectedText,
-  onSelectColor,
-  onOpenNote,
-  onCreateCard,
-  onCopy,
-  onCancel,
-}: SelectionToolbarProps) {
+export interface SelectionToolbarHandle {
+  triggerCopy: () => void;
+}
+
+const SelectionToolbar = forwardRef<SelectionToolbarHandle, SelectionToolbarProps>(function SelectionToolbar(
+  {
+    x,
+    y,
+    selectionTop,
+    selectedText,
+    onSelectColor,
+    onOpenNote,
+    onCreateCard,
+    onCopy,
+    onCancel,
+  },
+  ref,
+) {
   const { t } = useTranslation();
   const menuRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
   const [position, setPosition] = useState({ x, y });
+
+  const handleCopy = () => {
+    if (!selectedText) return;
+    onCopy(selectedText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1000);
+  };
+
+  useImperativeHandle(ref, () => ({
+    triggerCopy: handleCopy,
+  }));
 
   useEffect(() => {
     if (!menuRef.current) return;
@@ -51,13 +69,6 @@ export default function SelectionToolbar({
 
     setPosition({ x: left, y: top });
   }, [x, y, selectionTop]);
-
-  const handleCopy = () => {
-    if (!selectedText) return;
-    onCopy(selectedText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1000);
-  };
 
   return (
     <div
@@ -115,4 +126,6 @@ export default function SelectionToolbar({
       </button>
     </div>
   );
-}
+});
+
+export default SelectionToolbar;

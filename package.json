@@ -19,6 +19,7 @@
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"electrobun": "^1.18.1",
+		"hono": "^4.12.27",
 		"i18next": "^26.3.1",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",

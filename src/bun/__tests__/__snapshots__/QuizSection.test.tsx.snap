@@ -1,11 +1,5 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
-exports[`QuizView snapshots loading state 1`] = `"<div class="p-8 text-center text-gray-400">Loading quiz...</div>"`;
-
-exports[`QuizView snapshots empty quiz (no questions) 1`] = `"<div class="p-8 text-center"><p class="text-gray-400">No quiz questions for this module.</p></div>"`;
-
-exports[`QuizView snapshots first question displayed 1`] = `"<div class="max-w-2xl mx-auto"><div class="flex items-center justify-end mb-4"><span class="text-sm text-gray-400">Question 1 of 2</span></div><div class="bg-gray-800 rounded-xl p-6 mb-6"><div class="flex items-center gap-2 mb-4"><span class="text-xs bg-indigo-600 px-2 py-0.5 rounded">Qq1</span><span class="text-xs text-gray-400">Difficulty: 1</span></div><h2 class="text-lg font-medium mb-6">What is 2+2?</h2><div class="space-y-3"><button class="w-full text-left p-3 rounded-lg border transition-colors bg-gray-750 border-gray-600 hover:border-gray-500 cursor-pointer"><span class="font-mono text-indigo-400 mr-2">A.</span>3</button><button class="w-full text-left p-3 rounded-lg border transition-colors bg-gray-750 border-gray-600 hover:border-gray-500 cursor-pointer"><span class="font-mono text-indigo-400 mr-2">B.</span>4</button><button class="w-full text-left p-3 rounded-lg border transition-colors bg-gray-750 border-gray-600 hover:border-gray-500 cursor-pointer"><span class="font-mono text-indigo-400 mr-2">C.</span>5</button></div></div><div class="flex justify-center gap-3"><button class="px-4 py-2 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors">Skip</button><button disabled="" class="px-6 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg transition-colors disabled:opacity-50">Next Question</button></div></div>"`;
-
 exports[`QuizSection snapshots loading state 1`] = `"<div class="p-8 text-center text-gray-400">Loading quiz...</div>"`;
 
 exports[`QuizSection snapshots empty quiz (no questions) 1`] = `"<div class="p-8 text-center"><p class="text-gray-400">No quiz questions for this module.</p></div>"`;

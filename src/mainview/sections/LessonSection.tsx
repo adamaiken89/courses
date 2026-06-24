@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { api } from '../api';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
@@ -14,6 +14,7 @@ import { THEME_TOKENS, themeToCSSVars } from '../themes';
 import LessonToolbar from '../components/lesson/LessonToolbar';
 import SectionsPanel from '../components/lesson/SectionsPanel';
 import SelectionToolbar from '../components/lesson/SelectionToolbar';
+import type { SelectionToolbarHandle } from '../components/lesson/SelectionToolbar';
 import NoteEditor from '../components/lesson/NoteEditor';
 import CardEditor from '../components/lesson/CardEditor';
 import StudyTools from '../components/StudyTools';
@@ -64,6 +65,9 @@ const headingRenderer = (level: number) =>
 const components = {
   h1: headingRenderer(1), h2: headingRenderer(2), h3: headingRenderer(3),
   h4: headingRenderer(4), h5: headingRenderer(5), h6: headingRenderer(6),
+  table: ({ children }) => (
+    <div className="table-wrapper"><table>{children}</table></div>
+  ),
 };
 
 export default function LessonSection({
@@ -78,6 +82,7 @@ export default function LessonSection({
   const { t } = useTranslation();
   const [showTools, setShowTools] = useState(false);
   const [showPomodoro, setShowPomodoro] = useState(false);
+  const selectionToolbarRef = useRef<SelectionToolbarHandle>(null);
 
   const {
     content, loading, sections, visibleSection,
@@ -167,6 +172,13 @@ export default function LessonSection({
     const handler = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement).tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+      if ((e.metaKey || e.ctrlKey) && e.key === 'c' && selection) {
+        e.preventDefault();
+        selectionToolbarRef.current?.triggerCopy();
+        return;
+      }
+
       if (showToolbar) return;
       switch (e.key) {
         case 'ArrowLeft':
@@ -200,7 +212,7 @@ export default function LessonSection({
     return () => window.removeEventListener('keydown', handler);
   }, [
     hasPrevModule, hasNextModule, onPrevModule, onNextModule,
-    showToolbar, contentRef, wideMode,
+    showToolbar, contentRef, wideMode, selection, closeToolbar,
   ]);
 
   useEffect(() => {
@@ -321,6 +333,7 @@ export default function LessonSection({
 
       {showToolbar && selection && !showNoteEditor && !showCardEditor && (
         <SelectionToolbar
+          ref={selectionToolbarRef}
           x={pickerPos.x}
           y={pickerPos.y}
           selectionTop={pickerPos.selectionTop}

@@ -120,46 +120,12 @@ Subject directory name becomes `Subject.id`.
 
 **Module directory matching**: `findModuleDir` scans `modules/<id>/` for entries starting with zero-padded module ID (`NN-`).
 
-## YAML parsing
-
-Uses `js-yaml` library (not hand-written). `parseSubject` and `parseQuiz` in `src/bun/course-loader.ts`.
-
 ## Data persistence
 
 - **Subjects/lessons/quizzes**: file I/O from `subjects/` directory tree
 - **SRS decks**: `subjects/<id>/srs/deck.json`
 - **Highlights, notes, bookmarks**: `~/.coursereader/data.json` (single JSON file)
 - **Gemini API key**: `~/.coursereader/prefs.json`
-
-## Quiz engine
-
-`QuizEngine` class on backend (Bun). State: `questions`, `currentIndex`, `selectedAnswers`, `isCompleted`. Score computed from `selectedAnswers` match against `answer`. Frontend manages quiz state via API calls.
-
-## AI / Gemini
-
-`GeminiService` hits `gemini-2.0-flash` via REST API. API key stored in `~/.coursereader/prefs.json`. Settings view sets key via `POST /api/gemini/key`.
-
-## Reading experience
-
-Book-like prose styles defined in `.book-content` CSS class in `index.css`:
-- 8 themes: Dark, OLED, Nord, Sepia, Gruvbox, Light, Solarized, Catppuccin
-- Theme enum in `settingsStore.ts` type `Theme`. `cycleTheme()` for LessonSection toolbar, `setTheme(t)` for SettingsPage grid
-- Each theme: `.book-content.book-<theme>` block in `index.css` (text, headings, code highlighting, blockquotes, tables)
-- Decorative headers with clear h1-h6 hierarchy
-- Custom dark syntax highlighting theme (highlight.js)
-- Beautiful blockquotes with indigo accent
-- Properly nested list styling
-- GFM table support via `remarkGfm`
-- Section-based navigation with scroll tracking
-- Module switch (`onNextModule`/`onPrevModule`) scrolls content to top
-- Section panel star color: bookmarked → yellow, active section → white, inactive → grey
-- Adjustable font size (10-28px)
-
-## Module declarations
-
-`src/types/` holds ambient `.d.ts` files for packages lacking `@types`:
-- `js-yaml.d.ts` — `load`/`dump` signatures
-- `three.d.ts` — bare `declare module "three"` (electrobun dependency)
 
 ## Project structure quirks
 

@@ -149,9 +149,37 @@ export default function SettingsPage({ onBack }: Props) {
               type="text"
               value={repoURL}
               onChange={(e) => setRepoURL(e.target.value)}
-              placeholder="https://github.com/user/repo"
+              placeholder="https://github.com/adamaiken89/course-content"
               className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-500"
             />
+            <button
+              onClick={async () => {
+                try {
+                  const text = await navigator.clipboard.readText();
+                  setRepoURL(text);
+                } catch {
+                  // clipboard access denied
+                }
+              }}
+              className="px-3 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm transition-colors"
+              title="Paste from clipboard"
+            >
+              Paste
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(repoURL);
+                } catch {
+                  // clipboard access denied
+                }
+              }}
+              disabled={!repoURL.trim()}
+              className="px-3 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm transition-colors disabled:opacity-50"
+              title="Copy to clipboard"
+            >
+              Copy
+            </button>
             <button
               onClick={async () => {
                 if (!repoURL.trim()) return;
@@ -160,7 +188,7 @@ export default function SettingsPage({ onBack }: Props) {
                 setTimeout(() => setRepoSaved(false), 2000);
               }}
               disabled={!repoURL.trim()}
-              className="px-4 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm transition-colors disabled:opacity-50"
             >
               {repoSaved ? 'Saved' : 'Save URL'}
             </button>
