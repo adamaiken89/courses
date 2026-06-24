@@ -5,6 +5,7 @@ import { useCourseStore } from '../stores/courseStore';
 import PageLayout from '../layouts/PageLayout';
 import PageHeader from '../layouts/PageHeader';
 import PageContent from '../layouts/PageContent';
+import { Button } from '../components/ui';
 import type { Course } from '../../bun/types';
 
 interface Props {
@@ -45,25 +46,20 @@ export default function CourseListPage({
       <PageHeader
         actions={
           <>
-            <button
+            <Button
+              variant="secondary"
+              size="md"
               onClick={onOpenDashboard}
-              className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
               title={t('dashboard.title')}
             >
               {t('icons.stats')}
-            </button>
-            <button
-              onClick={onOpenBookmarks}
-              className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-            >
+            </Button>
+            <Button variant="secondary" size="md" onClick={onOpenBookmarks}>
               {t('common.bookmarks')}
-            </button>
-            <button
-              onClick={onOpenSettings}
-              className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-            >
+            </Button>
+            <Button variant="secondary" size="md" onClick={onOpenSettings}>
               {t('common.settings')}
-            </button>
+            </Button>
           </>
         }
       />

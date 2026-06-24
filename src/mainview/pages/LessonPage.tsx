@@ -79,9 +79,9 @@ export default function LessonFeature({
       onToggleTools={() => setShowTools(!showTools)}
       onTogglePomodoro={() => setShowPomodoro(!showPomodoro)}
       onReviewCards={handleReviewCards}
+      onSettings={() => push({ type: 'settings' })}
       onStartQuiz={onStartQuiz}
       onStartReview={onStartReview}
-      onSettings={() => push({ type: 'settings' })}
     />
   ) : undefined;
 

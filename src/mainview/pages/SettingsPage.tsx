@@ -6,7 +6,7 @@ import { useSyncStore } from '../stores/syncStore';
 import PageHeader from '../layouts/PageHeader';
 import PageLayout from '../layouts/PageLayout';
 import PageContent from '../layouts/PageContent';
-import { selectableCardVariants } from '../components/ui';
+import { Button, selectableCardVariants } from '../components/ui';
 import type { Theme } from '../themes';
 interface ThemeCard {
   id: Theme;
@@ -141,13 +141,9 @@ export default function SettingsPage({ onBack }: Props) {
               placeholder={hasApiKey ? t('settings.apiKeySet') : t('settings.apiKeyPlaceholder')}
               className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-500"
             />
-            <button
-              onClick={handleSaveKey}
-              disabled={!apiKey.trim()}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm transition-colors disabled:opacity-50"
-            >
+            <Button variant="primary" size="lg" onClick={handleSaveKey} disabled={!apiKey.trim()}>
               {saved ? t('settings.saved') : t('common.save')}
-            </button>
+            </Button>
           </div>
           {hasApiKey && !saved && (
             <p className="text-xs text-emerald-400 mt-2">{t('settings.apiKeyConfigured')}</p>
@@ -165,7 +161,9 @@ export default function SettingsPage({ onBack }: Props) {
               placeholder="https://github.com/adamaiken89/course-content"
               className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-500"
             />
-            <button
+            <Button
+              variant="secondary"
+              size="md"
               onClick={async () => {
                 try {
                   const text = await navigator.clipboard.readText();
@@ -174,12 +172,13 @@ export default function SettingsPage({ onBack }: Props) {
                   // clipboard access denied
                 }
               }}
-              className="px-3 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm transition-colors"
               title={t('settings.pasteClipboard')}
             >
               {t('settings.paste')}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="secondary"
+              size="md"
               onClick={async () => {
                 try {
                   await navigator.clipboard.writeText(repoURL);
@@ -188,12 +187,13 @@ export default function SettingsPage({ onBack }: Props) {
                 }
               }}
               disabled={!repoURL.trim()}
-              className="px-3 py-2 bg-gray-600 hover:bg-gray-500 rounded-lg text-sm transition-colors disabled:opacity-50"
               title={t('settings.copyClipboard')}
             >
               {t('settings.copy')}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="primary"
+              size="lg"
               onClick={async () => {
                 if (!repoURL.trim()) return;
                 await setRepoURLStore(repoURL.trim());
@@ -201,26 +201,20 @@ export default function SettingsPage({ onBack }: Props) {
                 setTimeout(() => setRepoSaved(false), 2000);
               }}
               disabled={!repoURL.trim()}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm transition-colors disabled:opacity-50"
             >
               {repoSaved ? t('settings.saved') : t('settings.saveUrl')}
-            </button>
+            </Button>
           </div>
           <div className="flex items-center gap-3">
-            <button
+            <Button
+              variant="primary"
+              size="lg"
               onClick={() => startSync()}
               disabled={syncIsSyncing || !syncRemoteURL}
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-sm transition-colors disabled:opacity-50 flex items-center gap-2"
+              loading={syncIsSyncing}
             >
-              {syncIsSyncing ? (
-                <>
-                  <span className="animate-spin inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full" />
-                  {t('settings.syncing')}
-                </>
-              ) : (
-                t('settings.syncNow')
-              )}
-            </button>
+              {syncIsSyncing ? t('settings.syncing') : t('settings.syncNow')}
+            </Button>
             {syncLastTime && (
               <span className="text-xs text-gray-500">
                 {t('settings.lastSynced')}
@@ -259,12 +253,9 @@ export default function SettingsPage({ onBack }: Props) {
         <section className="bg-gray-800 rounded-xl p-6 mb-6">
           <h3 className="text-lg font-semibold mb-4">{t('settings.fontSize')}</h3>
           <div className="flex items-center gap-3">
-            <button
-              onClick={decFontSize}
-              className="px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-            >
+            <Button variant="secondary" size="md" onClick={decFontSize}>
               A-
-            </button>
+            </Button>
             <input
               type="range"
               min={10}
@@ -273,12 +264,9 @@ export default function SettingsPage({ onBack }: Props) {
               onChange={(e) => setFontSize(Number(e.target.value))}
               className="flex-1 accent-indigo-500"
             />
-            <button
-              onClick={incFontSize}
-              className="px-3 py-1 text-sm bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-            >
+            <Button variant="secondary" size="md" onClick={incFontSize}>
               A+
-            </button>
+            </Button>
             <span className="text-sm text-gray-400 w-8 text-center">{fontSize}</span>
           </div>
         </section>

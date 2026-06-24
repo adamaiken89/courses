@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '../../stores/settingsStore';
-import { toggleVariants } from '../ui';
+import { Button } from '../ui';
 import {
   COMPLETION_GREEN,
   COMPLETION_GREEN_DARK,
@@ -41,9 +41,9 @@ interface LessonToolbarProps {
   onToggleTools: () => void;
   onTogglePomodoro: () => void;
   onReviewCards?: () => void;
+  onSettings?: () => void;
   onStartQuiz?: () => void;
   onStartReview?: () => void;
-  onSettings?: () => void;
 }
 
 export default function LessonToolbar({
@@ -57,9 +57,9 @@ export default function LessonToolbar({
   onToggleTools,
   onTogglePomodoro,
   onReviewCards,
+  onSettings,
   onStartQuiz,
   onStartReview,
-  onSettings,
 }: LessonToolbarProps) {
   const { t } = useTranslation();
   const fontSize = useSettingsStore((s) => s.fontSize);
@@ -75,114 +75,110 @@ export default function LessonToolbar({
     <div className="sticky top-0 z-40 bg-gray-800 border-b border-gray-700 px-4 py-1.5 flex items-center gap-2 shrink-0">
       {!focusMode && (
         <>
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={decFontSize}
-            className="px-2 py-0.5 text-xs bg-gray-700 hover:bg-gray-600 rounded"
             title={t('lesson.decreaseFontSize')}
           >
             A-
-          </button>
+          </Button>
           <span className="text-xs text-gray-400 w-8 text-center">{fontSize}</span>
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={incFontSize}
-            className="px-2 py-0.5 text-xs bg-gray-700 hover:bg-gray-600 rounded"
             title={t('lesson.increaseFontSize')}
           >
             A+
-          </button>
+          </Button>
           <div className="h-3 w-px bg-gray-600" />
         </>
       )}
       {!focusMode && (
         <>
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={cycleTheme}
-            className="px-2 py-0.5 text-xs bg-gray-700 hover:bg-gray-600 rounded"
             title={`${t('settings.readingTheme')}: ${t(THEME_LABELS[theme])}`}
           >
             {t(THEME_ICONS[theme])}
-          </button>
+          </Button>
           <div className="h-3 w-px bg-gray-600" />
         </>
       )}
-      <button
+      <Button
+        variant={wideMode ? 'toggleActive' : 'toggle'}
+        size="sm"
         onClick={() => setWideMode(!wideMode)}
-        className={toggleVariants({ active: wideMode })}
         title={t('lesson.toggleWideMode')}
       >
         {wideMode ? t('lesson.wide') : t('lesson.narrow')}
-      </button>
+      </Button>
       <div className="h-3 w-px bg-gray-600" />
-      <button
+      <Button
+        variant={hasActiveBookmark ? 'toggleActive' : 'toggle'}
+        size="sm"
         onClick={onToggleBookmark}
-        className={toggleVariants({ active: hasActiveBookmark })}
         title={t('lesson.bookmarkModule')}
       >
         {hasActiveBookmark ? t('icons.bookmarkFilled') : t('icons.bookmarkEmpty')}{' '}
         {t('lesson.bookmark')}
-      </button>
+      </Button>
       <div className="h-3 w-px bg-gray-600" />
-      <button
+      <Button
+        variant={focusMode ? 'toggleActive' : 'toggle'}
+        size="sm"
         onClick={toggleFocusMode}
-        className={toggleVariants({ active: focusMode })}
         title={t('lesson.focusMode')}
       >
         {focusMode ? t('lesson.focusModeOn') : t('lesson.focusModeOff')}
-      </button>
+      </Button>
       <div className="h-3 w-px bg-gray-600" />
-      <button
+      <Button
+        variant={showPomodoro ? 'toggleActive' : 'toggle'}
+        size="sm"
         onClick={onTogglePomodoro}
-        className={toggleVariants({ active: showPomodoro })}
         title={t('pomodoro.title')}
       >
         {t('icons.pomodoro')}
-      </button>
+      </Button>
       {!focusMode && (
         <>
           <div className="h-3 w-px bg-gray-600" />
-          <button
+          <Button
+            variant={showTools ? 'toggleActive' : 'toggle'}
+            size="sm"
             onClick={onToggleTools}
-            className={toggleVariants({ active: showTools })}
             title={t('lesson.toggleStudyTools')}
           >
             {t('lesson.tools')}
-          </button>
+          </Button>
         </>
       )}
       {onReviewCards && (
         <>
           <div className="h-3 w-px bg-gray-600" />
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={onReviewCards}
-            className="px-2 py-0.5 text-xs bg-gray-700 hover:bg-gray-600 rounded"
             title={t('lesson.reviewFlashcards')}
           >
             {t('icons.cards')} {t('lesson.cards')}
-          </button>
+          </Button>
         </>
       )}
       {!focusMode && (
         <>
           <div className="h-3 w-px bg-gray-600" />
-          <button
-            onClick={onStartQuiz}
-            className="px-2 py-1 text-xs bg-emerald-700 hover:bg-emerald-600 rounded"
-          >
+          <Button variant="primary" size="sm" onClick={onStartQuiz}>
             {t('common.quiz')}
-          </button>
-          <button
-            onClick={onStartReview}
-            className="px-2 py-1 text-xs bg-amber-700 hover:bg-amber-600 rounded"
-          >
+          </Button>
+          <Button variant="secondary" size="sm" onClick={onStartReview}>
             {t('common.review')}
-          </button>
-          <button
-            onClick={onSettings}
-            className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded"
-            title={t('common.settings')}
-          >
-            {t('icons.gear')}
-          </button>
+          </Button>
         </>
       )}
       {totalModules > 0 && <div className="h-3 w-px bg-gray-600" />}
@@ -204,6 +200,14 @@ export default function LessonToolbar({
             {completedCount}/{totalModules}
           </span>
         </div>
+      )}
+      {onSettings && (
+        <>
+          <div className="h-3 w-px bg-gray-600" />
+          <Button variant="ghost" size="sm" onClick={onSettings} title={t('common.settings')}>
+            {t('common.settings')}
+          </Button>
+        </>
       )}
     </div>
   );

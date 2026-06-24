@@ -5,6 +5,7 @@ import HighlightsTab from './study-tools/HighlightsTab';
 import BookmarksTab from './study-tools/BookmarksTab';
 import CardsTab from './study-tools/CardsTab';
 import AITab from './study-tools/AITab';
+import { Button } from './ui';
 import type { Section, Highlight } from './sidebar-types';
 
 type Tab = 'notes' | 'highlights' | 'bookmarks' | 'cards' | 'ask-ai';
@@ -47,9 +48,9 @@ export default function StudyTools({
     <aside className="w-72 bg-gray-850 border-r border-gray-700 flex flex-col shrink-0 overflow-hidden">
       <div className="flex items-center justify-between px-3 py-2 border-b border-gray-700">
         <span className="text-xs font-semibold text-indigo-400">{t('studyTools.title')}</span>
-        <button onClick={onClose} className="text-gray-500 hover:text-gray-300 text-xs">
+        <Button variant="ghost" size="sm" onClick={onClose}>
           {t('icons.close')}
-        </button>
+        </Button>
       </div>
       <div className="flex border-b border-gray-700">
         {tabs.map((tab) => (

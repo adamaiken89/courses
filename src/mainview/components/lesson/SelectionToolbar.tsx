@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useImperativeHandle } from 'react';
 import { useTranslation } from 'react-i18next';
 import { HIGHLIGHT_COLORS } from '../rehype-highlight-text';
+import { Button } from '../ui';
 
 interface SelectionToolbarProps {
   ref?: React.Ref<SelectionToolbarHandle>;
@@ -90,39 +91,27 @@ function SelectionToolbar({
           />
         ))}
         <div className="w-px h-5 bg-gray-600" />
-        <button
-          onClick={onCancel}
-          className="text-gray-400 hover:text-gray-200 transition-colors text-sm leading-none"
-        >
+        <Button variant="ghost" size="sm" onClick={onCancel}>
           {t('icons.close')}
-        </button>
+        </Button>
       </div>
 
       <div className="h-px bg-gray-600 my-0.5" />
 
-      <button
-        onClick={onOpenNote}
-        className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-200 hover:bg-gray-700 transition-colors"
-      >
+      <Button variant="ghost" size="md" onClick={onOpenNote} className="w-full justify-start">
         <span className="shrink-0">{t('icons.note')}</span>
         {t('lesson.addNote')}
-      </button>
+      </Button>
 
-      <button
-        onClick={onCreateCard}
-        className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-200 hover:bg-gray-700 transition-colors"
-      >
+      <Button variant="ghost" size="md" onClick={onCreateCard} className="w-full justify-start">
         <span className="shrink-0">{t('icons.cards')}</span>
         {t('lesson.createCard')}
-      </button>
+      </Button>
 
-      <button
-        onClick={handleCopy}
-        className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-200 hover:bg-gray-700 transition-colors"
-      >
+      <Button variant="ghost" size="md" onClick={handleCopy} className="w-full justify-start">
         <span className="shrink-0">{t('icons.clipboard')}</span>
         {copied ? t('selection.copied') : t('lesson.copy')}
-      </button>
+      </Button>
     </div>
   );
 }
