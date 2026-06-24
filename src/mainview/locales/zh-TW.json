@@ -272,6 +272,7 @@
     "loadFailed": "載入失敗",
     "syncComplete": "同步完成",
     "syncFailed": "同步失敗",
-    "aiFailed": "AI 請求失敗"
+    "aiFailed": "AI 請求失敗",
+    "clipboardFailed": "剪貼簿存取被拒絕"
   }
 }

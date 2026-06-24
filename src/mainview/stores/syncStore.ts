@@ -34,6 +34,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
       logger.debug({ remoteRepoURL: status.remoteRepoURL }, 'Sync status loaded');
     } catch (e) {
       logger.error({ err: (e as Error).message }, 'Failed to load sync status');
+      showToast.error('toast.loadFailed');
       set({ error: (e as Error).message });
     }
   },
@@ -71,6 +72,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
       logger.info('Sync repo URL set');
     } catch (e) {
       logger.error({ err: (e as Error).message }, 'Failed to set sync repo URL');
+      showToast.error('toast.loadFailed');
       set({ error: (e as Error).message });
     }
   },

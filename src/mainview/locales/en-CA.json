@@ -272,6 +272,7 @@
     "loadFailed": "Failed to load",
     "syncComplete": "Sync complete",
     "syncFailed": "Sync failed",
-    "aiFailed": "AI request failed"
+    "aiFailed": "AI request failed",
+    "clipboardFailed": "Clipboard access denied"
   }
 }

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api';
 import { logger } from '../logger';
+import { showToast } from '../toast';
 import PageLayout from '../layouts/PageLayout';
 import PageHeader from '../layouts/PageHeader';
 import PageContent from '../layouts/PageContent';
@@ -57,6 +58,7 @@ export default function DashboardPage({ courseID, onBack }: DashboardPageProps) 
         })
         .catch((err) => {
           logger.warn({ err }, 'Failed to load course stats');
+          showToast.error('toast.loadFailed');
           setLoading(false);
         });
     } else {
@@ -68,6 +70,7 @@ export default function DashboardPage({ courseID, onBack }: DashboardPageProps) 
         })
         .catch((err) => {
           logger.warn({ err }, 'Failed to load global stats');
+          showToast.error('toast.loadFailed');
           setLoading(false);
         });
     }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, useTransition } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api';
+import { showToast } from '../toast';
 import type { SearchResult } from '../../bun/search';
 
 interface SearchOverlayProps {
@@ -39,6 +40,7 @@ export default function SearchOverlay({ onClose, onNavigate }: SearchOverlayProp
         const res = await api.search(query);
         setResults(res);
       } catch {
+        showToast.error('toast.loadFailed');
         setResults([]);
       } finally {
         setLoading(false);

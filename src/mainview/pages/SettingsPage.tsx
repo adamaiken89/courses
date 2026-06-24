@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api';
+import { showToast } from '../toast';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useSyncStore } from '../stores/syncStore';
 import PageHeader from '../layouts/PageHeader';
@@ -169,7 +170,7 @@ export default function SettingsPage({ onBack }: Props) {
                   const text = await navigator.clipboard.readText();
                   setRepoURL(text);
                 } catch {
-                  // clipboard access denied
+                  showToast.error('toast.clipboardFailed');
                 }
               }}
               title={t('settings.pasteClipboard')}
@@ -183,7 +184,7 @@ export default function SettingsPage({ onBack }: Props) {
                 try {
                   await navigator.clipboard.writeText(repoURL);
                 } catch {
-                  // clipboard access denied
+                  showToast.error('toast.clipboardFailed');
                 }
               }}
               disabled={!repoURL.trim()}

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { api } from '../api';
 import { logger } from '../logger';
+import { showToast } from '../toast';
 import type { Course } from '../../bun/types';
 
 interface CourseState {
@@ -42,6 +43,7 @@ export const useCourseStore = create<CourseState>((set, get) => ({
       })
       .catch((e: Error) => {
         logger.error({ err: e.message }, 'Failed to load courses');
+        showToast.error('toast.loadFailed');
         set({ error: e.message, loading: false });
       });
   },
