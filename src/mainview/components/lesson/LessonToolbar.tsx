@@ -31,7 +31,6 @@ const THEME_ICONS: Record<Theme, string> = {
 };
 
 interface LessonToolbarProps {
-  focusMode: boolean;
   showTools: boolean;
   showPomodoro: boolean;
   hasActiveBookmark: boolean;
@@ -47,7 +46,6 @@ interface LessonToolbarProps {
 }
 
 export default function LessonToolbar({
-  focusMode,
   showTools,
   showPomodoro,
   hasActiveBookmark,
@@ -62,6 +60,7 @@ export default function LessonToolbar({
   onStartReview,
 }: LessonToolbarProps) {
   const { t } = useTranslation();
+  const focusMode = useSettingsStore((s) => s.focusMode);
   const fontSize = useSettingsStore((s) => s.fontSize);
   const incFontSize = useSettingsStore((s) => s.incFontSize);
   const decFontSize = useSettingsStore((s) => s.decFontSize);

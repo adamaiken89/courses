@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api';
+import { useCardReviewState } from '../hooks/useCardReviewState';
 import type { UserCard } from '../../bun/types';
+import type { FilterMode } from '../hooks/useCardReviewState';
 import { filterVariants } from '../components/ui';
-
-type FilterMode = 'all' | 'due' | 'starred';
 
 interface Props {
   courseId: string;
@@ -12,62 +12,41 @@ interface Props {
 
 export default function UserCardReviewSection({ courseId }: Props) {
   const { t } = useTranslation();
-  const [cards, setCards] = useState<UserCard[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [showAnswer, setShowAnswer] = useState(false);
-  const [filter, setFilter] = useState<FilterMode>('all');
 
-  const loadCards = useCallback(
-    (f: FilterMode) => {
-      setLoading(true);
-      const p =
-        f === 'due'
-          ? api.usercards
-              .list(courseId)
-              .then((all) => all.filter((c) => new Date(c.nextReviewDate) <= new Date()))
-          : f === 'starred'
-            ? api.usercards.list(courseId).then((all) => all.filter((c) => c.isStarred))
-            : api.usercards.list(courseId);
-      p.then((result) => {
-        setCards(result);
-        setLoading(false);
-        setCurrentIndex(0);
-        setShowAnswer(false);
-      });
-    },
-    [courseId],
-  );
+  const fetchAll = useCallback(() => api.usercards.list(courseId), [courseId]);
 
-  useEffect(() => {
-    loadCards('due');
-  }, [loadCards]);
+  const filterCards = useCallback((cards: UserCard[], filter: FilterMode) => {
+    if (filter === 'due') return cards.filter((c) => new Date(c.nextReviewDate) <= new Date());
+    if (filter === 'starred') return cards.filter((c) => c.isStarred);
+    return cards;
+  }, []);
 
-  const handleReview = async (correct: boolean) => {
-    const card = cards[currentIndex];
-    if (!card) return;
+  const reviewCard = useCallback(async (card: UserCard, correct: boolean) => {
     await api.usercards.review(card.id, correct);
-    setShowAnswer(false);
-    if (currentIndex < cards.length - 1) {
-      setCurrentIndex((i) => i + 1);
-    } else {
-      loadCards(filter);
-    }
-  };
+  }, []);
 
-  const handleToggleStar = async () => {
-    const card = cards[currentIndex];
-    if (!card) return;
-    const updated = await api.usercards.toggleStar(card.id);
-    setCards((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
-  };
+  const toggleStar = useCallback(async (card: UserCard) => {
+    return api.usercards.toggleStar(card.id);
+  }, []);
 
-  const handleFilterChange = (f: FilterMode) => {
-    setFilter(f);
-    loadCards(f);
-  };
-
-  const currentCard = cards[currentIndex];
+  const {
+    cards,
+    loading,
+    currentIndex,
+    showAnswer,
+    filter,
+    currentCard,
+    setShowAnswer,
+    setFilter,
+    handleReview,
+    handleToggleStar,
+  } = useCardReviewState<UserCard>({
+    fetchAll,
+    filterCards,
+    reviewCard,
+    toggleStar,
+    isStarred: useCallback((c: UserCard) => c.isStarred, []),
+  });
 
   if (loading)
     return <div className="p-8 text-center text-gray-400">{t('review.loadingCards')}</div>;
@@ -78,7 +57,7 @@ export default function UserCardReviewSection({ courseId }: Props) {
         {(['all', 'due', 'starred'] as const).map((f) => (
           <button
             key={f}
-            onClick={() => handleFilterChange(f)}
+            onClick={() => setFilter(f)}
             className={filterVariants({ active: filter === f })}
           >
             {f === 'all' ? t('review.all') : f === 'due' ? t('review.due') : t('review.starred')}

@@ -1,9 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { api } from '../api';
-import { showToast } from '../toast';
+import { useCardReviewState } from './useCardReviewState';
 import type { SRSCard, SRSDeck } from '../../bun/types';
-
-type FilterMode = 'all' | 'due' | 'starred';
+import type { FilterMode } from './useCardReviewState';
 
 interface UseReviewStateReturn {
   cards: SRSCard[];
@@ -21,89 +20,49 @@ interface UseReviewStateReturn {
 }
 
 export function useReviewState(courseId: string): UseReviewStateReturn {
-  const [cards, setCards] = useState<SRSCard[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [showAnswer, setShowAnswer] = useState(false);
-  const [filter, setFilter] = useState<FilterMode>('all');
   const [deck, setDeck] = useState<SRSDeck>({ cards: {} });
 
-  const loadCards = useCallback(
-    (f: FilterMode) => {
-      setLoading(true);
-      api.courses.srs
-        .filter(courseId, f)
-        .then((result) => {
-          setCards(result);
-          setLoading(false);
-          setCurrentIndex(0);
-          setShowAnswer(false);
-        })
-        .catch(() => {
-          showToast.error('toast.loadFailed');
-          setLoading(false);
-        });
+  const fetchAll = useCallback(async () => {
+    const d = await api.courses.srs.get(courseId);
+    setDeck(d);
+    return Object.values(d.cards);
+  }, [courseId]);
+
+  const filterCards = useCallback((cards: SRSCard[], filter: FilterMode) => {
+    if (filter === 'due') return cards.filter((c) => new Date(c.nextReviewDate) <= new Date());
+    if (filter === 'starred') return cards.filter((c) => c.isStarred);
+    return cards;
+  }, []);
+
+  const reviewCard = useCallback(
+    async (card: SRSCard, correct: boolean) => {
+      const result = await api.courses.srs.review(courseId, card.id, correct, deck);
+      setDeck((d) => ({ ...d, cards: { ...d.cards, [card.id]: result } }));
+    },
+    [courseId, deck],
+  );
+
+  const toggleStar = useCallback(
+    async (card: SRSCard) => {
+      await api.courses.srs.toggleStar(courseId, card.id);
+      return { ...card, isStarred: !card.isStarred };
     },
     [courseId],
   );
 
-  useEffect(() => {
-    api.courses.srs
-      .get(courseId)
-      .then((d) => {
-        setDeck(d);
-        const due = Object.values(d.cards).filter(
-          (c: SRSCard) => new Date(c.nextReviewDate) <= new Date(),
-        );
-        setCards(due);
-        setLoading(false);
-      })
-      .catch(() => {
-        showToast.error('toast.loadFailed');
-        setLoading(false);
-      });
-  }, [courseId]);
+  const state = useCardReviewState<SRSCard>({
+    fetchAll,
+    filterCards,
+    reviewCard,
+    toggleStar,
+    isStarred: useCallback((c: SRSCard) => c.isStarred, []),
+  });
 
-  const handleFilterChange = (f: FilterMode) => {
-    setFilter(f);
-    loadCards(f);
-  };
-
-  const handleReview = async (correct: boolean) => {
-    const card = cards[currentIndex];
-    if (!card) return;
-    const result = await api.courses.srs.review(courseId, card.id, correct, deck);
-    const updatedDeck = { ...deck, cards: { ...deck.cards, [card.id]: result } };
-    setDeck(updatedDeck);
-    setShowAnswer(false);
-    if (currentIndex < cards.length - 1) {
-      setCurrentIndex((i) => i + 1);
-    } else {
-      loadCards(filter);
-    }
-  };
-
-  const handleToggleStar = async () => {
-    const card = cards[currentIndex];
-    if (!card) return;
-    await api.courses.srs.toggleStar(courseId, card.id);
-    loadCards(filter);
-  };
-
-  const currentCard = cards[currentIndex];
-
-  return {
-    cards,
-    loading,
-    currentIndex,
-    showAnswer,
-    filter,
-    deck,
-    currentCard,
-    setShowAnswer,
-    setFilter: handleFilterChange,
-    handleReview,
-    handleToggleStar,
-    reload: () => loadCards(filter),
-  };
+  return useMemo(
+    () => ({
+      ...state,
+      deck,
+    }),
+    [state, deck],
+  );
 }

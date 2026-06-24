@@ -2,21 +2,7 @@ import { create } from 'zustand';
 import i18n from '../i18n';
 import { THEMES } from '../themes';
 import type { Theme } from '../themes';
-
-function getStored<T>(key: string, fallback: T): T {
-  try {
-    return JSON.parse(localStorage.getItem(key)!) ?? fallback;
-  } catch {
-    return fallback;
-  }
-}
-function store(key: string, val: unknown) {
-  try {
-    localStorage.setItem(key, JSON.stringify(val));
-  } catch {
-    /* noop */
-  }
-}
+import { getStored, store } from './storage-utils';
 
 interface SettingsState {
   fontSize: number;

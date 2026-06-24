@@ -1,6 +1,6 @@
 import { cva } from 'class-variance-authority';
 
-export { Button, buttonVariants } from './ui/Button';
+export { Button } from './ui/Button';
 
 export const toggleVariants = cva('px-2 py-0.5 text-xs rounded transition-colors', {
   variants: {

@@ -6,6 +6,7 @@ import PageLayout from '../layouts/PageLayout';
 import PageHeader from '../layouts/PageHeader';
 import PageContent from '../layouts/PageContent';
 import { useBookmarks } from '../hooks/useBookmarks';
+import { useHighlights } from '../hooks/useHighlights';
 import { useLesson } from '../hooks/useLesson';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useViewStore } from '../stores/viewStore';
@@ -40,17 +41,27 @@ export default function LessonFeature({
   const hasPrev = currentIdx > 0;
   const hasNext = currentIdx < course.modules.length - 1;
 
-  const { sections, visibleSection, completedCount, totalModules } = useLesson(
-    course.id,
-    module.id,
-    initialSectionID,
-  );
-
-  const { handleToggleBookmark: toggleBookmark, hasActiveBookmark } = useBookmarks(
-    course.id,
-    module.id,
+  const {
+    content,
+    loading,
+    sections,
     visibleSection,
-  );
+    isCompleted,
+    completedCount,
+    totalModules,
+    contentRef,
+    scrollToSection,
+    handleScroll,
+    handleToggleCompleted,
+  } = useLesson(course.id, module.id, initialSectionID);
+
+  const {
+    bookmarks,
+    handleToggleBookmark: toggleBookmark,
+    hasActiveBookmark,
+  } = useBookmarks(course.id, module.id, visibleSection);
+
+  const { highlights, addHighlight } = useHighlights(course.id, module.id);
 
   const handleToggleBookmark = () => {
     const title = visibleSection
@@ -69,7 +80,6 @@ export default function LessonFeature({
 
   const toolbar = !focusMode ? (
     <LessonToolbar
-      focusMode={focusMode}
       showTools={showTools}
       showPomodoro={showPomodoro}
       hasActiveBookmark={hasActiveBookmark}
@@ -104,7 +114,18 @@ export default function LessonFeature({
           courseId={course.id}
           courseName={course.displayName}
           module={module}
-          initialSectionID={initialSectionID}
+          content={content}
+          loading={loading}
+          sections={sections}
+          visibleSection={visibleSection}
+          isCompleted={isCompleted}
+          contentRef={contentRef}
+          scrollToSection={scrollToSection}
+          handleScroll={handleScroll}
+          handleToggleCompleted={handleToggleCompleted}
+          bookmarks={bookmarks}
+          highlights={highlights}
+          addHighlight={addHighlight}
           hasPrevModule={hasPrev}
           hasNextModule={hasNext}
           onPrevModule={hasPrev ? () => onSelectModule(course.modules[currentIdx - 1]) : undefined}
@@ -114,6 +135,7 @@ export default function LessonFeature({
           setShowTools={setShowTools}
           showSections={showSections}
           onToggleSections={toggleSections}
+          onToggleBookmark={toggleBookmark}
         />
       </PageContent>
     </PageLayout>

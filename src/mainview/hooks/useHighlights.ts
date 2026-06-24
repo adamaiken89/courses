@@ -1,7 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { api } from '../api';
-import { logger } from '../logger';
-import { showToast } from '../toast';
+import { useEffect, useMemo, useCallback } from 'react';
+import { useHighlightsStore } from '../stores/highlightsStore';
 import type { Highlight } from '../components/sidebar-types';
 
 interface UseHighlightsReturn {
@@ -12,41 +10,34 @@ interface UseHighlightsReturn {
 }
 
 export function useHighlights(courseId: string, moduleId: string | number): UseHighlightsReturn {
-  const [highlights, setHighlights] = useState<Highlight[]>([]);
-  const [loading, setLoading] = useState(true);
+  const load = useHighlightsStore((s) => s.load);
+  const add = useHighlightsStore((s) => s.add);
+  const remove = useHighlightsStore((s) => s.remove);
+  const getForModule = useHighlightsStore((s) => s.getForModule);
+  const loading = useHighlightsStore((s) => s.loading[`${courseId}:${moduleId}`] ?? false);
 
   useEffect(() => {
-    setLoading(true);
-    api.storage
-      .highlights(courseId, moduleId)
-      .then(setHighlights)
-      .catch((err) => {
-        logger.warn({ err }, 'Failed to load highlights');
-        showToast.error('toast.loadFailed');
-        setHighlights([]);
-      })
-      .finally(() => setLoading(false));
-  }, [courseId, moduleId]);
+    load(courseId, moduleId);
+  }, [courseId, moduleId, load]);
+
+  const highlights = useMemo(
+    () => getForModule(courseId, moduleId),
+    [getForModule, courseId, moduleId],
+  );
 
   const addHighlight = useCallback(
     async (text: string, color: string) => {
-      const highlight = await api.storage.addHighlight({
-        courseID: courseId,
-        moduleID: moduleId,
-        selectedText: text,
-        startOffset: 0,
-        endOffset: 0,
-        color,
-      });
-      setHighlights((prev) => [...prev, highlight]);
+      await add(courseId, moduleId, text, color);
     },
-    [courseId, moduleId],
+    [add, courseId, moduleId],
   );
 
-  const deleteHighlight = useCallback(async (id: string) => {
-    await api.storage.deleteHighlight(id);
-    setHighlights((prev) => prev.filter((h) => h.id !== id));
-  }, []);
+  const deleteHighlight = useCallback(
+    async (id: string) => {
+      await remove(id);
+    },
+    [remove],
+  );
 
   return { highlights, loading, addHighlight, deleteHighlight };
 }

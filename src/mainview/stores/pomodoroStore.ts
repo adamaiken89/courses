@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { getStored, store } from './storage-utils';
 
 export type PomodoroMode = 'focus' | 'shortBreak' | 'longBreak';
 type PomodoroStatus = 'idle' | 'running' | 'paused' | 'finished';
@@ -8,22 +9,6 @@ const PRESETS: Record<PomodoroMode, number> = {
   shortBreak: 5 * 60,
   longBreak: 15 * 60,
 };
-
-function getStored(key: string): number {
-  try {
-    return JSON.parse(localStorage.getItem(key)!) || 0;
-  } catch {
-    return 0;
-  }
-}
-
-function storeVal(key: string, val: number) {
-  try {
-    localStorage.setItem(key, JSON.stringify(val));
-  } catch {
-    /* ignore */
-  }
-}
 
 interface PomodoroState {
   status: PomodoroStatus;
@@ -43,7 +28,7 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
   mode: 'focus',
   remaining: PRESETS.focus,
   intervalId: null,
-  completedSessions: getStored('coursereader-pomodoro-count'),
+  completedSessions: getStored('coursereader-pomodoro-count', 0),
 
   start: (mode) => {
     const existing = get().intervalId;
@@ -53,8 +38,8 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
       const state = get();
       if (state.remaining <= 1) {
         clearInterval(state.intervalId!);
-        const count = getStored('coursereader-pomodoro-count') + 1;
-        storeVal('coursereader-pomodoro-count', count);
+        const count = getStored('coursereader-pomodoro-count', 0) + 1;
+        store('coursereader-pomodoro-count', count);
         set({ status: 'finished', remaining: 0, intervalId: null, completedSessions: count });
         if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
           new Notification(mode === 'focus' ? 'Focus session complete!' : 'Break over!');
@@ -80,8 +65,8 @@ export const usePomodoroStore = create<PomodoroState>((set, get) => ({
       const state = get();
       if (state.remaining <= 1) {
         clearInterval(state.intervalId!);
-        const count = getStored('coursereader-pomodoro-count') + 1;
-        storeVal('coursereader-pomodoro-count', count);
+        const count = getStored('coursereader-pomodoro-count', 0) + 1;
+        store('coursereader-pomodoro-count', count);
         set({ status: 'finished', remaining: 0, intervalId: null, completedSessions: count });
         if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
           new Notification(state.mode === 'focus' ? 'Focus session complete!' : 'Break over!');

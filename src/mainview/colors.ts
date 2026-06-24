@@ -5,7 +5,6 @@ export const COMPLETION_GREEN_DARK = '#16a34a';
 // Primary Accent
 export const ACCENT_INDIGO = '#6366f1';
 export const ACCENT_INDIGO_LIGHT = '#818cf8';
-export const ACCENT_INDIGO_DARK = '#4f46e5';
 
 // Warning
 export const WARNING_AMBER = '#f59e0b';

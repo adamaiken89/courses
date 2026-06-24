@@ -23,6 +23,19 @@ const defaultProps = {
   courseId: 'test',
   courseName: 'Test Course',
   module: { id: 1, name: 'Intro Module', timeHours: 2, prerequisites: [], topics: [] },
+  content: '',
+  loading: true,
+  sections: [],
+  visibleSection: null,
+  isCompleted: false,
+  contentRef: { current: null } as unknown as React.RefObject<HTMLDivElement>,
+  scrollToSection: () => {},
+  handleScroll: () => {},
+  handleToggleCompleted: async () => {},
+  bookmarks: [],
+  highlights: [],
+  addHighlight: async () => {},
+  onToggleBookmark: async () => {},
   showTools: false,
   showPomodoro: false,
   setShowTools: () => {},
@@ -51,7 +64,9 @@ describe('LessonSection snapshots', () => {
 
   test('content loaded', async () => {
     mockAll({ content: mockContent });
-    const { container } = render(<LessonSection {...defaultProps} />);
+    const { container } = render(
+      <LessonSection {...defaultProps} loading={false} content={mockContent} />,
+    );
     await waitFor(() => expect(container.textContent).toContain('Introduction'));
     expect(container.innerHTML).toMatchSnapshot();
   });

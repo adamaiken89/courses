@@ -5,9 +5,6 @@ import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import remarkGfm from 'remark-gfm';
 
-import { useBookmarks } from '../hooks/useBookmarks';
-import { useHighlights } from '../hooks/useHighlights';
-import { useLesson } from '../hooks/useLesson';
 import { useSelection } from '../hooks/useSelection';
 import { useSettingsStore } from '../stores/settingsStore';
 import { THEME_TOKENS, themeToCSSVars } from '../themes';
@@ -20,13 +17,27 @@ import CardEditor from '../components/lesson/CardEditor';
 import StudyTools from '../components/StudyTools';
 import PomodoroTimer from '../components/PomodoroTimer';
 import { rehypeHighlightText } from '../components/rehype-highlight-text';
-import type { ModuleMeta } from '../../bun/types';
+import type { ModuleMeta, Bookmark, Highlight } from '../../bun/types';
+import type { Section } from '../components/sidebar-types';
+
+type DivRef = React.RefObject<HTMLDivElement>;
 
 interface Props {
   courseId: string;
   courseName: string;
   module: ModuleMeta;
-  initialSectionID?: string;
+  content: string;
+  loading: boolean;
+  sections: Section[];
+  visibleSection: string | null;
+  isCompleted: boolean;
+  contentRef: DivRef;
+  scrollToSection: (sectionId: string) => void;
+  handleScroll: () => void;
+  handleToggleCompleted: () => Promise<void>;
+  bookmarks: Bookmark[];
+  highlights: Highlight[];
+  addHighlight: (text: string, color: string) => Promise<void>;
   onPrevModule?: () => void;
   onNextModule?: () => void;
   hasPrevModule?: boolean;
@@ -36,6 +47,7 @@ interface Props {
   setShowTools: (v: boolean) => void;
   showSections: boolean;
   onToggleSections: () => void;
+  onToggleBookmark: (title: string, sectionID: string | null) => Promise<void>;
 }
 
 function extractText(children: React.ReactNode): string {
@@ -84,7 +96,18 @@ export default function LessonSection({
   courseId,
   courseName,
   module,
-  initialSectionID,
+  content,
+  loading,
+  sections,
+  visibleSection,
+  isCompleted,
+  contentRef,
+  scrollToSection,
+  handleScroll,
+  handleToggleCompleted,
+  bookmarks,
+  highlights,
+  addHighlight: addHighlightFn,
   onPrevModule,
   onNextModule,
   hasPrevModule,
@@ -94,28 +117,10 @@ export default function LessonSection({
   setShowTools,
   showSections,
   onToggleSections,
+  onToggleBookmark,
 }: Props) {
   const { t } = useTranslation();
   const selectionToolbarRef = useRef<SelectionToolbarHandle>(null);
-
-  const {
-    content,
-    loading,
-    sections,
-    visibleSection,
-    isCompleted,
-    contentRef,
-    scrollToSection,
-    handleScroll,
-    handleToggleCompleted,
-  } = useLesson(courseId, module.id, initialSectionID);
-
-  const { bookmarks, handleToggleBookmark: toggleBookmark } = useBookmarks(
-    courseId,
-    module.id,
-    visibleSection,
-  );
-  const { highlights, addHighlight } = useHighlights(courseId, module.id);
 
   const {
     showToolbar,
@@ -149,12 +154,12 @@ export default function LessonSection({
     _hasBookmark: boolean,
     heading: string,
   ) => {
-    toggleBookmark(`${module.name} – ${heading}`, sectionId);
+    onToggleBookmark(`${module.name} – ${heading}`, sectionId);
   };
 
   const handleAddHighlight = async (color: string) => {
     if (!selection) return;
-    await addHighlight(selection.text, color);
+    await addHighlightFn(selection.text, color);
     closeToolbar();
   };
 
