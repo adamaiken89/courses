@@ -13,6 +13,7 @@ interface StudyToolsProps {
   courseId: string;
   moduleId: number;
   moduleName: string;
+  courseName: string;
   sections: Section[];
   visibleSection: string | null;
   content: string;
@@ -24,6 +25,7 @@ export default function StudyTools({
   courseId,
   moduleId,
   moduleName,
+  courseName,
   sections,
   visibleSection,
   content,
@@ -80,6 +82,7 @@ export default function StudyTools({
             courseId={courseId}
             moduleId={moduleId}
             moduleName={moduleName}
+            courseName={courseName}
             sections={sections}
             visibleSection={visibleSection}
           />

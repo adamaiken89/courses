@@ -10,6 +10,7 @@ bun run dev:hmr          # Vite HMR + electobun concurrently
 bun run build            # production build
 bun test                 # run all tests (bun:test + happy-dom)
 bun run check            # tsc + eslint + prettier (run after every change)
+bun run knip             # find unused code/exports/dependencies
 ```
 
 ## Architecture
@@ -71,6 +72,10 @@ Module dir matching: `findModuleDir` scans `modules/<id>/` for `NN-` prefix.
 - SRS decks: `subjects/<id>/srs/deck.json`
 - Highlights, notes, bookmarks: `~/.coursereader/data.json`
 - Gemini API key: `~/.coursereader/prefs.json`
+
+## Code quality
+
+- Run `bun run knip` to find and remove unused code, exports, types, and dependencies.
 
 ## Quirks
 

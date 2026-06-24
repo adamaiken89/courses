@@ -6,6 +6,7 @@ interface BookmarksTabProps {
   courseId: string;
   moduleId: number;
   moduleName: string;
+  courseName: string;
   sections: Section[];
   visibleSection: string | null;
 }
@@ -14,6 +15,7 @@ export default function BookmarksTab({
   courseId,
   moduleId,
   moduleName,
+  courseName,
   sections,
   visibleSection,
 }: BookmarksTabProps) {
@@ -36,6 +38,7 @@ export default function BookmarksTab({
         bookmarks.map((b) => (
           <div key={b.id} className="bg-gray-800 border border-gray-700 rounded p-2 mb-2">
             <p className="text-xs text-gray-300">{b.title}</p>
+            <p className="text-[10px] text-indigo-400 mt-0.5">{courseName}</p>
             <p className="text-[10px] text-gray-500 mt-0.5">
               {b.sectionID ? t('studyTools.bookmarkType') : t('studyTools.moduleType')}
             </p>

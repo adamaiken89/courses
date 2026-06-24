@@ -40,10 +40,14 @@ function splitText(text: string, highlights: Highlight[]): HastNode[] {
 }
 
 function transformTree(node: HastElement, highlights: Highlight[], skip = false): void {
-  if (!node.children) return;
+  if (!node?.children || !Array.isArray(node.children)) return;
 
   const newChildren: HastNode[] = [];
   for (const child of node.children) {
+    if (child == null || typeof child !== 'object') {
+      newChildren.push(child);
+      continue;
+    }
     if (child.type === 'text' && 'value' in child && typeof child.value === 'string' && !skip) {
       const parts = splitText(child.value, highlights);
       newChildren.push(...parts);
@@ -53,7 +57,9 @@ function transformTree(node: HastElement, highlights: Highlight[], skip = false)
         (child as HastElement).tagName === 'mark' ||
         (child as HastElement).tagName === 'pre' ||
         (child as HastElement).tagName === 'code';
-      if ('children' in child) transformTree(child as HastElement, highlights, deeper);
+      if ('children' in child && child.children != null) {
+        transformTree(child as HastElement, highlights, deeper);
+      }
       newChildren.push(child);
     }
   }
@@ -61,8 +67,10 @@ function transformTree(node: HastElement, highlights: Highlight[], skip = false)
 }
 
 export function rehypeHighlightText(highlights: Highlight[]) {
-  return (tree: HastElement) => {
+  return (tree: HastNode) => {
     if (highlights.length === 0) return;
-    transformTree(tree, highlights);
+    if (tree && typeof tree === 'object' && 'children' in tree) {
+      transformTree(tree as HastElement, highlights);
+    }
   };
 }

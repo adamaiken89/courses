@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 export type PomodoroMode = 'focus' | 'shortBreak' | 'longBreak';
-export type PomodoroStatus = 'idle' | 'running' | 'paused' | 'finished';
+type PomodoroStatus = 'idle' | 'running' | 'paused' | 'finished';
 
 const PRESETS: Record<PomodoroMode, number> = {
   focus: 25 * 60,

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { api } from '../api';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
@@ -11,7 +11,7 @@ import { useLesson } from '../hooks/useLesson';
 import { useSelection } from '../hooks/useSelection';
 import { useSettingsStore } from '../stores/settingsStore';
 import { THEME_TOKENS, themeToCSSVars } from '../themes';
-import LessonToolbar from '../components/lesson/LessonToolbar';
+import { COMPLETION_GREEN, COMPLETION_GREEN_DARK, SECTION_ACTIVE_TEXT } from '../colors';
 import SectionsPanel from '../components/lesson/SectionsPanel';
 import SelectionToolbar from '../components/lesson/SelectionToolbar';
 import type { SelectionToolbarHandle } from '../components/lesson/SelectionToolbar';
@@ -20,18 +20,22 @@ import CardEditor from '../components/lesson/CardEditor';
 import StudyTools from '../components/StudyTools';
 import PomodoroTimer from '../components/PomodoroTimer';
 import { rehypeHighlightText } from '../components/rehype-highlight-text';
-import { useViewStore } from '../stores/viewStore';
-import { useCourseStore } from '../stores/courseStore';
 import type { ModuleMeta } from '../../bun/types';
 
 interface Props {
   courseId: string;
+  courseName: string;
   module: ModuleMeta;
   initialSectionID?: string;
   onPrevModule?: () => void;
   onNextModule?: () => void;
   hasPrevModule?: boolean;
   hasNextModule?: boolean;
+  showTools: boolean;
+  showPomodoro: boolean;
+  setShowTools: (v: boolean) => void;
+  showSections: boolean;
+  onToggleSections: () => void;
 }
 
 function extractText(children: React.ReactNode): string {
@@ -78,16 +82,20 @@ const components = {
 
 export default function LessonSection({
   courseId,
+  courseName,
   module,
   initialSectionID,
   onPrevModule,
   onNextModule,
   hasPrevModule,
   hasNextModule,
+  showTools,
+  showPomodoro,
+  setShowTools,
+  showSections,
+  onToggleSections,
 }: Props) {
   const { t } = useTranslation();
-  const [showTools, setShowTools] = useState(false);
-  const [showPomodoro, setShowPomodoro] = useState(false);
   const selectionToolbarRef = useRef<SelectionToolbarHandle>(null);
 
   const {
@@ -96,19 +104,17 @@ export default function LessonSection({
     sections,
     visibleSection,
     isCompleted,
-    totalModules,
-    completedCount,
     contentRef,
     scrollToSection,
     handleScroll,
     handleToggleCompleted,
   } = useLesson(courseId, module.id, initialSectionID);
 
-  const {
-    bookmarks,
-    handleToggleBookmark: toggleBookmark,
-    hasActiveBookmark,
-  } = useBookmarks(courseId, module.id, visibleSection);
+  const { bookmarks, handleToggleBookmark: toggleBookmark } = useBookmarks(
+    courseId,
+    module.id,
+    visibleSection,
+  );
   const { highlights, addHighlight } = useHighlights(courseId, module.id);
 
   const {
@@ -129,29 +135,14 @@ export default function LessonSection({
 
   const focusMode = useSettingsStore((s) => s.focusMode);
   const theme = useSettingsStore((s) => s.theme);
-  const pushView = useViewStore((s) => s.push);
-  const courses = useCourseStore((s) => s.courses);
-
-  const handleReviewCards = () => {
-    const course = courses.find((c) => c.id === courseId);
-    if (course) pushView({ type: 'userCardReview', course });
-  };
   const fontSize = useSettingsStore((s) => s.fontSize);
   const wideMode = useSettingsStore((s) => s.wideMode);
-  const showSections = useSettingsStore((s) => s.showSections);
-  const toggleSections = useSettingsStore((s) => s.toggleSections);
+  const toggleSections = onToggleSections;
   const themeVars = useMemo(() => themeToCSSVars(THEME_TOKENS[theme]), [theme]);
   const rehypePlugins = useMemo(
     () => [rehypeHighlight, rehypeHighlightText(highlights)],
     [highlights],
   );
-
-  const handleToggleBookmark = () => {
-    const title = visibleSection
-      ? `${module.name} – ${sections.find((s) => s.id === visibleSection)?.heading}`
-      : module.name;
-    toggleBookmark(title, visibleSection);
-  };
 
   const handleToggleSectionBookmark = (
     sectionId: string,
@@ -276,6 +267,7 @@ export default function LessonSection({
         {showTools && !focusMode && (
           <StudyTools
             courseId={courseId}
+            courseName={courseName}
             moduleId={module.id}
             moduleName={module.name}
             sections={sections}
@@ -285,20 +277,7 @@ export default function LessonSection({
             onClose={() => setShowTools(false)}
           />
         )}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <LessonToolbar
-            focusMode={focusMode}
-            showTools={showTools}
-            showPomodoro={showPomodoro}
-            hasActiveBookmark={hasActiveBookmark}
-            completedCount={completedCount}
-            totalModules={totalModules}
-            onToggleBookmark={handleToggleBookmark}
-            onToggleTools={() => setShowTools(!showTools)}
-            onTogglePomodoro={() => setShowPomodoro(!showPomodoro)}
-            onReviewCards={handleReviewCards}
-          />
-
+        <div className="flex-1 flex flex-col min-w-0">
           {!showSections && !focusMode && (
             <button
               onClick={toggleSections}
@@ -329,14 +308,14 @@ export default function LessonSection({
           )}
 
           <div
-            className="flex-1 overflow-y-auto p-6"
+            className="flex-1 overflow-y-auto"
             ref={contentRef}
             tabIndex={-1}
             onScroll={handleScroll}
             onMouseUp={handleTextSelection}
           >
             <div
-              className={`book-content${wideMode ? ' book-content-wide' : ''}`}
+              className={`p-6 book-content${wideMode ? ' book-content-wide' : ''}`}
               style={{ fontSize: `${fontSize}px`, ...themeVars }}
             >
               <ReactMarkdown
@@ -353,10 +332,10 @@ export default function LessonSection({
                   className="w-full py-3 rounded-lg font-semibold text-sm transition-all duration-200"
                   style={{
                     background: isCompleted
-                      ? 'linear-gradient(135deg, #22c55e, #16a34a)'
+                      ? `linear-gradient(135deg, ${COMPLETION_GREEN}, ${COMPLETION_GREEN_DARK})`
                       : 'var(--book-code-bg)',
-                    color: isCompleted ? '#fff' : 'var(--book-text)',
-                    border: `1px solid ${isCompleted ? '#16a34a' : 'var(--book-h2-border)'}`,
+                    color: isCompleted ? SECTION_ACTIVE_TEXT : 'var(--book-text)',
+                    border: `1px solid ${isCompleted ? COMPLETION_GREEN_DARK : 'var(--book-h2-border)'}`,
                   }}
                 >
                   {isCompleted ? t('lesson.completed') : t('lesson.markAsComplete')}

@@ -5,6 +5,12 @@ import { logger } from '../logger';
 import PageLayout from '../layouts/PageLayout';
 import PageHeader from '../layouts/PageHeader';
 import PageContent from '../layouts/PageContent';
+import {
+  COMPLETION_GREEN,
+  ACCENT_INDIGO_LIGHT,
+  WARNING_AMBER,
+  DASHBOARD_DEFAULT_TEXT,
+} from '../colors';
 import type { CourseStats, GlobalStats } from '../../bun/stats';
 
 interface DashboardPageProps {
@@ -26,7 +32,7 @@ function StatCard({
   return (
     <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
       <p className="text-[10px] text-gray-500 uppercase tracking-wider">{label}</p>
-      <p className="text-2xl font-bold mt-1" style={{ color: color || '#e2e8f0' }}>
+      <p className="text-2xl font-bold mt-1" style={{ color: color || DASHBOARD_DEFAULT_TEXT }}>
         {value}
         {suffix && <span className="text-sm font-normal text-gray-500 ml-1">{suffix}</span>}
       </p>
@@ -93,25 +99,25 @@ export default function DashboardPage({ courseID, onBack }: DashboardPageProps) 
               label={t('dashboard.modulesDone')}
               value={`${courseStats.completedModules}/${courseStats.totalModules}`}
               suffix={`(${completionPct}%)`}
-              color={completionPct === 100 ? '#22c55e' : '#818cf8'}
+              color={completionPct === 100 ? COMPLETION_GREEN : ACCENT_INDIGO_LIGHT}
             />
             <StatCard
               label={t('dashboard.avgQuizScore')}
               value={courseStats.avgQuizScore}
               suffix="%"
-              color={courseStats.avgQuizScore >= 80 ? '#22c55e' : '#f59e0b'}
+              color={courseStats.avgQuizScore >= 80 ? COMPLETION_GREEN : WARNING_AMBER}
             />
             <StatCard
               label={t('dashboard.srsDue')}
               value={courseStats.srsDueCount}
               suffix={`/ ${courseStats.srsTotalCards}`}
-              color="#f59e0b"
+              color={WARNING_AMBER}
             />
             <StatCard
               label={t('dashboard.streak')}
               value={courseStats.streak}
               suffix="days"
-              color="#22c55e"
+              color={COMPLETION_GREEN}
             />
           </div>
 
@@ -179,7 +185,7 @@ export default function DashboardPage({ courseID, onBack }: DashboardPageProps) 
               label={t('dashboard.streak')}
               value={globalStats.streak}
               suffix="days"
-              color="#22c55e"
+              color={COMPLETION_GREEN}
             />
             <StatCard
               label={t('dashboard.studyTime')}

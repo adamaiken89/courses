@@ -5,6 +5,7 @@ import './i18n';
 import './index.css';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { TOAST_BG, TOAST_BORDER, TOAST_TEXT } from './colors';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -12,12 +13,12 @@ createRoot(document.getElementById('root')!).render(
       <App />
       <Toaster
         theme="dark"
-        position="bottom-right"
+        position="bottom-center"
         toastOptions={{
           style: {
-            background: '#1f2937',
-            border: '1px solid #374151',
-            color: '#f3f4f6',
+            background: TOAST_BG,
+            border: `1px solid ${TOAST_BORDER}`,
+            color: TOAST_TEXT,
           },
         }}
         closeButton

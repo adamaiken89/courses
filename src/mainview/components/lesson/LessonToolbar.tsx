@@ -1,6 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '../../stores/settingsStore';
 import { toggleVariants } from '../ui';
+import {
+  COMPLETION_GREEN,
+  COMPLETION_GREEN_DARK,
+  ACCENT_INDIGO,
+  ACCENT_INDIGO_LIGHT,
+} from '../../colors';
 import type { Theme } from '../../themes';
 
 const THEME_LABELS: Record<Theme, string> = {
@@ -35,6 +41,9 @@ interface LessonToolbarProps {
   onToggleTools: () => void;
   onTogglePomodoro: () => void;
   onReviewCards?: () => void;
+  onStartQuiz?: () => void;
+  onStartReview?: () => void;
+  onSettings?: () => void;
 }
 
 export default function LessonToolbar({
@@ -48,6 +57,9 @@ export default function LessonToolbar({
   onToggleTools,
   onTogglePomodoro,
   onReviewCards,
+  onStartQuiz,
+  onStartReview,
+  onSettings,
 }: LessonToolbarProps) {
   const { t } = useTranslation();
   const fontSize = useSettingsStore((s) => s.fontSize);
@@ -60,7 +72,7 @@ export default function LessonToolbar({
   const toggleFocusMode = useSettingsStore((s) => s.toggleFocusMode);
 
   return (
-    <div className="bg-gray-800 border-b border-gray-700 px-4 py-1.5 flex items-center gap-2 shrink-0">
+    <div className="sticky top-0 z-40 bg-gray-800 border-b border-gray-700 px-4 py-1.5 flex items-center gap-2 shrink-0">
       {!focusMode && (
         <>
           <button
@@ -100,19 +112,15 @@ export default function LessonToolbar({
       >
         {wideMode ? t('lesson.wide') : t('lesson.narrow')}
       </button>
-      {!focusMode && (
-        <>
-          <div className="h-3 w-px bg-gray-600" />
-          <button
-            onClick={onToggleBookmark}
-            className={toggleVariants({ active: hasActiveBookmark })}
-            title={t('lesson.bookmarkModule')}
-          >
-            {hasActiveBookmark ? t('icons.bookmarkFilled') : t('icons.bookmarkEmpty')}{' '}
-            {t('lesson.bookmark')}
-          </button>
-        </>
-      )}
+      <div className="h-3 w-px bg-gray-600" />
+      <button
+        onClick={onToggleBookmark}
+        className={toggleVariants({ active: hasActiveBookmark })}
+        title={t('lesson.bookmarkModule')}
+      >
+        {hasActiveBookmark ? t('icons.bookmarkFilled') : t('icons.bookmarkEmpty')}{' '}
+        {t('lesson.bookmark')}
+      </button>
       <div className="h-3 w-px bg-gray-600" />
       <button
         onClick={toggleFocusMode}
@@ -153,6 +161,30 @@ export default function LessonToolbar({
           </button>
         </>
       )}
+      {!focusMode && (
+        <>
+          <div className="h-3 w-px bg-gray-600" />
+          <button
+            onClick={onStartQuiz}
+            className="px-2 py-1 text-xs bg-emerald-700 hover:bg-emerald-600 rounded"
+          >
+            {t('common.quiz')}
+          </button>
+          <button
+            onClick={onStartReview}
+            className="px-2 py-1 text-xs bg-amber-700 hover:bg-amber-600 rounded"
+          >
+            {t('common.review')}
+          </button>
+          <button
+            onClick={onSettings}
+            className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 rounded"
+            title={t('common.settings')}
+          >
+            {t('icons.gear')}
+          </button>
+        </>
+      )}
       {totalModules > 0 && <div className="h-3 w-px bg-gray-600" />}
       {totalModules > 0 && (
         <div className="flex items-center gap-1.5">
@@ -163,8 +195,8 @@ export default function LessonToolbar({
                 width: `${(completedCount / totalModules) * 100}%`,
                 background:
                   completedCount === totalModules
-                    ? 'linear-gradient(90deg, #22c55e, #16a34a)'
-                    : 'linear-gradient(90deg, #6366f1, #818cf8)',
+                    ? `linear-gradient(90deg, ${COMPLETION_GREEN}, ${COMPLETION_GREEN_DARK})`
+                    : `linear-gradient(90deg, ${ACCENT_INDIGO}, ${ACCENT_INDIGO_LIGHT})`,
               }}
             />
           </div>

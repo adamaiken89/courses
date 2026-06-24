@@ -21,8 +21,13 @@ Second chapter.`;
 
 const defaultProps = {
   courseId: 'test',
+  courseName: 'Test Course',
   module: { id: 1, name: 'Intro Module', timeHours: 2, prerequisites: [], topics: [] },
-  onStartQuiz: () => {},
+  showTools: false,
+  showPomodoro: false,
+  setShowTools: () => {},
+  showSections: false,
+  onToggleSections: () => {},
 };
 
 afterEach(restoreFetch);

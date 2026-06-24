@@ -52,7 +52,11 @@ export default function BookmarksPage({ onBack, onOpen, onSwitchCourse }: Props)
 
   return (
     <PageLayout>
-      <PageHeader onBack={onBack} center={<CourseSwitcher onSelect={onSwitchCourse} />} />
+      <PageHeader
+        onBack={onBack}
+        center={<CourseSwitcher onSelect={onSwitchCourse} />}
+        hideHeaderActions
+      />
       <PageContent className="max-w-2xl mx-auto px-6 py-8">
         {bookmarks.length === 0 ? (
           <p className="text-center text-gray-500 py-12">{t('bookmarks.noBookmarks')}</p>
@@ -70,11 +74,14 @@ export default function BookmarksPage({ onBack, onOpen, onSwitchCourse }: Props)
                     className="w-full text-left p-4 pr-10"
                   >
                     <h3 className="text-sm font-medium text-indigo-300">{b.title}</h3>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-400 mt-1">
                       {course?.displayName || b.courseID}
+                    </p>
+                    <p className="text-[10px] text-gray-500 mt-0.5">
+                      {course?.modules.find((m) => m.id === b.moduleID)?.name || ''}
                       {b.sectionID ? t('bookmarks.sectionLabel') : t('bookmarks.moduleLabel')}
                     </p>
-                    <p className="text-xs text-gray-600 mt-0.5">
+                    <p className="text-[10px] text-gray-600 mt-0.5">
                       {new Date(b.createdAt).toLocaleDateString()}
                     </p>
                   </button>

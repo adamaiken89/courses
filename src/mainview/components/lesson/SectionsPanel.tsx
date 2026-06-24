@@ -1,6 +1,14 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toggleVariants } from '../ui';
+import {
+  SECTION_ACTIVE_BG,
+  SECTION_ACTIVE_TEXT,
+  SECTION_HOVER_BG,
+  SECTION_INACTIVE_BOOKMARK,
+  BOOKMARK_AMBER,
+  SECTION_LEVEL_COLORS,
+} from '../../colors';
 import type { Section, Bookmark } from '../sidebar-types';
 
 interface SectionsPanelProps {
@@ -11,8 +19,6 @@ interface SectionsPanelProps {
   onToggleSectionBookmark: (sectionId: string, hasBookmark: boolean, heading: string) => void;
   onClose: () => void;
 }
-
-const LEVEL_COLORS = ['#d1d5db', '#c7d2fe', '#bae6fd', '#d9f99d', '#fde68a', '#e9d5ff'];
 
 export default function SectionsPanel({
   sections,
@@ -48,7 +54,7 @@ export default function SectionsPanel({
             {sections.map((s) => {
               const isActive = s.id === visibleSection;
               const isBookmarked = bookmarks.some((b) => b.sectionID === s.id);
-              const levelColor = LEVEL_COLORS[Math.min(s.level - 1, 5)];
+              const levelColor = SECTION_LEVEL_COLORS[Math.min(s.level - 1, 5)];
               return (
                 <button
                   key={s.id}
@@ -58,11 +64,11 @@ export default function SectionsPanel({
                   style={Object.assign(
                     { paddingLeft: `${(s.level - 1) * 16 + 10}px` },
                     isActive
-                      ? { backgroundColor: '#4f46e5', color: '#fff' }
+                      ? { backgroundColor: SECTION_ACTIVE_BG, color: SECTION_ACTIVE_TEXT }
                       : { backgroundColor: 'transparent', color: levelColor },
                   )}
                   onMouseEnter={(e) => {
-                    if (!isActive) e.currentTarget.style.backgroundColor = '#374151';
+                    if (!isActive) e.currentTarget.style.backgroundColor = SECTION_HOVER_BG;
                   }}
                   onMouseLeave={(e) => {
                     if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
@@ -79,7 +85,11 @@ export default function SectionsPanel({
                       }}
                       className="shrink-0 cursor-pointer"
                       style={{
-                        color: isBookmarked ? '#fbbf24' : isActive ? '#fff' : '#4b5563',
+                        color: isBookmarked
+                          ? BOOKMARK_AMBER
+                          : isActive
+                            ? SECTION_ACTIVE_TEXT
+                            : SECTION_INACTIVE_BOOKMARK,
                       }}
                       title={
                         isBookmarked ? t('lesson.removeBookmark') : t('lesson.bookmarkSection')

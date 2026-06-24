@@ -116,7 +116,7 @@ export default function SettingsPage({ onBack }: Props) {
 
   return (
     <PageLayout>
-      <PageHeader onBack={onBack} title={t('common.settings')} />
+      <PageHeader onBack={onBack} title={t('common.settings')} hideHeaderActions />
 
       <PageContent className="max-w-2xl mx-auto px-8 py-8 w-full">
         <section className="bg-gray-800 rounded-xl p-6 mb-6">

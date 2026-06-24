@@ -108,8 +108,6 @@ export interface CompletedModule {
   completedAt: string;
 }
 
-export type NavigationDirection = 'prev' | 'next';
-
 export interface StudySession {
   date: string;
   courseID: string;
@@ -118,28 +116,4 @@ export interface StudySession {
   type: 'reading' | 'quiz' | 'review';
   score?: number;
   total?: number;
-}
-
-export type ReviewFilter = 'all' | 'due' | 'starred';
-
-export interface AppState {
-  courses: Course[];
-  selectedCourse: Course | null;
-  selectedModule: ModuleMeta | null;
-  readerCourse: Course | null;
-  readerSelectedModule: ModuleMeta | null;
-  lessonContent: string;
-  readerSections: ModuleSection[];
-  readerVisibleSectionId: string | null;
-  readerScrollTarget: string | null;
-  lessonFontSize: number;
-  currentHighlights: Highlight[];
-  currentNotes: Note[];
-  isBookmarked: boolean;
-  srsDeck: SRSDeck;
-  reviewFilter: ReviewFilter;
-  quizQuestions: QuizQuestion[];
-  quizCurrentIndex: number;
-  quizSelectedAnswers: Record<string, string>;
-  quizCompleted: boolean;
 }
