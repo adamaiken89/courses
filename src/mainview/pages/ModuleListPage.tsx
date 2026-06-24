@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import CourseSwitcher from '../components/CourseSwitcher';
 import PageHeader from '../layouts/PageHeader';
 import PageLayout from '../layouts/PageLayout';
 import PageContent from '../layouts/PageContent';
@@ -7,6 +8,7 @@ import type { Course, ModuleMeta } from '../../bun/types';
 interface Props {
   course: Course;
   onSelectModule: (module: ModuleMeta) => void;
+  onSelectCourse: (course: Course) => void;
   onBack: () => void;
   onOpenSettings: () => void;
   onOpenBookmarks: () => void;
@@ -16,6 +18,7 @@ interface Props {
 export default function ModuleListPage({
   course,
   onSelectModule,
+  onSelectCourse,
   onBack,
   onOpenSettings,
   onOpenBookmarks,
@@ -28,7 +31,7 @@ export default function ModuleListPage({
       <PageHeader
         onBack={onBack}
         backLabel={t('moduleList.allCourses')}
-        title={course.displayName}
+        center={<CourseSwitcher currentCourseId={course.id} onSelect={onSelectCourse} />}
         actions={
           <>
             <button

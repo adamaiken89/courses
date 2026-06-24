@@ -6,7 +6,7 @@ Built with **Electrobun** + **React 18** + **TypeScript** + **Bun**.
 
 ## Features
 
-- **Course browser** — landing page → course list → module list → lesson, with course/module switchers
+- **Course browser** — course list → module list → lesson, with course/module switchers
 - **Quizzes** — MCQ per module, instant scoring
 - **Spaced repetition** — SM-2 algorithm via SRS deck (JSON), star cards, filter by due/starred/all
 - **AI assistant** — ask Gemini 2.0 Flash about lesson content in sidebar

@@ -9,9 +9,8 @@ C4Component
   Container_Boundary(fe, "Frontend (React 18 + TypeScript + Vite)") {
 
     Boundary(views, "View Layer (src/mainview/components/)") {
-      Component(landing, "LandingView", "React component", "Welcome screen → pushes subjectList")
-      Component(subjectList, "SubjectListView", "React component", "Grid of subject cards from GET /api/subjects")
-      Component(moduleList, "ModuleListView", "React component", "Module cards + ← All Courses navigates to subjectList")
+      Component(subjectList, "CourseListPage", "React component", "Grid of course cards from GET /api/subjects")
+      Component(moduleList, "ModuleListView", "React component", "Module cards + ← All Courses navigates to courseList")
       Component(lessonPage, "LessonPage", "React component (App.tsx inline)", "Header + ModuleSwitcher + LessonView")
       Component(lessonView, "LessonView", "React component", "react-markdown renderer, section nav, AI sidebar, notes")
       Component(quizView, "QuizView", "React component", "MCQ quiz flow via API: load, select answer, score")
@@ -64,18 +63,16 @@ C4Component
   System_Ext(fs, "File System", "subjects/ directory tree + ~/.coursereader/")
   System_Ext(geminiExt, "Google Gemini API", "generativelanguage.googleapis.com")
 
-  Rel(student, landing, "First screen on launch")
-  Rel(student, subjectList, "Browses subjects")
-  Rel(student, moduleList, "Selects module from subject")
+  Rel(student, subjectList, "Browses courses")
+  Rel(student, moduleList, "Selects module from course")
   Rel(student, lessonView, "Reads lesson content")
   Rel(student, quizView, "Takes MCQ quizzes")
   Rel(student, reviewView, "Reviews SRS cards")
   Rel(student, settingsView, "Configures API key, theme, font")
   Rel(student, bookmarksView, "Views saved bookmarks")
 
-  Rel(landing, viewStore, "push(subjectList)")
-  Rel(subjectList, viewStore, "push(moduleList) on subject select")
-  Rel(moduleList, viewStore, "replace(subjectList) on ← All Courses")
+  Rel(subjectList, viewStore, "push(moduleList) on course select")
+  Rel(moduleList, viewStore, "replace(courseList) on ← All Courses")
   Rel(moduleList, viewStore, "push(lesson) on module select")
   Rel(lessonPage, viewStore, "push(quiz/review/settings/bookmarks), replace(moduleList) on back")
   Rel(quizView, viewStore, "pop on back")
@@ -84,7 +81,7 @@ C4Component
   Rel(bookmarksView, viewStore, "replace(lesson) on open, pop on back")
 
   Rel(subjectList, apiClient, "GET /api/subjects")
-  Rel(moduleList, apiClient, "reads subject data (passed via viewStore)")
+  Rel(moduleList, apiClient, "reads course data (passed via viewStore)")
   Rel(lessonView, apiClient, "GET /api/lessons/:subject/:module, POST /api/gemini/ask, bookmark/highlight CRUD")
   Rel(quizView, apiClient, "GET /api/quizzes/:subject/:module, POST /api/quiz/select, GET /api/quiz/score")
   Rel(reviewView, apiClient, "GET /api/srs/:subject, POST /api/srs/review")
@@ -102,7 +99,7 @@ C4Component
   Rel(storage, fs, "Reads/writes ~/.coursereader/data.json, ~/.coursereader/prefs.json")
   Rel(gemini, geminiExt, "POST /v1beta/models/gemini-2.0-flash:generateContent")
 
-  Rel(courseLoader, settingsStore, "provides subject list → modules → lesson content")
+  Rel(courseLoader, settingsStore, "provides course list → modules → lesson content")
   Rel(lessonView, bookContent, "Applies .book-content.book-<theme> CSS class")
 ```
 
@@ -112,9 +109,8 @@ C4Component
 
 | Component | File | Responsibility |
 |-----------|------|----------------|
-| LandingView | `src/mainview/components/LandingView.tsx` | Welcome screen, pushes subjectList |
-| SubjectListView | `src/mainview/components/SubjectListView.tsx` | Subject grid with module stats |
-| ModuleListView | `src/mainview/components/ModuleListView.tsx` | Module cards, ← All Courses → subjectList |
+| CourseListPage | `src/mainview/pages/CourseListPage.tsx` | Course grid with module stats |
+| ModuleListPage | `src/mainview/pages/ModuleListPage.tsx` | Module cards, ← All Courses → courseList |
 | LessonPage | `src/mainview/App.tsx` (inline) | Header + ModuleSwitcher + LessonView layout |
 | LessonView | `src/mainview/components/LessonView.tsx` | Markdown reader, section nav, AI sidebar, notes |
 | QuizView | `src/mainview/components/QuizView.tsx` | MCQ quiz with scoring, API-backed |
@@ -166,10 +162,9 @@ C4Component
 ## Navigation Flow
 
 ```
-landing → subjectList
-subjectList → moduleList (select subject)
+courseList → moduleList (select course)
 moduleList → lesson (select module)
-moduleList → subjectList (← All Courses, replace)
+moduleList → courseList (← All Courses, replace)
 lesson → moduleList (← back, replace)
 lesson → lesson (switch module via ModuleSwitcher)
 lesson → quiz (push)

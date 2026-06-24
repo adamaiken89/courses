@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import BookmarksPage from './pages/BookmarksPage';
 import CourseListPage from './pages/CourseListPage';
 import DashboardPage from './pages/DashboardPage';
-import LandingPage from './pages/LandingPage';
+
 import ModuleListPage from './pages/ModuleListPage';
 import SearchOverlay from './components/SearchOverlay';
 import SettingsPage from './pages/SettingsPage';
@@ -36,7 +36,7 @@ export default function App() {
       setLoading(false);
       return;
     }
-    replace({ type: 'landing' });
+    replace({ type: 'courseList' });
     setLoading(false);
   }, [currentView, replace]);
 
@@ -104,9 +104,6 @@ export default function App() {
 
   const viewContent = (() => {
     switch (currentView.type) {
-    case 'landing':
-      return <LandingPage />;
-
     case 'courseList':
       return (
         <CourseListPage
@@ -122,6 +119,7 @@ export default function App() {
         <ModuleListPage
           course={currentView.course}
           onSelectModule={(m) => handleSelectModule(currentView.course, m)}
+          onSelectCourse={handleSelectCourse}
           onBack={() => replace({ type: 'courseList' })}
           onOpenSettings={() => push({ type: 'settings' })}
           onOpenBookmarks={() => push({ type: 'bookmarks' })}

@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import type { Course, ModuleMeta } from '../../bun/types';
 
 export type View =
-  | { type: 'landing' }
   | { type: 'courseList' }
   | { type: 'moduleList'; course: Course }
   | { type: 'lesson'; course: Course; module: ModuleMeta; sectionID?: string }
