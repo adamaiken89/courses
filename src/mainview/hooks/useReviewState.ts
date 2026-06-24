@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api';
+import { showToast } from '../toast';
 import type { SRSCard, SRSDeck } from '../../bun/types';
 
 type FilterMode = 'all' | 'due' | 'starred';
@@ -30,25 +31,37 @@ export function useReviewState(courseId: string): UseReviewStateReturn {
   const loadCards = useCallback(
     (f: FilterMode) => {
       setLoading(true);
-      api.courses.srs.filter(courseId, f).then((result) => {
-        setCards(result);
-        setLoading(false);
-        setCurrentIndex(0);
-        setShowAnswer(false);
-      });
+      api.courses.srs
+        .filter(courseId, f)
+        .then((result) => {
+          setCards(result);
+          setLoading(false);
+          setCurrentIndex(0);
+          setShowAnswer(false);
+        })
+        .catch(() => {
+          showToast.error('toast.loadFailed');
+          setLoading(false);
+        });
     },
     [courseId],
   );
 
   useEffect(() => {
-    api.courses.srs.get(courseId).then((d) => {
-      setDeck(d);
-      const due = Object.values(d.cards).filter(
-        (c: SRSCard) => new Date(c.nextReviewDate) <= new Date(),
-      );
-      setCards(due);
-      setLoading(false);
-    });
+    api.courses.srs
+      .get(courseId)
+      .then((d) => {
+        setDeck(d);
+        const due = Object.values(d.cards).filter(
+          (c: SRSCard) => new Date(c.nextReviewDate) <= new Date(),
+        );
+        setCards(due);
+        setLoading(false);
+      })
+      .catch(() => {
+        showToast.error('toast.loadFailed');
+        setLoading(false);
+      });
   }, [courseId]);
 
   const handleFilterChange = (f: FilterMode) => {

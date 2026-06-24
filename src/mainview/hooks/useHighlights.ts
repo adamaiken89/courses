@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api';
+import { logger } from '../logger';
+import { showToast } from '../toast';
 import type { Highlight } from '../components/sidebar-types';
 
 interface UseHighlightsReturn {
@@ -18,7 +20,11 @@ export function useHighlights(courseId: string, moduleId: number): UseHighlights
     api.storage
       .highlights(courseId, moduleId)
       .then(setHighlights)
-      .catch(() => setHighlights([]))
+      .catch((err) => {
+        logger.warn({ err }, 'Failed to load highlights');
+        showToast.error('toast.loadFailed');
+        setHighlights([]);
+      })
       .finally(() => setLoading(false));
   }, [courseId, moduleId]);
 

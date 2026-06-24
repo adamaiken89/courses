@@ -10,6 +10,7 @@ import {
 import { join } from 'path';
 import { execSync } from 'child_process';
 import { getSyncConfig, saveSyncConfig } from './storage';
+import { logger } from './logger';
 
 const TMP_DIR = join(process.env.HOME || '', '.coursereader', 'tmp-sync');
 
@@ -151,6 +152,7 @@ export async function syncCourses(): Promise<{
       message: `Synced ${courseDirs.length} courses`,
     };
   } catch (err) {
+    logger.error({ err: (err as Error).message }, 'Sync failed');
     if (existsSync(TMP_DIR)) rmSync(TMP_DIR, { recursive: true, force: true });
     return {
       success: false,

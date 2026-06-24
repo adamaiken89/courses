@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../api';
+import { showToast } from '../../toast';
 
 interface AITabProps {
   content: string;
@@ -20,6 +21,7 @@ export default function AITab({ content }: AITabProps) {
       const res = await api.gemini.ask(question.trim(), content);
       setResponse(res.response);
     } catch {
+      showToast.error('toast.aiFailed');
       setResponse(t('studyTools.aiError'));
     } finally {
       setLoading(false);

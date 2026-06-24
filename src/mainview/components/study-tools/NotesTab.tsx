@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../../api';
+import { logger } from '../../logger';
+import { showToast } from '../../toast';
 import type { Section, Note, Highlight } from '../sidebar-types';
 
 interface NotesTabProps {
@@ -29,7 +31,11 @@ export default function NotesTab({
     return api.storage
       .notes(courseId, moduleId)
       .then(setNotes)
-      .catch(() => setNotes([]));
+      .catch((err) => {
+        logger.warn({ err }, 'Failed to load notes');
+        showToast.error('toast.loadFailed');
+        setNotes([]);
+      });
   }, [courseId, moduleId]);
 
   useEffect(() => {
@@ -46,6 +52,7 @@ export default function NotesTab({
       sectionID: visibleSection ?? undefined,
     });
     setNewNoteContent('');
+    showToast.success('toast.saved');
     loadNotes();
   };
 
@@ -54,11 +61,13 @@ export default function NotesTab({
     await api.storage.updateNote(id, editingContent.trim());
     setEditingNoteId(null);
     setEditingContent('');
+    showToast.success('toast.saved');
     loadNotes();
   };
 
   const handleDeleteNote = async (id: string) => {
     await api.storage.deleteNote(id);
+    showToast.success('toast.deleted');
     loadNotes();
   };
 

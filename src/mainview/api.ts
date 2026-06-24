@@ -11,6 +11,7 @@ import type {
   UserCard,
 } from '../bun/types';
 import { logger } from './logger';
+import { showToast } from './toast';
 import type { SearchResult } from '../bun/search';
 import type { CourseStats, GlobalStats } from '../bun/stats';
 
@@ -27,6 +28,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }));
     logger.error({ status: res.status, path, method }, `API error: ${err.error}`);
+    showToast.error('toast.apiError', { values: { message: err.error || `HTTP ${res.status}` } });
     throw new Error(err.error || `HTTP ${res.status}`);
   }
   logger.debug({ status: res.status, path }, 'API response');

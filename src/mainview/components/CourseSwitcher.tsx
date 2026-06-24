@@ -12,6 +12,7 @@ interface Props {
 export default function CourseSwitcher({ currentCourseId, onSelect }: Props) {
   const { t } = useTranslation();
   const courses = useCourseStore((s) => s.courses);
+  const progress = useCourseStore((s) => s.progress);
   const load = useCourseStore((s) => s.load);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -44,21 +45,41 @@ export default function CourseSwitcher({ currentCourseId, onSelect }: Props) {
           {courses.length === 0 && (
             <div className="p-3 text-sm text-gray-500">{t('courseSwitcher.noCourses')}</div>
           )}
-          {courses.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => {
-                onSelect(s);
-                setOpen(false);
-              }}
-              className={`w-full text-left px-3 py-2 text-sm ${selectableItemVariants({ selected: s.id === currentCourseId })}`}
-            >
-              <div className="font-medium truncate">{s.displayName}</div>
-              <div className="text-xs text-gray-500 mt-0.5">
-                {s.modules.length} {t('common.modules')} · {s.timeBudgetHours}h
-              </div>
-            </button>
-          ))}
+          {courses.map((s) => {
+            const completed = progress[s.id] || 0;
+            const total = s.modules.length;
+            const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+            return (
+              <button
+                key={s.id}
+                onClick={() => {
+                  onSelect(s);
+                  setOpen(false);
+                }}
+                className={`w-full text-left px-3 py-2 text-sm ${selectableItemVariants({ selected: s.id === currentCourseId })}`}
+              >
+                <div className="font-medium truncate">{s.displayName}</div>
+                <div className="text-xs text-gray-500 mt-0.5 flex items-center gap-2">
+                  <span>
+                    {s.modules.length} {t('common.modules')} · {s.timeBudgetHours}h
+                  </span>
+                  {total > 0 && (
+                    <span className="text-indigo-400">
+                      {completed}/{total} ({pct}%)
+                    </span>
+                  )}
+                </div>
+                {total > 0 && (
+                  <div className="mt-1 h-1 bg-gray-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-indigo-500 rounded-full"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                )}
+              </button>
+            );
+          })}
         </div>
       )}
     </div>

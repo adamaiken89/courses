@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useOptimistic } from 'react';
 import { api } from '../api';
+import { logger } from '../logger';
+import { showToast } from '../toast';
 import type { Bookmark } from '../components/sidebar-types';
 
 type OptimisticAction = { type: 'add'; bookmark: Bookmark } | { type: 'delete'; id: string };
@@ -46,7 +48,11 @@ export function useBookmarks(
     api.storage
       .moduleBookmarks(courseId, moduleId)
       .then(setBookmarks)
-      .catch(() => setBookmarks([]))
+      .catch((err) => {
+        logger.warn({ err }, 'Failed to load bookmarks');
+        showToast.error('toast.loadFailed');
+        setBookmarks([]);
+      })
       .finally(() => setLoading(false));
   }, [courseId, moduleId]);
 

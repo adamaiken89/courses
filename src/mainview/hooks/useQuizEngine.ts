@@ -1,5 +1,7 @@
 import { useReducer, useEffect, useCallback } from 'react';
 import { api } from '../api';
+import { logger } from '../logger';
+import { showToast } from '../toast';
 import type { QuizQuestion } from '../../bun/types';
 
 type QuizStatus = 'loading' | 'ready' | 'completed';
@@ -83,7 +85,11 @@ export function useQuizEngine(courseId: string, moduleId: number): UseQuizEngine
       .then((qs) => {
         dispatch({ type: 'LOADED', questions: qs });
       })
-      .catch(() => dispatch({ type: 'LOAD_FAILED' }));
+      .catch((err) => {
+        logger.warn({ err }, 'Quiz load failed');
+        showToast.error('toast.loadFailed');
+        dispatch({ type: 'LOAD_FAILED' });
+      });
   }, [courseId, moduleId]);
 
   useEffect(() => {
@@ -98,7 +104,9 @@ export function useQuizEngine(courseId: string, moduleId: number): UseQuizEngine
           score,
           total: state.questions.length,
         })
-        .catch(() => {});
+        .catch((err) => {
+          logger.warn({ err }, 'Failed to log quiz session');
+        });
     }
   }, [state.status, courseId, moduleId, state.questions, state.selectedAnswers]);
 

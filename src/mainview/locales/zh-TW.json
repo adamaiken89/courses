@@ -32,7 +32,8 @@
     "loadingCourses": "正在載入課程...",
     "loadError": "錯誤",
     "noCourses": "找不到課程。請將課程加入 courses/ 目錄。",
-    "modules": "{{count}} 個單元"
+    "modules": "{{count}} 個單元",
+    "progress": "進度"
   },
   "courseSwitcher": {
     "noCourses": "找不到課程"
@@ -263,5 +264,14 @@
     "stats": "📊",
     "gear": "⚙",
     "hamburger": "☰"
+  },
+  "toast": {
+    "apiError": "API 錯誤：{{message}}",
+    "saved": "儲存成功",
+    "deleted": "已刪除",
+    "loadFailed": "載入失敗",
+    "syncComplete": "同步完成",
+    "syncFailed": "同步失敗",
+    "aiFailed": "AI 請求失敗"
   }
 }

@@ -1,8 +1,8 @@
 import { defineConfig } from "vite";
-import reactSwc from "@vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-	plugins: [reactSwc()],
+	plugins: [react()],
 	root: "src/mainview",
 	build: {
 		outDir: "../../dist",

@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useRef, useOptimistic } from 'react';
 import { api } from '../api';
+import { logger } from '../logger';
+import { showToast } from '../toast';
 import type { Section } from '../components/sidebar-types';
 
 type DivRef = React.RefObject<HTMLDivElement>;
@@ -81,7 +83,9 @@ export function useLesson(
           durationMinutes: 10,
           type: 'reading',
         })
-        .catch(() => {});
+        .catch((err) => {
+          logger.warn({ err }, 'Failed to log reading session');
+        });
     }
   }, [courseId, moduleId, toggleOptimistic]);
 
@@ -95,15 +99,25 @@ export function useLesson(
         setLoading(false);
         requestAnimationFrame(() => contentRef.current?.focus());
       })
-      .catch(() => setLoading(false));
+      .catch((err) => {
+        logger.warn({ err }, 'Failed to load lesson');
+        showToast.error('toast.loadFailed');
+        setLoading(false);
+      });
     api.courses
       .sections(courseId, moduleId)
       .then(setSections)
-      .catch(() => {});
+      .catch((err) => {
+        logger.warn({ err }, 'Failed to load sections');
+        showToast.error('toast.loadFailed');
+      });
     api.storage
       .isCompleted(courseId, moduleId)
       .then((r) => setIsCompleted(r.completed))
-      .catch(() => {});
+      .catch((err) => {
+        logger.warn({ err }, 'Failed to check completion');
+        showToast.error('toast.loadFailed');
+      });
     api.courses
       .modules(courseId)
       .then((mods) => {
@@ -111,9 +125,14 @@ export function useLesson(
         api.storage
           .completedCount(courseId)
           .then((r) => setCompletedCount(r.count))
-          .catch(() => {});
+          .catch((err) => {
+            logger.warn({ err }, 'Failed to get completed count');
+          });
       })
-      .catch(() => {});
+      .catch((err) => {
+        logger.warn({ err }, 'Failed to load modules');
+        showToast.error('toast.loadFailed');
+      });
   }, [courseId, moduleId]);
 
   useEffect(() => {

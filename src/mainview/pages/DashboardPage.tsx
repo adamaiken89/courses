@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api';
+import { logger } from '../logger';
 import PageLayout from '../layouts/PageLayout';
 import PageHeader from '../layouts/PageHeader';
 import PageContent from '../layouts/PageContent';
@@ -48,7 +49,10 @@ export default function DashboardPage({ courseID, onBack }: DashboardPageProps) 
           setCourseStats(s);
           setLoading(false);
         })
-        .catch(() => setLoading(false));
+        .catch((err) => {
+          logger.warn({ err }, 'Failed to load course stats');
+          setLoading(false);
+        });
     } else {
       api.stats
         .global()
@@ -56,7 +60,10 @@ export default function DashboardPage({ courseID, onBack }: DashboardPageProps) 
           setGlobalStats(s);
           setLoading(false);
         })
-        .catch(() => setLoading(false));
+        .catch((err) => {
+          logger.warn({ err }, 'Failed to load global stats');
+          setLoading(false);
+        });
     }
   }, [courseID]);
 

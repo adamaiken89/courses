@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { api } from '../api';
 import { logger } from '../logger';
+import { showToast } from '../toast';
 
 interface SyncState {
   lastSyncTime: string | null;
@@ -45,6 +46,7 @@ export const useSyncStore = create<SyncState>((set, get) => ({
       const result = await api.sync.start();
       if (result.success) {
         logger.info({ commitHash: result.commitHash }, 'Sync completed');
+        showToast.success('toast.syncComplete');
         set({
           lastSyncTime: new Date().toISOString(),
           lastSyncedCommit: result.commitHash,
@@ -52,10 +54,12 @@ export const useSyncStore = create<SyncState>((set, get) => ({
         });
       } else {
         logger.warn({ message: result.message }, 'Sync failed');
+        showToast.error('toast.syncFailed');
         set({ isSyncing: false, error: result.message });
       }
     } catch (e) {
       logger.error({ err: (e as Error).message }, 'Sync error');
+      showToast.error('toast.syncFailed');
       set({ isSyncing: false, error: (e as Error).message });
     }
   },

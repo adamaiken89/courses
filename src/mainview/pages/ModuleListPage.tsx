@@ -27,7 +27,6 @@ export default function ModuleListPage({
   return (
     <PageLayout>
       <PageHeader
-        title={course.displayName}
         center={<CourseSwitcher currentCourseId={course.id} onSelect={onSelectCourse} />}
         actions={
           <>

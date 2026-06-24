@@ -32,7 +32,8 @@
     "loadingCourses": "Loading courses...",
     "loadError": "Error",
     "noCourses": "No courses found. Add courses to the courses/ directory.",
-    "modules": "{{count}} modules"
+    "modules": "{{count}} modules",
+    "progress": "Progress"
   },
   "courseSwitcher": {
     "noCourses": "No courses found"
@@ -263,5 +264,14 @@
     "stats": "📊",
     "gear": "⚙",
     "hamburger": "☰"
+  },
+  "toast": {
+    "apiError": "API error: {{message}}",
+    "saved": "Saved successfully",
+    "deleted": "Deleted",
+    "loadFailed": "Failed to load",
+    "syncComplete": "Sync complete",
+    "syncFailed": "Sync failed",
+    "aiFailed": "AI request failed"
   }
 }
