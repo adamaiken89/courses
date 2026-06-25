@@ -6,6 +6,39 @@ import type { Section } from '../components/sidebar-types';
 
 type DivRef = React.RefObject<HTMLDivElement>;
 
+const SCROLL_OFFSET = 120;
+
+export function findVisibleHeading(container: HTMLElement, sections: Section[]): string | null {
+  if (sections.length === 0) return null;
+
+  const headings = container.querySelectorAll('h1, h2, h3, h4, h5, h6');
+  if (headings.length === 0) return null;
+
+  const containerRect = container.getBoundingClientRect();
+  const threshold = containerRect.top + SCROLL_OFFSET;
+  const levelMap = new Map(sections.map((s) => [s.id, s.level]));
+
+  let currentId: string | null = null;
+  let currentLevel = 0;
+
+  for (const h of headings) {
+    if (h.getBoundingClientRect().top <= threshold) {
+      const level = levelMap.get(h.id) ?? 1;
+      if (level >= currentLevel) {
+        currentId = h.id;
+        currentLevel = level;
+      }
+    }
+  }
+
+  const atBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 5;
+  if (atBottom && !currentId) {
+    currentId = sections[sections.length - 1].id;
+  }
+
+  return currentId;
+}
+
 interface UseLessonReturn {
   content: string;
   loading: boolean;
@@ -29,7 +62,7 @@ export function useLesson(
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [sections, setSections] = useState<Section[]>([]);
-  const [visibleSection, setVisibleSection] = useState<string | null>(null);
+  const [visibleSection, setVisibleSection] = useState<string | null>(initialSectionID ?? null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [optimisticIsCompleted, toggleOptimistic] = useOptimistic<boolean, 1>(
     isCompleted,
@@ -38,36 +71,39 @@ export function useLesson(
   const [totalModules, setTotalModules] = useState(0);
   const [completedCount, setCompletedCount] = useState(0);
   const contentRef = useRef<HTMLDivElement>(null) as DivRef;
+  const sectionsRef = useRef<Section[]>([]);
+
+  sectionsRef.current = sections;
 
   const scrollToSection = useCallback((sectionId: string) => {
     const container = contentRef.current;
-    if (!container) return;
+    if (!container) {
+      logger.debug({ sectionId }, 'scrollToSection: no container');
+      return;
+    }
     const el = container.querySelector(`[id="${sectionId}"]`);
-    if (!el) return;
+    if (!el) {
+      const ids = Array.from(container.querySelectorAll('h1,h2,h3,h4,h5,h6')).map((h) => h.id);
+      logger.debug({ sectionId, ids }, 'scrollToSection: element not found');
+      return;
+    }
     const offset =
       el.getBoundingClientRect().top -
       container.getBoundingClientRect().top +
       container.scrollTop -
       20;
+    logger.debug({ sectionId, offset }, 'scrollToSection: scrolling');
     container.scrollTop = offset;
     container.focus();
   }, []);
 
   const handleScroll = useCallback(() => {
-    if (!contentRef.current || sections.length === 0) return;
     const el = contentRef.current;
-    const headings = el.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    let currentId: string | null = null;
-    headings.forEach((h) => {
-      const rect = h.getBoundingClientRect();
-      if (rect.top < 150) currentId = h.id;
-    });
-    const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 80;
-    if (atBottom && sections.length > 0) {
-      currentId = sections[sections.length - 1].id;
-    }
-    setVisibleSection(currentId);
-  }, [sections]);
+    if (!el) return;
+    const id = findVisibleHeading(el, sectionsRef.current);
+    setVisibleSection(id);
+    logger.debug({ id, sectionsCount: sectionsRef.current.length }, 'handleScroll');
+  }, []);
 
   const handleToggleCompleted = useCallback(async () => {
     toggleOptimistic(1);
@@ -97,7 +133,10 @@ export function useLesson(
       .then((lesson) => {
         setContent(lesson.content);
         setLoading(false);
-        requestAnimationFrame(() => contentRef.current?.focus());
+        requestAnimationFrame(() => {
+          contentRef.current?.focus();
+          handleScroll();
+        });
       })
       .catch((err) => {
         logger.warn({ err }, 'Failed to load lesson');
@@ -133,7 +172,7 @@ export function useLesson(
         logger.warn({ err }, 'Failed to load modules');
         showToast.error('toast.loadFailed');
       });
-  }, [courseId, moduleId]);
+  }, [courseId, moduleId, handleScroll]);
 
   useEffect(() => {
     if (initialSectionID && content) {

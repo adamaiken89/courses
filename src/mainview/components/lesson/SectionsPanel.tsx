@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { logger } from '../../logger';
 import { toggleVariants } from '../ui';
 import {
   SECTION_ACTIVE_BG,
@@ -59,7 +60,13 @@ export default function SectionsPanel({
                 <button
                   key={s.id}
                   data-section-id={s.id}
-                  onClick={() => onScrollToSection(s.id)}
+                  onClick={() => {
+                    logger.debug(
+                      { sectionId: s.id, heading: s.heading },
+                      'SectionsPanel: section clicked',
+                    );
+                    onScrollToSection(s.id);
+                  }}
                   className="w-full text-left px-2.5 py-0.5 text-xs transition-colors"
                   style={Object.assign(
                     { paddingLeft: `${(s.level - 1) * 16 + 10}px` },

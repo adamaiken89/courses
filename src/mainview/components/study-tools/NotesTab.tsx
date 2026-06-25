@@ -30,7 +30,7 @@ export default function NotesTab({
   const loadNotes = useCallback(() => {
     return api.storage
       .notes(courseId, moduleId)
-      .then(setNotes)
+      .then((data) => setNotes(data ?? []))
       .catch((err) => {
         logger.warn({ err }, 'Failed to load notes');
         showToast.error('toast.loadFailed');

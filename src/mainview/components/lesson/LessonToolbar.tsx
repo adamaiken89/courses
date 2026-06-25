@@ -105,33 +105,37 @@ export default function LessonToolbar({
           <div className="h-3 w-px bg-gray-600" />
         </>
       )}
-      <Button
-        variant={contentWidth === 'wide' ? 'toggleActive' : 'toggle'}
-        size="sm"
-        onClick={() => {
-          const order: Array<'narrow' | 'standard' | 'wide'> = ['narrow', 'standard', 'wide'];
-          const next = order[(order.indexOf(contentWidth) + 1) % order.length];
-          setContentWidth(next);
-        }}
-        title={t('lesson.toggleWideMode')}
-      >
-        {contentWidth === 'narrow'
-          ? t('lesson.narrow')
-          : contentWidth === 'standard'
-            ? t('lesson.standard')
-            : t('lesson.wide')}
-      </Button>
-      <div className="h-3 w-px bg-gray-600" />
-      <Button
-        variant={hasActiveBookmark ? 'toggleActive' : 'toggle'}
-        size="sm"
-        onClick={onToggleBookmark}
-        title={t('lesson.bookmarkModule')}
-      >
-        {hasActiveBookmark ? t('icons.bookmarkFilled') : t('icons.bookmarkEmpty')}{' '}
-        {t('lesson.bookmark')}
-      </Button>
-      <div className="h-3 w-px bg-gray-600" />
+      {!focusMode && (
+        <>
+          <Button
+            variant={contentWidth === 'wide' ? 'toggleActive' : 'toggle'}
+            size="sm"
+            onClick={() => {
+              const order: Array<'narrow' | 'standard' | 'wide'> = ['narrow', 'standard', 'wide'];
+              const next = order[(order.indexOf(contentWidth) + 1) % order.length];
+              setContentWidth(next);
+            }}
+            title={t('lesson.toggleWideMode')}
+          >
+            {contentWidth === 'narrow'
+              ? t('lesson.narrow')
+              : contentWidth === 'standard'
+                ? t('lesson.standard')
+                : t('lesson.wide')}
+          </Button>
+          <div className="h-3 w-px bg-gray-600" />
+          <Button
+            variant={hasActiveBookmark ? 'toggleActive' : 'toggle'}
+            size="sm"
+            onClick={onToggleBookmark}
+            title={t('lesson.bookmarkModule')}
+          >
+            {hasActiveBookmark ? t('icons.bookmarkFilled') : t('icons.bookmarkEmpty')}{' '}
+            {t('lesson.bookmark')}
+          </Button>
+          <div className="h-3 w-px bg-gray-600" />
+        </>
+      )}
       <Button
         variant={focusMode ? 'toggleActive' : 'toggle'}
         size="sm"
@@ -162,7 +166,7 @@ export default function LessonToolbar({
           </Button>
         </>
       )}
-      {onReviewCards && (
+      {onReviewCards && !focusMode && (
         <>
           <div className="h-3 w-px bg-gray-600" />
           <Button
@@ -186,8 +190,8 @@ export default function LessonToolbar({
           </Button>
         </>
       )}
-      {totalModules > 0 && <div className="h-3 w-px bg-gray-600" />}
-      {totalModules > 0 && (
+      {totalModules > 0 && !focusMode && <div className="h-3 w-px bg-gray-600" />}
+      {totalModules > 0 && !focusMode && (
         <div className="flex items-center gap-1.5">
           <div className="w-16 h-1 rounded-full overflow-hidden bg-gray-700">
             <div

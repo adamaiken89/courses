@@ -5,6 +5,7 @@ import SearchOverlay from './components/SearchOverlay';
 import { useCourseStore } from './stores/courseStore';
 import { useViewStore } from './stores/viewStore';
 import { useSyncStore } from './stores/syncStore';
+import { useSettingsStore } from './stores/settingsStore';
 
 import type { Course, ModuleMeta } from '../bun/types';
 
@@ -28,6 +29,7 @@ export default function App() {
   const currentView = views[views.length - 1];
   const courses = useCourseStore((s) => s.courses);
   const loadCourses = useCourseStore((s) => s.load);
+  const focusMode = useSettingsStore((s) => s.focusMode);
 
   const [loading, setLoading] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -210,13 +212,15 @@ export default function App() {
       >
         {viewContent}
       </Suspense>
-      <button
-        onClick={() => setSearchOpen(true)}
-        className="fixed bottom-4 left-4 z-50 w-10 h-10 rounded-full bg-indigo-600 hover:bg-indigo-500 shadow-lg flex items-center justify-center text-white transition-colors"
-        title={t('app.search')}
-      >
-        {t('icons.search')}
-      </button>
+      {!focusMode && (
+        <button
+          onClick={() => setSearchOpen(true)}
+          className="fixed bottom-4 left-4 z-50 w-10 h-10 rounded-full bg-indigo-600 hover:bg-indigo-500 shadow-lg flex items-center justify-center text-white transition-colors"
+          title={t('app.search')}
+        >
+          {t('icons.search')}
+        </button>
+      )}
       {searchOpen && (
         <SearchOverlay onClose={() => setSearchOpen(false)} onNavigate={handleSearchNavigate} />
       )}

@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { useBookmarksStore } from '../stores/bookmarksStore';
 import type { Bookmark } from '../components/sidebar-types';
 
@@ -21,28 +21,20 @@ export function useBookmarks(
   const load = useBookmarksStore((s) => s.load);
   const toggle = useBookmarksStore((s) => s.toggle);
   const remove = useBookmarksStore((s) => s.remove);
-  const getForModule = useBookmarksStore((s) => s.getForModule);
-  const getActive = useBookmarksStore((s) => s.getActive);
   const loading = useBookmarksStore((s) => s.loading[`${courseId}:${moduleId}`] ?? false);
 
   useEffect(() => {
     load(courseId, moduleId);
   }, [courseId, moduleId, load]);
 
-  const bookmarks = useMemo(
-    () => getForModule(courseId, moduleId),
-    [getForModule, courseId, moduleId],
-  );
+  const byModule = useBookmarksStore((s) => s.byModule);
+  const k = `${courseId}:${moduleId}`;
+  const bookmarks = byModule[k] ?? [];
 
-  const sectionBookmark = useMemo(
-    () => getActive(courseId, moduleId, visibleSection),
-    [getActive, courseId, moduleId, visibleSection],
-  );
-
-  const moduleBookmark = useMemo(
-    () => getActive(courseId, moduleId, null),
-    [getActive, courseId, moduleId],
-  );
+  const sectionBookmark = visibleSection
+    ? bookmarks.find((b) => b.sectionID === visibleSection)
+    : undefined;
+  const moduleBookmark = bookmarks.find((b) => !b.sectionID);
 
   const hasActiveBookmark = visibleSection ? !!sectionBookmark : !!moduleBookmark;
   const activeBookmarkId = visibleSection ? sectionBookmark?.id : moduleBookmark?.id;

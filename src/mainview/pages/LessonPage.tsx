@@ -34,7 +34,6 @@ export default function LessonFeature({
 }: LessonFeatureProps) {
   const push = useViewStore((s) => s.push);
   const courses = useCourseStore((s) => s.courses);
-  const focusMode = useSettingsStore((s) => s.focusMode);
   const [showTools, setShowTools] = useState(false);
   const [showPomodoro, setShowPomodoro] = useState(false);
   const currentIdx = course.modules.findIndex((m) => m.id === module.id);
@@ -78,7 +77,7 @@ export default function LessonFeature({
   const showSections = useSettingsStore((s) => s.showSections);
   const toggleSections = useSettingsStore((s) => s.toggleSections);
 
-  const toolbar = !focusMode ? (
+  const toolbar = (
     <LessonToolbar
       showTools={showTools}
       showPomodoro={showPomodoro}
@@ -92,7 +91,7 @@ export default function LessonFeature({
       onStartQuiz={onStartQuiz}
       onStartReview={onStartReview}
     />
-  ) : undefined;
+  );
 
   return (
     <PageLayout>
