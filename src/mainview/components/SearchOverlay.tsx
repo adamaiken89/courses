@@ -5,8 +5,10 @@ import { showToast } from '../toast';
 import type { SearchResult } from '../../bun/search';
 
 interface SearchOverlayProps {
+  initialCourseID?: string;
+  initialCourseName?: string;
   onClose: () => void;
-  onNavigate: (courseID: string, moduleID: string | number) => void;
+  onNavigate: (courseID: string, moduleID: string | number, query?: string) => void;
 }
 
 const TYPE_ICONS: Record<string, string> = {
@@ -15,14 +17,22 @@ const TYPE_ICONS: Record<string, string> = {
   highlight: 'icons.searchHighlight',
 };
 
-export default function SearchOverlay({ onClose, onNavigate }: SearchOverlayProps) {
+export default function SearchOverlay({
+  initialCourseID,
+  initialCourseName,
+  onClose,
+  onNavigate,
+}: SearchOverlayProps) {
   const { t } = useTranslation();
   const [, startTransition] = useTransition();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [courseID, setCourseID] = useState<string | undefined>(initialCourseID);
+  const [selectedIdx, setSelectedIdx] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -37,8 +47,9 @@ export default function SearchOverlay({ onClose, onNavigate }: SearchOverlayProp
     setLoading(true);
     timerRef.current = setTimeout(async () => {
       try {
-        const res = await api.search(query);
+        const res = await api.search(query, courseID);
         setResults(res);
+        setSelectedIdx(-1);
       } catch {
         showToast.error('toast.loadFailed');
         setResults([]);
@@ -49,13 +60,38 @@ export default function SearchOverlay({ onClose, onNavigate }: SearchOverlayProp
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [query]);
+  }, [query, courseID]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+        e.preventDefault();
+        inputRef.current?.select();
+        return;
+      }
+      if (e.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedIdx((i) => Math.min(i + 1, results.length - 1));
+        return;
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedIdx((i) => Math.max(i - 1, 0));
+        return;
+      }
+      if (e.key === 'Enter' && selectedIdx >= 0 && selectedIdx < results.length) {
+        e.preventDefault();
+        const r = results[selectedIdx];
+        onNavigate(r.courseID, r.moduleID, query);
+        onClose();
+        return;
+      }
     },
-    [onClose],
+    [onClose, results, selectedIdx, onNavigate, query],
   );
 
   return (
@@ -72,7 +108,11 @@ export default function SearchOverlay({ onClose, onNavigate }: SearchOverlayProp
             type="text"
             value={query}
             onChange={(e) => startTransition(() => setQuery(e.target.value))}
-            placeholder={t('search.placeholder')}
+            placeholder={
+              courseID && initialCourseName
+                ? t('search.placeholderCourse', { course: initialCourseName })
+                : t('search.placeholder')
+            }
             className="flex-1 bg-transparent text-sm text-gray-200 placeholder-gray-500 outline-none"
           />
           {loading && <span className="text-xs text-gray-500">...</span>}
@@ -80,7 +120,21 @@ export default function SearchOverlay({ onClose, onNavigate }: SearchOverlayProp
             ESC
           </button>
         </div>
-        <div className="max-h-96 overflow-y-auto">
+        {courseID && initialCourseName && (
+          <div className="px-3 py-1.5 border-b border-gray-700 flex items-center gap-1">
+            <span className="text-[10px] text-indigo-400 bg-indigo-900/30 px-2 py-0.5 rounded-full flex items-center gap-1">
+              {t('search.courseScope', { course: initialCourseName })}
+              <button
+                onClick={() => setCourseID(undefined)}
+                className="text-indigo-300 hover:text-white ml-0.5"
+              >
+                {t('icons.close')}
+              </button>
+            </span>
+            <span className="text-[10px] text-gray-500">{t('search.allCoursesHint')}</span>
+          </div>
+        )}
+        <div className="max-h-96 overflow-y-auto" ref={resultsRef}>
           {results.length > 0 && (
             <div className="px-2 py-1 text-[10px] text-gray-500 border-b border-gray-700">
               {t('search.results', { count: results.length })}
@@ -95,10 +149,12 @@ export default function SearchOverlay({ onClose, onNavigate }: SearchOverlayProp
             <button
               key={`${r.type}:${r.courseID}:${r.moduleID}:${i}`}
               onClick={() => {
-                onNavigate(r.courseID, r.moduleID);
+                onNavigate(r.courseID, r.moduleID, query);
                 onClose();
               }}
-              className="w-full text-left px-4 py-2.5 hover:bg-gray-750 border-b border-gray-700/50 last:border-0 transition-colors"
+              className={`w-full text-left px-4 py-2.5 border-b border-gray-700/50 last:border-0 transition-colors ${
+                selectedIdx === i ? 'bg-indigo-900/30' : 'hover:bg-gray-750'
+              }`}
             >
               <div className="flex items-start gap-2">
                 <span className="text-sm shrink-0 mt-0.5">

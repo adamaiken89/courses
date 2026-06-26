@@ -2,7 +2,7 @@ import type {
   Course,
   ModuleMeta,
   QuizQuestion,
-  ModuleSection,
+  Section,
   SRSDeck,
   SRSCard,
   Highlight,
@@ -35,6 +35,16 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
+import type { MetaField } from '../bun/lesson-markdown';
+
+interface LessonResponse {
+  content: string;
+  h1: string;
+  meta: MetaField[];
+  sections: Section[];
+  bodyContent: string;
+}
+
 interface OkResponse {
   ok: true;
 }
@@ -49,7 +59,10 @@ interface QuizState {
 }
 
 export const api = {
-  search: (q: string) => request<SearchResult[]>(`/search?q=${encodeURIComponent(q)}`),
+  search: (q: string, courseID?: string) =>
+    request<SearchResult[]>(
+      `/search?q=${encodeURIComponent(q)}${courseID ? `&courseID=${encodeURIComponent(courseID)}` : ''}`,
+    ),
   stats: {
     course: (courseID: string) => request<CourseStats>(`/stats/${courseID}`),
     global: () => request<GlobalStats>('/stats/global'),
@@ -66,11 +79,11 @@ export const api = {
     list: () => request<Course[]>('/courses'),
     modules: (courseId: string) => request<ModuleMeta[]>(`/courses/${courseId}/modules`),
     lesson: (courseId: string, moduleId: string | number) =>
-      request<{ content: string }>(`/courses/${courseId}/modules/${moduleId}/lesson`),
+      request<LessonResponse>(`/courses/${courseId}/modules/${moduleId}/lesson`),
     quiz: (courseId: string, moduleId: string | number) =>
       request<QuizQuestion[]>(`/courses/${courseId}/modules/${moduleId}/quiz`),
     sections: (courseId: string, moduleId: string | number) =>
-      request<ModuleSection[]>(`/courses/${courseId}/modules/${moduleId}/sections`),
+      request<Section[]>(`/courses/${courseId}/modules/${moduleId}/sections`),
     srs: {
       get: (courseId: string) => request<SRSDeck>(`/courses/${courseId}/srs`),
       filter: (courseId: string, filter: string) =>

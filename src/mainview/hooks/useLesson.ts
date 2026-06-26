@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, useRef, useOptimistic } from 'react';
 import { api } from '../api';
 import { logger } from '../logger';
 import { showToast } from '../toast';
-import type { Section } from '../components/sidebar-types';
+import type { Section } from '../../bun/types';
+import type { MetaField } from '../../bun/lesson-markdown';
 
 type DivRef = React.RefObject<HTMLDivElement>;
 
@@ -41,6 +42,9 @@ export function findVisibleHeading(container: HTMLElement, sections: Section[]):
 
 interface UseLessonReturn {
   content: string;
+  h1: string;
+  meta: MetaField[];
+  bodyContent: string;
   loading: boolean;
   sections: Section[];
   visibleSection: string | null;
@@ -60,6 +64,9 @@ export function useLesson(
   initialSectionID?: string,
 ): UseLessonReturn {
   const [content, setContent] = useState('');
+  const [h1, setH1] = useState('');
+  const [meta, setMeta] = useState<MetaField[]>([]);
+  const [bodyContent, setBodyContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [sections, setSections] = useState<Section[]>([]);
   const [visibleSection, setVisibleSection] = useState<string | null>(initialSectionID ?? null);
@@ -132,6 +139,10 @@ export function useLesson(
       .lesson(courseId, moduleId)
       .then((lesson) => {
         setContent(lesson.content);
+        setH1(lesson.h1);
+        setMeta(lesson.meta);
+        setBodyContent(lesson.bodyContent);
+        setSections(lesson.sections);
         setLoading(false);
         requestAnimationFrame(() => {
           contentRef.current?.focus();
@@ -142,13 +153,6 @@ export function useLesson(
         logger.warn({ err }, 'Failed to load lesson');
         showToast.error('toast.loadFailed');
         setLoading(false);
-      });
-    api.courses
-      .sections(courseId, moduleId)
-      .then(setSections)
-      .catch((err) => {
-        logger.warn({ err }, 'Failed to load sections');
-        showToast.error('toast.loadFailed');
       });
     api.storage
       .isCompleted(courseId, moduleId)
@@ -184,6 +188,9 @@ export function useLesson(
 
   return {
     content,
+    h1,
+    meta,
+    bodyContent,
     loading,
     sections,
     visibleSection,

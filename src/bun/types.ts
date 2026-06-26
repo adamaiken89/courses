@@ -48,7 +48,7 @@ export interface SRSDeck {
   cards: Record<string, SRSCard>;
 }
 
-export interface ModuleSection {
+export interface Section {
   id: string;
   heading: string;
   level: number;

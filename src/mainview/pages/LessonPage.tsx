@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import LessonSection from '../sections/LessonSection';
 import ModuleSwitcher from '../components/ModuleSwitcher';
 import LessonToolbar from '../components/lesson/LessonToolbar';
+import SearchOverlay from '../components/SearchOverlay';
 import PageLayout from '../layouts/PageLayout';
 import PageHeader from '../layouts/PageHeader';
 import PageContent from '../layouts/PageContent';
@@ -36,12 +37,17 @@ export default function LessonFeature({
   const courses = useCourseStore((s) => s.courses);
   const [showTools, setShowTools] = useState(false);
   const [showPomodoro, setShowPomodoro] = useState(false);
+  const [searchCourseOpen, setSearchCourseOpen] = useState(false);
+  const [pendingSearchQuery, setPendingSearchQuery] = useState<string | null>(null);
   const currentIdx = course.modules.findIndex((m) => m.id === module.id);
   const hasPrev = currentIdx > 0;
   const hasNext = currentIdx < course.modules.length - 1;
 
   const {
     content,
+    h1,
+    meta,
+    bodyContent,
     loading,
     sections,
     visibleSection,
@@ -77,6 +83,22 @@ export default function LessonFeature({
   const showSections = useSettingsStore((s) => s.showSections);
   const toggleSections = useSettingsStore((s) => s.toggleSections);
 
+  useEffect(() => {
+    if (pendingSearchQuery) setPendingSearchQuery(null);
+  }, [module.id, pendingSearchQuery]);
+
+  const handleSearchNavigate = useCallback(
+    (courseID: string, moduleID: string | number, query?: string) => {
+      const c = courses.find((x) => x.id === courseID);
+      const m = c?.modules.find((x) => x.id === moduleID);
+      if (c && m) {
+        setPendingSearchQuery(query || null);
+        onSelectModule(m);
+      }
+    },
+    [courses, onSelectModule],
+  );
+
   const toolbar = (
     <LessonToolbar
       showTools={showTools}
@@ -90,6 +112,7 @@ export default function LessonFeature({
       onReviewCards={handleReviewCards}
       onStartQuiz={onStartQuiz}
       onStartReview={onStartReview}
+      onSearchCourse={() => setSearchCourseOpen(true)}
     />
   );
 
@@ -113,6 +136,9 @@ export default function LessonFeature({
           courseName={course.displayName}
           module={module}
           content={content}
+          h1={h1}
+          meta={meta}
+          bodyContent={bodyContent}
           loading={loading}
           sections={sections}
           visibleSection={visibleSection}
@@ -134,8 +160,18 @@ export default function LessonFeature({
           showSections={showSections}
           onToggleSections={toggleSections}
           onToggleBookmark={toggleBookmark}
+          onCourseSearch={() => setSearchCourseOpen(true)}
+          initialSearchQuery={pendingSearchQuery}
         />
       </PageContent>
+      {searchCourseOpen && (
+        <SearchOverlay
+          initialCourseID={course.id}
+          initialCourseName={course.displayName}
+          onClose={() => setSearchCourseOpen(false)}
+          onNavigate={handleSearchNavigate}
+        />
+      )}
     </PageLayout>
   );
 }

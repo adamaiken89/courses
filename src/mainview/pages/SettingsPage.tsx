@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api } from '../api';
 import { showToast } from '../toast';
@@ -75,6 +75,7 @@ export default function SettingsPage({ onBack }: Props) {
   const { t } = useTranslation();
   const [apiKey, setApiKey] = useState('');
   const [saved, setSaved] = useState(false);
+  const repoRef = useRef<HTMLInputElement>(null);
   const [repoURL, setRepoURL] = useState('');
   const [repoSaved, setRepoSaved] = useState(false);
   const hasApiKey = useSettingsStore((s) => s.hasApiKey);
@@ -114,6 +115,13 @@ export default function SettingsPage({ onBack }: Props) {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
+
+  const handleRepoKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+      e.preventDefault();
+      repoRef.current?.select();
+    }
+  }, []);
 
   return (
     <PageLayout>
@@ -156,9 +164,11 @@ export default function SettingsPage({ onBack }: Props) {
           <p className="text-sm text-gray-400 mb-4">{t('settings.remoteContentDesc')}</p>
           <div className="flex gap-2 mb-3">
             <input
+              ref={repoRef}
               type="text"
               value={repoURL}
               onChange={(e) => setRepoURL(e.target.value)}
+              onKeyDown={handleRepoKeyDown}
               placeholder="https://github.com/adamaiken89/course-content"
               className="flex-1 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-500"
             />

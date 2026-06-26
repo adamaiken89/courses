@@ -1,4 +1,4 @@
-import type { Highlight } from './sidebar-types';
+import type { Highlight } from '../../bun/types';
 
 type HastText = { type: 'text'; value: string };
 type HastElement = {

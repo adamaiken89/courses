@@ -3,6 +3,7 @@ import { join } from 'path';
 import * as yaml from 'js-yaml';
 import { logger } from './logger';
 import type { Course, ModuleMeta, QuizQuestion, SRSDeck } from './types';
+import { processLessonMarkdown } from './lesson-markdown';
 
 const POSSIBLE_PATHS = [
   join(import.meta.dir, '..', '..', 'subjects'),
@@ -150,37 +151,5 @@ export function saveSRSDeck(deck: SRSDeck, courseId: string): void {
 export function parseSections(
   markdown: string,
 ): { id: string; heading: string; level: number; parentID: string | null }[] {
-  const sections: { id: string; heading: string; level: number; parentID: string | null }[] = [];
-  const levelStack: number[] = [];
-  const idStack: string[] = [];
-
-  for (const line of markdown.split('\n')) {
-    const trimmed = line.trim();
-    let level = 0;
-    if (trimmed.startsWith('###### ')) level = 6;
-    else if (trimmed.startsWith('##### ')) level = 5;
-    else if (trimmed.startsWith('#### ')) level = 4;
-    else if (trimmed.startsWith('### ')) level = 3;
-    else if (trimmed.startsWith('## ')) level = 2;
-    else if (trimmed.startsWith('# ')) level = 1;
-    else continue;
-
-    const heading = trimmed.slice(level + 1).trimStart();
-    const id = heading
-      .toLowerCase()
-      .replace(/\s+/g, '-')
-      .replace(/[:,\(\)]/g, '')
-      .replace(/[^a-z0-9\-]/g, '');
-
-    while (levelStack.length && levelStack[levelStack.length - 1] >= level) {
-      levelStack.pop();
-      idStack.pop();
-    }
-    const parentID = idStack.length > 0 ? idStack[idStack.length - 1] : null;
-    levelStack.push(level);
-    idStack.push(id);
-    sections.push({ id, heading, level, parentID });
-  }
-
-  return sections;
+  return processLessonMarkdown(markdown).sections;
 }

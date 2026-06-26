@@ -8,6 +8,8 @@ import {
   ACCENT_INDIGO_LIGHT,
 } from '../../colors';
 import type { Theme } from '../../themes';
+import { shortcutKey } from '../../shortcuts';
+import { useShortcuts } from '../../hooks/useShortcuts';
 
 const THEME_LABELS: Record<Theme, string> = {
   dark: 'settings.themes.dark',
@@ -42,6 +44,7 @@ interface LessonToolbarProps {
   onReviewCards?: () => void;
   onStartQuiz?: () => void;
   onStartReview?: () => void;
+  onSearchCourse?: () => void;
 }
 
 export default function LessonToolbar({
@@ -56,6 +59,7 @@ export default function LessonToolbar({
   onReviewCards,
   onStartQuiz,
   onStartReview,
+  onSearchCourse,
 }: LessonToolbarProps) {
   const { t } = useTranslation();
   const focusMode = useSettingsStore((s) => s.focusMode);
@@ -68,6 +72,40 @@ export default function LessonToolbar({
   const setContentWidth = useSettingsStore((s) => s.setContentWidth);
   const toggleFocusMode = useSettingsStore((s) => s.toggleFocusMode);
 
+  const SHORTCUT: Record<string, string> = {
+    decFontSize: shortcutKey('decFontSize') ?? '-',
+    incFontSize: shortcutKey('incFontSize') ?? '=',
+    cycleTheme: shortcutKey('cycleTheme') ?? 't',
+    toggleWidth: shortcutKey('toggleWidth') ?? 'w',
+    bookmark: shortcutKey('bookmark') ?? 'b',
+    focusMode: shortcutKey('focusMode') ?? 'f',
+    pomodoro: shortcutKey('pomodoro') ?? 'p',
+    tools: shortcutKey('tools') ?? 'l',
+    reviewCards: shortcutKey('reviewCards') ?? 'c',
+    quiz: shortcutKey('quiz') ?? 'q',
+    review: shortcutKey('review') ?? 'r',
+  };
+
+  useShortcuts('lessonToolbar', {
+    decFontSize,
+    incFontSize,
+    cycleTheme,
+    toggleWidth: () => {
+      const order: Array<'narrow' | 'standard' | 'wide'> = ['narrow', 'standard', 'wide'];
+      const next = order[(order.indexOf(contentWidth) + 1) % order.length];
+      setContentWidth(next);
+    },
+    bookmark: onToggleBookmark,
+    focusMode: toggleFocusMode,
+    pomodoro: onTogglePomodoro,
+    tools: onToggleTools,
+    reviewCards: () => onReviewCards?.(),
+    quiz: () => onStartQuiz?.(),
+    review: () => onStartReview?.(),
+  });
+
+  const s = (label: string, k: string) => `${label} (${SHORTCUT[k]})`;
+
   return (
     <div className="sticky top-0 z-40 bg-gray-800 border-b border-gray-700 px-4 py-1.5 flex items-center gap-2 shrink-0">
       {!focusMode && (
@@ -76,7 +114,7 @@ export default function LessonToolbar({
             variant="secondary"
             size="sm"
             onClick={decFontSize}
-            title={t('lesson.decreaseFontSize')}
+            title={s(t('lesson.decreaseFontSize'), 'decFontSize')}
           >
             A-
           </Button>
@@ -85,7 +123,7 @@ export default function LessonToolbar({
             variant="secondary"
             size="sm"
             onClick={incFontSize}
-            title={t('lesson.increaseFontSize')}
+            title={s(t('lesson.increaseFontSize'), 'incFontSize')}
           >
             A+
           </Button>
@@ -98,7 +136,7 @@ export default function LessonToolbar({
             variant="secondary"
             size="sm"
             onClick={cycleTheme}
-            title={`${t('settings.readingTheme')}: ${t(THEME_LABELS[theme])}`}
+            title={s(`${t('settings.readingTheme')}: ${t(THEME_LABELS[theme])}`, 'cycleTheme')}
           >
             {t(THEME_ICONS[theme])}
           </Button>
@@ -115,7 +153,7 @@ export default function LessonToolbar({
               const next = order[(order.indexOf(contentWidth) + 1) % order.length];
               setContentWidth(next);
             }}
-            title={t('lesson.toggleWideMode')}
+            title={s(t('lesson.toggleWideMode'), 'toggleWidth')}
           >
             {contentWidth === 'narrow'
               ? t('lesson.narrow')
@@ -128,7 +166,7 @@ export default function LessonToolbar({
             variant={hasActiveBookmark ? 'toggleActive' : 'toggle'}
             size="sm"
             onClick={onToggleBookmark}
-            title={t('lesson.bookmarkModule')}
+            title={s(t('lesson.bookmarkModule'), 'bookmark')}
           >
             {hasActiveBookmark ? t('icons.bookmarkFilled') : t('icons.bookmarkEmpty')}{' '}
             {t('lesson.bookmark')}
@@ -140,7 +178,7 @@ export default function LessonToolbar({
         variant={focusMode ? 'toggleActive' : 'toggle'}
         size="sm"
         onClick={toggleFocusMode}
-        title={t('lesson.focusMode')}
+        title={s(t('lesson.focusMode'), 'focusMode')}
       >
         {focusMode ? t('lesson.focusModeOn') : t('lesson.focusModeOff')}
       </Button>
@@ -149,7 +187,7 @@ export default function LessonToolbar({
         variant={showPomodoro ? 'toggleActive' : 'toggle'}
         size="sm"
         onClick={onTogglePomodoro}
-        title={t('pomodoro.title')}
+        title={s(t('pomodoro.title'), 'pomodoro')}
       >
         {t('icons.pomodoro')}
       </Button>
@@ -160,9 +198,22 @@ export default function LessonToolbar({
             variant={showTools ? 'toggleActive' : 'toggle'}
             size="sm"
             onClick={onToggleTools}
-            title={t('lesson.toggleStudyTools')}
+            title={s(t('lesson.toggleStudyTools'), 'tools')}
           >
             {t('lesson.tools')}
+          </Button>
+        </>
+      )}
+      {!focusMode && (
+        <>
+          <div className="h-3 w-px bg-gray-600" />
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onSearchCourse}
+            title={t('lesson.searchCourse')}
+          >
+            {t('icons.search')} {t('lesson.searchCourse')}
           </Button>
         </>
       )}
@@ -173,7 +224,7 @@ export default function LessonToolbar({
             variant="secondary"
             size="sm"
             onClick={onReviewCards}
-            title={t('lesson.reviewFlashcards')}
+            title={s(t('lesson.reviewFlashcards'), 'reviewCards')}
           >
             {t('icons.cards')} {t('lesson.cards')}
           </Button>
@@ -182,10 +233,20 @@ export default function LessonToolbar({
       {!focusMode && (
         <>
           <div className="h-3 w-px bg-gray-600" />
-          <Button variant="primary" size="sm" onClick={onStartQuiz}>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={onStartQuiz}
+            title={s(t('common.quiz'), 'quiz')}
+          >
             {t('common.quiz')}
           </Button>
-          <Button variant="secondary" size="sm" onClick={onStartReview}>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={onStartReview}
+            title={s(t('common.review'), 'review')}
+          >
             {t('common.review')}
           </Button>
         </>

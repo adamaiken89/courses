@@ -6,6 +6,7 @@ import { useCourseStore } from './stores/courseStore';
 import { useViewStore } from './stores/viewStore';
 import { useSyncStore } from './stores/syncStore';
 import { useSettingsStore } from './stores/settingsStore';
+import { useShortcuts } from './hooks/useShortcuts';
 
 import type { Course, ModuleMeta } from '../bun/types';
 
@@ -65,16 +66,9 @@ export default function App() {
       });
   }, []);
 
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setSearchOpen(true);
-      }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, []);
+  useShortcuts('global', {
+    search: () => setSearchOpen(true),
+  });
 
   const handleSearchNavigate = useCallback(
     (courseID: string, moduleID: string | number) => {

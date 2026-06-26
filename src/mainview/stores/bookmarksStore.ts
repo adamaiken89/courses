@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { api } from '../api';
 import { showToast } from '../toast';
-import type { Bookmark } from '../components/sidebar-types';
+import type { Bookmark } from '../../bun/types';
 
 function key(courseId: string, moduleId: string | number) {
   return `${courseId}:${moduleId}`;

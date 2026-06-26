@@ -6,7 +6,7 @@ import BookmarksTab from './study-tools/BookmarksTab';
 import CardsTab from './study-tools/CardsTab';
 import AITab from './study-tools/AITab';
 import { Button } from './ui';
-import type { Section, Highlight } from './sidebar-types';
+import type { Section, Highlight } from '../../bun/types';
 
 type Tab = 'notes' | 'highlights' | 'bookmarks' | 'cards' | 'ask-ai';
 

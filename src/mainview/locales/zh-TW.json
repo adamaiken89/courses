@@ -66,7 +66,15 @@
     "createCard": "建立卡片",
     "copy": "複製",
     "reviewFlashcards": "複習閃卡",
-    "cards": "卡片"
+    "cards": "卡片",
+    "searchCourse": "搜尋"
+  },
+  "viewerSearch": {
+    "placeholder": "在頁面中搜尋...",
+    "matchCount": "第 {{current}} 筆，共 {{total}} 筆",
+    "noMatches": "無符合結果",
+    "prev": "上一個",
+    "next": "下一個"
   },
   "selection": {
     "copied": "已複製！"
@@ -206,9 +214,12 @@
   },
   "search": {
     "placeholder": "搜尋所有課程...",
+    "placeholderCourse": "在 {{course}} 中搜尋...",
     "noResults": "無搜尋結果。",
     "results": "搜尋結果（{{count}}）",
     "inCourse": "在 {{course}} 中",
+    "courseScope": "在 {{course}} 中",
+    "allCoursesHint": "點擊以搜尋所有課程",
     "lessonResult": "課程",
     "noteResult": "筆記",
     "highlightResult": "重點標示"

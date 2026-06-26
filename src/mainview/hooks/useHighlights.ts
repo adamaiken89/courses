@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useCallback } from 'react';
 import { useHighlightsStore } from '../stores/highlightsStore';
-import type { Highlight } from '../components/sidebar-types';
+import type { Highlight } from '../../bun/types';
 
 interface UseHighlightsReturn {
   highlights: Highlight[];
   loading: boolean;
-  addHighlight: (text: string, color: string) => Promise<void>;
+  addHighlight: (
+    text: string,
+    color: string,
+    startOffset?: number,
+    endOffset?: number,
+  ) => Promise<void>;
   deleteHighlight: (id: string) => Promise<void>;
 }
 
@@ -26,8 +31,8 @@ export function useHighlights(courseId: string, moduleId: string | number): UseH
   );
 
   const addHighlight = useCallback(
-    async (text: string, color: string) => {
-      await add(courseId, moduleId, text, color);
+    async (text: string, color: string, startOffset?: number, endOffset?: number) => {
+      await add(courseId, moduleId, text, color, startOffset, endOffset);
     },
     [add, courseId, moduleId],
   );

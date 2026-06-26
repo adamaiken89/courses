@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { api } from '../api';
 import { showToast } from '../toast';
-import type { Highlight } from '../components/sidebar-types';
+import type { Highlight } from '../../bun/types';
 
 function key(courseId: string, moduleId: string | number) {
   return `${courseId}:${moduleId}`;
@@ -11,7 +11,14 @@ interface HighlightsState {
   byModule: Record<string, Highlight[]>;
   loading: Record<string, boolean>;
   load(courseId: string, moduleId: string | number): Promise<void>;
-  add(courseId: string, moduleId: string | number, text: string, color: string): Promise<void>;
+  add(
+    courseId: string,
+    moduleId: string | number,
+    text: string,
+    color: string,
+    startOffset?: number,
+    endOffset?: number,
+  ): Promise<void>;
   remove(id: string): Promise<void>;
   getForModule(courseId: string, moduleId: string | number): Highlight[];
 }
@@ -34,13 +41,13 @@ export const useHighlightsStore = create<HighlightsState>((set, get) => ({
     }
   },
 
-  add: async (courseId, moduleId, text, color) => {
+  add: async (courseId, moduleId, text, color, startOffset = 0, endOffset = 0) => {
     const highlight = await api.storage.addHighlight({
       courseID: courseId,
       moduleID: moduleId,
       selectedText: text,
-      startOffset: 0,
-      endOffset: 0,
+      startOffset,
+      endOffset,
       color,
     });
     const k = key(courseId, moduleId);

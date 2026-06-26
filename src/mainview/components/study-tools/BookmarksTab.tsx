@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useBookmarks } from '../../hooks/useBookmarks';
-import type { Section } from '../sidebar-types';
+import type { Section } from '../../../bun/types';
 
 interface BookmarksTabProps {
   courseId: string;

@@ -1,12 +1,7 @@
 import { describe, expect, test, afterEach } from 'bun:test';
 import { render, waitFor } from '@testing-library/react';
-import LessonSection, {
-  parseLessonMeta,
-  parseH1,
-  stripMetaLines,
-  headingId,
-} from '../../mainview/sections/LessonSection';
-import { parseSections } from '../course-loader';
+import LessonSection from '../../mainview/sections/LessonSection';
+import { processLessonMarkdown, headingId } from '../lesson-markdown';
 import { mockFetch, restoreFetch } from './mock-fetch';
 
 const mockContent = `# Introduction
@@ -25,11 +20,16 @@ Details here.
 
 Second chapter.`;
 
+const processed = processLessonMarkdown(mockContent);
+
 const defaultProps = {
   courseId: 'test',
   courseName: 'Test Course',
   module: { id: 1, name: 'Intro Module', timeHours: 2, prerequisites: [], topics: [] },
   content: '',
+  h1: '',
+  meta: [],
+  bodyContent: '',
   loading: true,
   sections: [],
   visibleSection: null,
@@ -51,11 +51,11 @@ const defaultProps = {
 
 afterEach(restoreFetch);
 
-function mockAll(opts?: { content?: string }) {
+function mockAll() {
   mockFetch({
     '/api/storage/bookmarks/module': [],
     '/api/storage/highlights': [],
-    '/lesson': opts?.content ? { content: opts.content } : { content: '' },
+    '/lesson': { content: '' },
     '/sections': [],
     '/notes': [],
   });
@@ -69,20 +69,28 @@ describe('LessonSection snapshots', () => {
   });
 
   test('content loaded', async () => {
-    mockAll({ content: mockContent });
+    mockAll();
     const { container } = render(
-      <LessonSection {...defaultProps} loading={false} content={mockContent} />,
+      <LessonSection
+        {...defaultProps}
+        loading={false}
+        content={mockContent}
+        h1={processed.h1}
+        meta={processed.meta}
+        bodyContent={processed.bodyContent}
+        sections={processed.sections}
+      />,
     );
     await waitFor(() => expect(container.textContent).toContain('Introduction'));
     expect(container.innerHTML).toMatchSnapshot();
   });
 });
 
-describe('parseLessonMeta', () => {
-  test('parses study time and language', () => {
+describe('processLessonMarkdown', () => {
+  test('parses study time and language meta', () => {
     const md = `# Module 1\n\nEst. study time: 2h\nLanguage: en\n\n## Section`;
-    const meta = parseLessonMeta(md);
-    expect(meta).toEqual([
+    const result = processLessonMarkdown(md);
+    expect(result.meta).toEqual([
       { key: 'est. study time', icon: '⏱', label: 'Study Time', value: '2h' },
       { key: 'language', icon: '🌐', label: 'Language', value: 'en' },
     ]);
@@ -90,15 +98,15 @@ describe('parseLessonMeta', () => {
 
   test('parses description and framework', () => {
     const md = `# Module 2\n\nEst. study time: 2.5h\nLanguage: en\nDescription: A deep dive\nFramework: TypeScript\n\n## Next`;
-    const meta = parseLessonMeta(md);
-    expect(meta).toHaveLength(4);
-    expect(meta[2]).toEqual({
+    const result = processLessonMarkdown(md);
+    expect(result.meta).toHaveLength(4);
+    expect(result.meta[2]).toEqual({
       key: 'description',
       icon: '📝',
       label: 'Description',
       value: 'A deep dive',
     });
-    expect(meta[3]).toEqual({
+    expect(result.meta[3]).toEqual({
       key: 'framework',
       icon: '🔧',
       label: 'Framework',
@@ -106,60 +114,74 @@ describe('parseLessonMeta', () => {
     });
   });
 
-  test('returns empty for no metadata', () => {
+  test('returns empty meta when none', () => {
     const md = `# Module\n\n## Section\n\nContent here.`;
-    expect(parseLessonMeta(md)).toEqual([]);
+    const result = processLessonMarkdown(md);
+    expect(result.meta).toEqual([]);
   });
 
-  test('stops at first ## heading', () => {
+  test('stops meta scan at first ## heading', () => {
     const md = `# Module\n\nEst. study time: 1h\n\n## Section\n\nLanguage: en`;
-    const meta = parseLessonMeta(md);
-    expect(meta).toHaveLength(1);
-    expect(meta[0].key).toBe('est. study time');
+    const result = processLessonMarkdown(md);
+    expect(result.meta).toHaveLength(1);
+    expect(result.meta[0].key).toBe('est. study time');
   });
 
-  test('ignores unknown fields', () => {
+  test('ignores unknown meta fields', () => {
     const md = `# Module\n\nEst. study time: 3h\nDifficulty: hard\n\n## Section`;
-    const meta = parseLessonMeta(md);
-    expect(meta).toHaveLength(1);
-    expect(meta[0].key).toBe('est. study time');
+    const result = processLessonMarkdown(md);
+    expect(result.meta).toHaveLength(1);
+    expect(result.meta[0].key).toBe('est. study time');
   });
 
   test('handles blank lines between H1 and metadata', () => {
     const md = `# Module\n\n\nEst. study time: 2h\nLanguage: zh\n\n## Next`;
-    const meta = parseLessonMeta(md);
-    expect(meta).toHaveLength(2);
+    const result = processLessonMarkdown(md);
+    expect(result.meta).toHaveLength(2);
+  });
+
+  test('extracts H1 heading text', () => {
+    expect(processLessonMarkdown('# Module 1: React Overview').h1).toBe('Module 1: React Overview');
+  });
+
+  test('returns empty H1 when none', () => {
+    expect(processLessonMarkdown('## Section\n\nContent').h1).toBe('');
+  });
+
+  test('ignores deeper headings for H1', () => {
+    expect(processLessonMarkdown('## Not H1\n### Also not').h1).toBe('');
   });
 });
 
-describe('stripMetaLines', () => {
+describe('bodyContent stripping', () => {
   test('removes H1 and metadata, keeps rest', () => {
     const md = `# Module 1\n\nEst. study time: 2h\nLanguage: en\n\n## Section\n\nContent`;
-    const stripped = stripMetaLines(md);
-    expect(stripped).toBe(`## Section\n\nContent`);
+    const result = processLessonMarkdown(md);
+    expect(result.bodyContent).toBe(`## Section\n\nContent`);
   });
 
   test('strips trailing blank lines after meta', () => {
     const md = `# Title\n\nEst. study time: 1h\n\n\n\n## Body`;
-    const stripped = stripMetaLines(md);
-    expect(stripped).toBe(`## Body`);
+    const result = processLessonMarkdown(md);
+    expect(result.bodyContent).toBe(`## Body`);
   });
 
-  test('returns original when no metadata found', () => {
-    const md = `# Title\n\n## Section\n\nContent`;
-    expect(stripMetaLines(md)).toBe(md);
+  test('returns original when no header found (no h1, no meta)', () => {
+    const md = `## Section\n\nContent`;
+    const result = processLessonMarkdown(md);
+    expect(result.bodyContent).toBe(md);
   });
 
-  test('removes H1 when no metadata but meta present', () => {
+  test('strips h1 when no meta but h1 present', () => {
     const md = `# Title\n\nEst. study time: 2h\nLanguage: en`;
-    const stripped = stripMetaLines(md);
-    expect(stripped).toBe('');
+    const result = processLessonMarkdown(md);
+    expect(result.bodyContent).toBe('');
   });
 
   test('handles only description field', () => {
     const md = `# Title\n\nDescription: Foo bar\n\n## Next`;
-    const stripped = stripMetaLines(md);
-    expect(stripped).toBe(`## Next`);
+    const result = processLessonMarkdown(md);
+    expect(result.bodyContent).toBe(`## Next`);
   });
 });
 
@@ -176,10 +198,28 @@ describe('headingId', () => {
 
   test('matches parseSections output for plain text headings', () => {
     const md = `# Hello World\n## Variables & Data Types\n### Basic Example\n## Control Flow: if/else`;
-    const sections = parseSections(md);
+    const { sections } = processLessonMarkdown(md);
     for (const s of sections) {
       expect(s.id).toBe(headingId(s.heading));
     }
+  });
+});
+
+describe('sections hierarchy', () => {
+  test('includes all heading levels', () => {
+    const md = `# Title\n## A\n### A1\n## B`;
+    const { sections } = processLessonMarkdown(md);
+    expect(sections).toHaveLength(4);
+    expect(sections.map((s) => s.heading)).toEqual(['Title', 'A', 'A1', 'B']);
+  });
+
+  test('tracks parent IDs correctly', () => {
+    const md = `# Root\n## Child\n### Grandchild\n## Child2`;
+    const { sections } = processLessonMarkdown(md);
+    expect(sections[0].parentID).toBeNull();
+    expect(sections[1].parentID).toBe(sections[0].id);
+    expect(sections[2].parentID).toBe(sections[1].id);
+    expect(sections[3].parentID).toBe(sections[0].id);
   });
 });
 
@@ -248,19 +288,5 @@ describe('scrollToSection', () => {
 
     scrollToSection('nonexistent');
     expect(container.scrollTop).toBe(0);
-  });
-});
-
-describe('parseH1', () => {
-  test('extracts heading text', () => {
-    expect(parseH1('# Module 1: React Overview')).toBe('Module 1: React Overview');
-  });
-
-  test('returns empty when no H1', () => {
-    expect(parseH1('## Section\n\nContent')).toBe('');
-  });
-
-  test('ignores deeper headings', () => {
-    expect(parseH1('## Not H1\n### Also not')).toBe('');
   });
 });

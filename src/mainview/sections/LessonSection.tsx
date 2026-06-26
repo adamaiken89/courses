@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { api } from '../api';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
 import remarkGfm from 'remark-gfm';
+import type { PluggableList } from 'unified';
 
 import { useSelection } from '../hooks/useSelection';
 import { useSettingsStore } from '../stores/settingsStore';
@@ -16,9 +17,13 @@ import NoteEditor from '../components/lesson/NoteEditor';
 import CardEditor from '../components/lesson/CardEditor';
 import StudyTools from '../components/StudyTools';
 import PomodoroTimer from '../components/PomodoroTimer';
+import ViewerSearch from '../components/lesson/ViewerSearch';
 import { rehypeHighlightText } from '../components/rehype-highlight-text';
-import type { ModuleMeta, Bookmark, Highlight } from '../../bun/types';
-import type { Section } from '../components/sidebar-types';
+import { rehypeSearchText } from '../components/rehype-search-text';
+import { useShortcuts } from '../hooks/useShortcuts';
+import type { ModuleMeta, Bookmark, Highlight, Section } from '../../bun/types';
+import type { MetaField } from '../../bun/lesson-markdown';
+import { headingId } from '../../bun/lesson-markdown';
 
 type DivRef = React.RefObject<HTMLDivElement>;
 
@@ -27,6 +32,9 @@ interface Props {
   courseName: string;
   module: ModuleMeta;
   content: string;
+  h1: string;
+  meta: MetaField[];
+  bodyContent: string;
   loading: boolean;
   sections: Section[];
   visibleSection: string | null;
@@ -37,7 +45,12 @@ interface Props {
   handleToggleCompleted: () => Promise<void>;
   bookmarks: Bookmark[];
   highlights: Highlight[];
-  addHighlight: (text: string, color: string) => Promise<void>;
+  addHighlight: (
+    text: string,
+    color: string,
+    startOffset?: number,
+    endOffset?: number,
+  ) => Promise<void>;
   onPrevModule?: () => void;
   onNextModule?: () => void;
   hasPrevModule?: boolean;
@@ -48,83 +61,8 @@ interface Props {
   showSections: boolean;
   onToggleSections: () => void;
   onToggleBookmark: (title: string, sectionID: string | null) => Promise<void>;
-}
-
-const META_FIELDS: Record<string, { icon: string; label: string }> = {
-  'est. study time': { icon: '⏱', label: 'Study Time' },
-  language: { icon: '🌐', label: 'Language' },
-  description: { icon: '📝', label: 'Description' },
-  framework: { icon: '🔧', label: 'Framework' },
-};
-
-export function parseLessonMeta(
-  markdown: string,
-): { key: string; icon: string; label: string; value: string }[] {
-  const meta: { key: string; icon: string; label: string; value: string }[] = [];
-  const lines = markdown.split('\n');
-  let pastH1 = false;
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed.startsWith('# ')) {
-      pastH1 = true;
-      continue;
-    }
-    if (trimmed.startsWith('##')) break;
-    if (!pastH1) continue;
-    if (!trimmed) continue;
-    const colonIdx = trimmed.indexOf(':');
-    if (colonIdx === -1) continue;
-    const label = trimmed.slice(0, colonIdx).trim().toLowerCase();
-    const field = META_FIELDS[label];
-    if (field) {
-      meta.push({
-        key: label,
-        icon: field.icon,
-        label: field.label,
-        value: trimmed.slice(colonIdx + 1).trim(),
-      });
-    }
-  }
-  return meta;
-}
-
-export function parseH1(markdown: string): string {
-  for (const line of markdown.split('\n')) {
-    const trimmed = line.trim();
-    if (trimmed.startsWith('# ')) return trimmed.slice(2).trim();
-  }
-  return '';
-}
-
-export function stripMetaLines(markdown: string): string {
-  const lines = markdown.split('\n');
-  let lastMetaIdx = -1;
-  let pastH1 = false;
-  let h1Idx = -1;
-  for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
-    if (trimmed.startsWith('# ')) {
-      pastH1 = true;
-      h1Idx = i;
-      continue;
-    }
-    if (trimmed.startsWith('##')) break;
-    if (!pastH1) continue;
-    if (!trimmed) continue;
-    const colonIdx = trimmed.indexOf(':');
-    if (colonIdx === -1) continue;
-    const label = trimmed.slice(0, colonIdx).trim().toLowerCase();
-    if (META_FIELDS[label]) {
-      lastMetaIdx = i;
-    }
-  }
-  if (lastMetaIdx === -1) return markdown;
-  let end = lastMetaIdx + 1;
-  while (end < lines.length && !lines[end].trim()) end++;
-  if (h1Idx >= 0) {
-    return lines.slice(end).join('\n');
-  }
-  return lines.slice(end).join('\n');
+  onCourseSearch?: () => void;
+  initialSearchQuery?: string | null;
 }
 
 function extractText(children: React.ReactNode): string {
@@ -140,17 +78,10 @@ function extractText(children: React.ReactNode): string {
   return text;
 }
 
-export function headingId(children: React.ReactNode): string {
-  return extractText(children)
-    .toLowerCase()
-    .replace(/\s+/g, '-')
-    .replace(/[:,()]/g, '')
-    .replace(/[^a-z0-9-]/g, '');
-}
-
 const headingRenderer = (level: number) =>
   function Heading({ children }: { children?: React.ReactNode }) {
-    const id = headingId(children);
+    const text = extractText(children);
+    const id = headingId(text);
     const Tag = `h${level}` as keyof React.JSX.IntrinsicElements;
     return <Tag id={id}>{children}</Tag>;
   };
@@ -174,6 +105,9 @@ export default function LessonSection({
   courseName,
   module,
   content,
+  h1,
+  meta,
+  bodyContent,
   loading,
   sections,
   visibleSection,
@@ -195,6 +129,8 @@ export default function LessonSection({
   showSections,
   onToggleSections,
   onToggleBookmark,
+  onCourseSearch,
+  initialSearchQuery,
 }: Props) {
   const { t } = useTranslation();
   const selectionToolbarRef = useRef<SelectionToolbarHandle>(null);
@@ -221,41 +157,56 @@ export default function LessonSection({
   const contentWidth = useSettingsStore((s) => s.contentWidth);
   const toggleSections = onToggleSections;
   const themeVars = useMemo(() => themeToCSSVars(THEME_TOKENS[theme]), [theme]);
-  const lessonMeta = useMemo(() => parseLessonMeta(content), [content]);
-  const h1Text = useMemo(() => parseH1(content), [content]);
-  const bodyContent = useMemo(() => {
-    if (!h1Text && lessonMeta.length === 0) return content;
-    const lines = content.split('\n');
-    let h1End = -1;
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i].trim().startsWith('# ')) {
-        h1End = i + 1;
-        break;
-      }
-    }
-    if (h1End === -1) return content;
-    while (h1End < lines.length && !lines[h1End].trim()) h1End++;
-    if (lessonMeta.length === 0) return lines.slice(h1End).join('\n');
-    let metaEnd = h1End;
-    for (let i = h1End; i < lines.length; i++) {
-      const trimmed = lines[i].trim();
-      if (trimmed.startsWith('##')) break;
-      if (!trimmed) {
-        metaEnd = i + 1;
-        continue;
-      }
-      const colonIdx = trimmed.indexOf(':');
-      if (colonIdx === -1) continue;
-      const label = trimmed.slice(0, colonIdx).trim().toLowerCase();
-      if (META_FIELDS[label]) metaEnd = i + 1;
-    }
-    while (metaEnd < lines.length && !lines[metaEnd].trim()) metaEnd++;
-    return lines.slice(metaEnd).join('\n');
-  }, [content, h1Text, lessonMeta]);
+
+  const [searchActive, setSearchActive] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const [totalMatches, setTotalMatches] = useState(0);
+
+  const handleSearchQueryChange = useCallback((q: string) => {
+    setSearchQuery(q);
+    setCurrentMatchIndex(0);
+  }, []);
+
+  const handleSearchPrev = useCallback(() => {
+    setCurrentMatchIndex((i) => (i > 0 ? i - 1 : totalMatches - 1));
+  }, [totalMatches]);
+
+  const handleSearchNext = useCallback(() => {
+    setCurrentMatchIndex((i) => (i < totalMatches - 1 ? i + 1 : 0));
+  }, [totalMatches]);
+
+  const handleSearchClose = useCallback(() => {
+    setSearchActive(false);
+    setSearchQuery('');
+    setCurrentMatchIndex(0);
+    setTotalMatches(0);
+  }, []);
+
   const rehypePlugins = useMemo(
-    () => [rehypeHighlight, rehypeHighlightText(highlights)],
-    [highlights],
+    () =>
+      [
+        rehypeHighlight,
+        [rehypeHighlightText, highlights],
+        ...(searchActive && searchQuery ? [[rehypeSearchText, searchQuery]] : []),
+      ] as PluggableList,
+    [highlights, searchActive, searchQuery],
   );
+
+  useEffect(() => {
+    if (!searchActive || !searchQuery) return;
+    const el = contentRef.current;
+    if (!el) return;
+    const matches = el.querySelectorAll<HTMLElement>('mark[data-search-match]');
+    setTotalMatches(matches.length);
+    if (matches.length > 0) {
+      const idx = Math.min(currentMatchIndex, matches.length - 1);
+      const target = matches[idx];
+      const offset =
+        target.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop - 80;
+      el.scrollTop = offset;
+    }
+  }, [searchQuery, bodyContent, searchActive, currentMatchIndex, contentRef]);
 
   const handleToggleSectionBookmark = (
     sectionId: string,
@@ -265,9 +216,42 @@ export default function LessonSection({
     onToggleBookmark(`${module.name} – ${heading}`, sectionId);
   };
 
+  function getTextOffset(container: HTMLElement, range: Range): { start: number; end: number } {
+    let start = 0;
+    let end = 0;
+    let charCount = 0;
+    let foundStart = false;
+    let foundEnd = false;
+    const walk = (node: Node) => {
+      if (foundStart && foundEnd) return;
+      if (node.nodeType === Node.TEXT_NODE) {
+        const text = node.textContent || '';
+        const nodeStart = charCount;
+        const nodeEnd = charCount + text.length;
+        if (node === range.startContainer) {
+          start = nodeStart + range.startOffset;
+          foundStart = true;
+        }
+        if (node === range.endContainer) {
+          end = nodeStart + range.endOffset;
+          foundEnd = true;
+        }
+        charCount = nodeEnd;
+      } else {
+        for (let i = 0; i < node.childNodes.length; i++) {
+          walk(node.childNodes[i]);
+        }
+      }
+    };
+    walk(container);
+    return { start, end };
+  }
+
   const handleAddHighlight = async (color: string) => {
     if (!selection) return;
-    await addHighlightFn(selection.text, color);
+    const el = contentRef.current;
+    const offsets = el ? getTextOffset(el, selection.range) : { start: 0, end: 0 };
+    await addHighlightFn(selection.text, color, offsets.start, offsets.end);
     closeToolbar();
   };
 
@@ -277,12 +261,14 @@ export default function LessonSection({
 
   const handleAddAnnotation = async () => {
     if (!selection || !noteText.trim()) return;
+    const el = contentRef.current;
+    const offsets = el ? getTextOffset(el, selection.range) : { start: 0, end: 0 };
     await api.storage.addAnnotation({
       courseID: courseId,
       moduleID: module.id,
       selectedText: selection.text,
-      startOffset: 0,
-      endOffset: 0,
+      startOffset: offsets.start,
+      endOffset: offsets.end,
       color: 'yellow',
       noteContent: noteText.trim(),
     });
@@ -298,67 +284,55 @@ export default function LessonSection({
     closeCardEditor();
   };
 
+  useShortcuts('lesson', {
+    prevModule: () => {
+      if (showToolbar) return;
+      if (hasPrevModule && onPrevModule) onPrevModule();
+    },
+    nextModule: () => {
+      if (showToolbar) return;
+      if (hasNextModule && onNextModule) onNextModule();
+    },
+    scrollUp: () => {
+      if (showToolbar) return;
+      contentRef.current?.scrollBy({ top: -80, behavior: 'smooth' });
+    },
+    scrollDown: () => {
+      if (showToolbar) return;
+      contentRef.current?.scrollBy({ top: 80, behavior: 'smooth' });
+    },
+    toggleSections: () => {
+      if (showToolbar) return;
+      useSettingsStore.getState().toggleSections();
+    },
+    findInPage: () => setSearchActive(true),
+    courseSearch: () => onCourseSearch?.(),
+  });
+
+  useEffect(() => {
+    if (initialSearchQuery) {
+      setSearchActive(true);
+      setSearchQuery(initialSearchQuery);
+      setCurrentMatchIndex(0);
+      setTotalMatches(0);
+    } else {
+      setSearchActive(false);
+      setSearchQuery('');
+      setCurrentMatchIndex(0);
+      setTotalMatches(0);
+    }
+  }, [module.id, initialSearchQuery]);
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement).tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-
       if ((e.metaKey || e.ctrlKey) && e.key === 'c' && selection) {
         e.preventDefault();
         selectionToolbarRef.current?.triggerCopy();
-        return;
-      }
-
-      if (showToolbar) return;
-      switch (e.key) {
-        case 'ArrowLeft':
-          e.preventDefault();
-          if (hasPrevModule && onPrevModule) onPrevModule();
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          if (hasNextModule && onNextModule) onNextModule();
-          break;
-        case 'ArrowUp':
-          e.preventDefault();
-          contentRef.current?.scrollBy({ top: -80, behavior: 'smooth' });
-          break;
-        case 'ArrowDown':
-          e.preventDefault();
-          contentRef.current?.scrollBy({ top: 80, behavior: 'smooth' });
-          break;
-        case 't':
-        case 'T':
-          useSettingsStore.getState().cycleTheme();
-          break;
-        case 'w':
-        case 'W':
-          {
-            const order: Array<'narrow' | 'standard' | 'wide'> = ['narrow', 'standard', 'wide'];
-            const next =
-              order[(order.indexOf(useSettingsStore.getState().contentWidth) + 1) % order.length];
-            useSettingsStore.getState().setContentWidth(next);
-          }
-          break;
-        case 's':
-        case 'S':
-          useSettingsStore.getState().toggleSections();
-          break;
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [
-    hasPrevModule,
-    hasNextModule,
-    onPrevModule,
-    onNextModule,
-    showToolbar,
-    contentRef,
-    contentWidth,
-    selection,
-    closeToolbar,
-  ]);
+  }, [selection]);
 
   useEffect(() => {
     const el = contentRef.current;
@@ -432,14 +406,27 @@ export default function LessonSection({
             onScroll={handleScroll}
             onMouseUp={handleTextSelection}
           >
+            {searchActive && (
+              <div className="sticky top-0 z-10">
+                <ViewerSearch
+                  query={searchQuery}
+                  totalMatches={totalMatches}
+                  currentMatch={currentMatchIndex}
+                  onQueryChange={handleSearchQueryChange}
+                  onPrev={handleSearchPrev}
+                  onNext={handleSearchNext}
+                  onClose={handleSearchClose}
+                />
+              </div>
+            )}
             <div
               className={`p-6 book-content${contentWidth === 'wide' ? ' book-content-wide' : contentWidth === 'standard' ? ' book-content-standard' : ''}`}
               style={{ fontSize: `${fontSize}px`, ...themeVars }}
             >
-              {h1Text && <h1 id={headingId(h1Text)}>{h1Text}</h1>}
-              {!focusMode && lessonMeta.length > 0 && (
+              {h1 && <h1 id={headingId(h1)}>{h1}</h1>}
+              {!focusMode && meta.length > 0 && (
                 <div className="lesson-meta">
-                  {lessonMeta.map((m, i) => {
+                  {meta.map((m, i) => {
                     const isDesc = m.key === 'description';
                     return (
                       <span key={m.key}>

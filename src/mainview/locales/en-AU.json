@@ -66,7 +66,15 @@
     "createCard": "Create Card",
     "copy": "Copy",
     "reviewFlashcards": "Review Flashcards",
-    "cards": "Cards"
+    "cards": "Cards",
+    "searchCourse": "Search"
+  },
+  "viewerSearch": {
+    "placeholder": "Find in page...",
+    "matchCount": "{{current}} of {{total}}",
+    "noMatches": "No matches",
+    "prev": "Previous match",
+    "next": "Next match"
   },
   "selection": {
     "copied": "Copied!"
@@ -206,9 +214,12 @@
   },
   "search": {
     "placeholder": "Search across courses...",
+    "placeholderCourse": "Search in {{course}}...",
     "noResults": "No results.",
     "results": "Results ({{count}})",
     "inCourse": "in {{course}}",
+    "courseScope": "in {{course}}",
+    "allCoursesHint": "Click to search all courses",
     "lessonResult": "Lesson",
     "noteResult": "Note",
     "highlightResult": "Highlight"

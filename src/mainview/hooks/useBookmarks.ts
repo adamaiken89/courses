@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useBookmarksStore } from '../stores/bookmarksStore';
-import type { Bookmark } from '../components/sidebar-types';
+import type { Bookmark } from '../../bun/types';
 
 interface UseBookmarksReturn {
   bookmarks: Bookmark[];

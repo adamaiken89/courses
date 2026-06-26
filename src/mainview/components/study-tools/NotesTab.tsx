@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { api } from '../../api';
 import { logger } from '../../logger';
 import { showToast } from '../../toast';
-import type { Section, Note, Highlight } from '../sidebar-types';
+import type { Section, Note, Highlight } from '../../../bun/types';
 
 interface NotesTabProps {
   courseId: string;
@@ -30,7 +30,7 @@ export default function NotesTab({
   const loadNotes = useCallback(() => {
     return api.storage
       .notes(courseId, moduleId)
-      .then((data) => setNotes(data ?? []))
+      .then((data) => setNotes(Array.isArray(data) ? data : []))
       .catch((err) => {
         logger.warn({ err }, 'Failed to load notes');
         showToast.error('toast.loadFailed');

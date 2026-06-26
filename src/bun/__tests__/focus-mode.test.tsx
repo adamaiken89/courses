@@ -3,6 +3,7 @@ import { render } from '@testing-library/react';
 import LessonSection from '../../mainview/sections/LessonSection';
 import { useSettingsStore } from '../../mainview/stores/settingsStore';
 import { mockFetch, restoreFetch } from './mock-fetch';
+import { processLessonMarkdown } from '../lesson-markdown';
 
 const mockContent = `# Introduction
 
@@ -15,13 +16,18 @@ Language: en
 
 First chapter content.`;
 
+const processed = processLessonMarkdown(mockContent);
+
 const defaultProps = {
   courseId: 'test',
   courseName: 'Test Course',
   module: { id: 1, name: 'Intro Module', timeHours: 2, prerequisites: [], topics: [] },
   content: mockContent,
+  h1: processed.h1,
+  meta: processed.meta,
+  bodyContent: processed.bodyContent,
   loading: false,
-  sections: [{ id: 'chapter-1', heading: 'Chapter 1', level: 2, parentID: null }],
+  sections: processed.sections,
   visibleSection: null,
   isCompleted: false,
   contentRef: { current: null } as unknown as React.RefObject<HTMLDivElement>,

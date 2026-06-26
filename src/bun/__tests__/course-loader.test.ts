@@ -185,6 +185,32 @@ Last
     const sections = parseSections(md);
     expect(sections[0].id).toBe('hello-world-test-part-1');
   });
+
+  test('ignores headings inside code blocks', () => {
+    const md = `
+# Real Heading
+
+\`\`\`
+# fake heading
+\`\`\`
+
+## Real Subsection
+
+\`\`\`bash
+# bash comment
+echo hi
+
+## section-like in code block
+\`\`\`
+
+### Real Nested
+`;
+    const sections = parseSections(md);
+    expect(sections).toHaveLength(3);
+    expect(sections[0].heading).toBe('Real Heading');
+    expect(sections[1].heading).toBe('Real Subsection');
+    expect(sections[2].heading).toBe('Real Nested');
+  });
 });
 
 describe('createSRSCard', () => {

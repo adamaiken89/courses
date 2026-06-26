@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import * as CourseLoader from './course-loader';
+import type { Course } from './types';
 
 export interface SearchResult {
   type: 'lesson' | 'note' | 'highlight';
@@ -68,14 +69,15 @@ function score(text: string, query: string): number {
   return s;
 }
 
-export function searchAll(query: string): SearchResult[] {
+export function searchAll(query: string, courseID?: string): SearchResult[] {
   if (!query.trim()) return [];
   const q = query.trim();
   const results: SearchResult[] = [];
   const seen = new Set<string>();
   const qlower = q.toLowerCase();
 
-  const courses = CourseLoader.loadCourses();
+  const allCourses = CourseLoader.loadCourses();
+  const courses: Course[] = courseID ? allCourses.filter((c) => c.id === courseID) : allCourses;
 
   for (const course of courses) {
     for (const mod of course.modules) {
@@ -104,6 +106,7 @@ export function searchAll(query: string): SearchResult[] {
 
   if (storage.notes) {
     for (const note of storage.notes) {
+      if (courseID && note.courseID !== courseID) continue;
       if (note.content.toLowerCase().includes(qlower)) {
         const course = courses.find((c) => c.id === note.courseID);
         const key = `note:${note.id}`;
@@ -126,6 +129,7 @@ export function searchAll(query: string): SearchResult[] {
 
   if (storage.highlights) {
     for (const hl of storage.highlights) {
+      if (courseID && hl.courseID !== courseID) continue;
       if (hl.selectedText.toLowerCase().includes(qlower)) {
         const course = courses.find((c) => c.id === hl.courseID);
         const key = `hl:${hl.id}`;

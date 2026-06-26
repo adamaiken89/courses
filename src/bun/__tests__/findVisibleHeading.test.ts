@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { findVisibleHeading } from '../../mainview/hooks/useLesson';
-import type { Section } from '../../mainview/components/sidebar-types';
+import type { Section } from '../../bun/types';
 
 function toSections(ids: string[], level: number = 2): Section[] {
   return ids.map((id) => ({ id, heading: id, level, parentID: null }));

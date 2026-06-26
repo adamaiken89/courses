@@ -18,6 +18,7 @@ import * as Stats from './stats';
 import * as Sync from './sync';
 import { logger } from './logger';
 import type { QuizQuestion, SRSDeck } from './types';
+import { processLessonMarkdown } from './lesson-markdown';
 
 const DEV_SERVER_PORT = 5173;
 const DEV_SERVER_URL = `http://localhost:${DEV_SERVER_PORT}`;
@@ -90,7 +91,8 @@ app.post('/api/stats/session', async (c) => {
 
 app.get('/api/search', (c) => {
   const q = c.req.query('q') || '';
-  return c.json(Search.searchAll(q));
+  const courseID = c.req.query('courseID') || undefined;
+  return c.json(Search.searchAll(q, courseID));
 });
 
 // --- Courses ---
@@ -106,9 +108,9 @@ app.get('/api/courses/:courseId/modules', (c) => {
 // --- Lesson & Quiz ---
 
 app.get('/api/courses/:courseId/modules/:moduleId/lesson', (c) => {
-  return c.json({
-    content: CourseLoader.loadLesson(c.req.param('courseId'), c.req.param('moduleId')),
-  });
+  const content = CourseLoader.loadLesson(c.req.param('courseId'), c.req.param('moduleId'));
+  const processed = processLessonMarkdown(content);
+  return c.json({ content, ...processed });
 });
 
 app.get('/api/courses/:courseId/modules/:moduleId/quiz', (c) => {
@@ -117,7 +119,8 @@ app.get('/api/courses/:courseId/modules/:moduleId/quiz', (c) => {
 
 app.get('/api/courses/:courseId/modules/:moduleId/sections', (c) => {
   const content = CourseLoader.loadLesson(c.req.param('courseId'), c.req.param('moduleId'));
-  return c.json(CourseLoader.parseSections(content));
+  const processed = processLessonMarkdown(content);
+  return c.json(processed.sections);
 });
 
 // --- SRS ---

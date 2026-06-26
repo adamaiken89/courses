@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { rehypeHighlightText } from '../../mainview/components/rehype-highlight-text';
-import type { Highlight } from '../../mainview/components/sidebar-types';
+import type { Highlight } from '../../bun/types';
 
 function mkHighlight(id: string, text: string, color: string): Highlight {
   return {

@@ -55,6 +55,7 @@ src/
 - **Styling**: Tailwind + `.book-content` CSS.
 - **TypeScript strict mode**.
 - **i18n first**: all text/emoji/icons via `t('key')`. Locale files at `src/mainview/locales/*.json`. Adding UI text requires keys in all 5 locales + snapshot update.
+- **Keyboard shortcuts**: single source of truth at `src/mainview/shortcuts.ts`. All shortcut key/ID/scope defined there. Components import `shortcutKey(id)` for display use. Handlers kept in components (switch statements) — scope overlap intentional where same key does same action in different scopes. Adding new shortcut requires entry in `shortcuts.ts` + handler in component. Duplicate detection runs at module load.
 
 ## Course data model
 

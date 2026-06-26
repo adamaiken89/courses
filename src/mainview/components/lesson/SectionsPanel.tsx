@@ -10,7 +10,7 @@ import {
   BOOKMARK_AMBER,
   SECTION_LEVEL_COLORS,
 } from '../../colors';
-import type { Section, Bookmark } from '../sidebar-types';
+import type { Section, Bookmark } from '../../../bun/types';
 
 interface SectionsPanelProps {
   sections: Section[];
