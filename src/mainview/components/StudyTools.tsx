@@ -1,41 +1,29 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useCourseStore } from '../stores/courseStore';
+import { useLessonContext } from '../sections/LessonContext';
 import NotesHighlightsTab from './study-tools/NotesHighlightsTab';
 import BookmarksTab from './study-tools/BookmarksTab';
 import CardsTab from './study-tools/CardsTab';
 import AITab from './study-tools/AITab';
 import { Button } from './ui';
-import type { Section } from '../../bun/types';
 
 type Tab = 'notes-highlights' | 'bookmarks' | 'cards' | 'ask-ai';
 
 interface StudyToolsProps {
   courseId: string;
   moduleId: string | number;
-  moduleName: string;
-  courseName: string;
-  sections: Section[];
-  visibleSection: string | null;
-  content: string;
-  contentRef: React.RefObject<HTMLDivElement>;
-  scrollToSection: (sectionId: string) => void;
   onClose: () => void;
 }
 
-export default function StudyTools({
-  courseId,
-  moduleId,
-  moduleName,
-  courseName,
-  sections,
-  visibleSection,
-  content,
-  contentRef,
-  scrollToSection,
-  onClose,
-}: StudyToolsProps) {
+export default function StudyTools({ courseId, moduleId, onClose }: StudyToolsProps) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('notes-highlights');
+
+  const course = useCourseStore((s) => s.courses.find((c) => c.id === courseId));
+  const moduleName = course?.modules.find((m) => m.id === moduleId)?.name ?? '';
+  const courseName = course?.displayName ?? '';
+  const { content } = useLessonContext();
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'notes-highlights', label: t('studyTools.notesHighlights') },
@@ -69,14 +57,7 @@ export default function StudyTools({
       </div>
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
         {activeTab === 'notes-highlights' && (
-          <NotesHighlightsTab
-            courseId={courseId}
-            moduleId={moduleId}
-            sections={sections}
-            visibleSection={visibleSection}
-            contentRef={contentRef}
-            scrollToSection={scrollToSection}
-          />
+          <NotesHighlightsTab courseId={courseId} moduleId={moduleId} />
         )}
         {activeTab === 'bookmarks' && (
           <BookmarksTab
@@ -84,8 +65,6 @@ export default function StudyTools({
             moduleId={moduleId}
             moduleName={moduleName}
             courseName={courseName}
-            sections={sections}
-            visibleSection={visibleSection}
           />
         )}
         {activeTab === 'cards' && <CardsTab courseId={courseId} moduleId={moduleId} />}

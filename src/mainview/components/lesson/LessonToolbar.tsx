@@ -1,5 +1,10 @@
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSettingsStore } from '../../stores/settingsStore';
+import { useViewStore } from '../../stores/viewStore';
+import { useCourseStore } from '../../stores/courseStore';
+import { useBookmarksStore } from '../../stores/bookmarksStore';
+import { useLessonUIStore } from '../../stores/lessonUIStore';
 import { Button } from '../ui';
 import {
   COMPLETION_GREEN,
@@ -8,6 +13,7 @@ import {
   ACCENT_INDIGO_LIGHT,
 } from '../../colors';
 import type { Theme } from '../../themes';
+import type { Bookmark } from '../../../bun/types';
 import { shortcutKey } from '../../shortcuts';
 import { useShortcuts } from '../../hooks/useShortcuts';
 
@@ -32,36 +38,36 @@ const THEME_ICONS: Record<Theme, string> = {
   catppuccin: 'icons.themeCatppuccin',
 };
 
-interface LessonToolbarProps {
-  showTools: boolean;
-  showPomodoro: boolean;
-  hasActiveBookmark: boolean;
-  completedCount: number;
-  totalModules: number;
-  onToggleBookmark: () => void;
-  onToggleTools: () => void;
-  onTogglePomodoro: () => void;
-  onReviewCards?: () => void;
-  onStartQuiz?: () => void;
-  onStartReview?: () => void;
-  onSearchCourse?: () => void;
-}
+const EMPTY_BOOKMARKS: Bookmark[] = [];
 
-export default function LessonToolbar({
-  showTools,
-  showPomodoro,
-  hasActiveBookmark,
-  completedCount,
-  totalModules,
-  onToggleBookmark,
-  onToggleTools,
-  onTogglePomodoro,
-  onReviewCards,
-  onStartQuiz,
-  onStartReview,
-  onSearchCourse,
-}: LessonToolbarProps) {
+export default function LessonToolbar() {
   const { t } = useTranslation();
+
+  const push = useViewStore((s) => s.push);
+  const views = useViewStore((s) => s.views);
+  const lastView = views[views.length - 1];
+  const course = lastView?.type === 'lesson' ? lastView.course : null;
+  const module = lastView?.type === 'lesson' ? lastView.module : null;
+
+  const courses = useCourseStore((s) => s.courses);
+  const progress = useCourseStore((s) => s.progress);
+  const completedCount = course ? (progress[course.id] ?? 0) : 0;
+  const totalModules = course ? course.modules.length : 0;
+
+  const k = course && module ? `${course.id}:${module.id}` : '';
+  const byModule = useBookmarksStore((s) => s.byModule);
+  const bookmarks = useMemo(
+    () => (k ? (byModule[k] ?? EMPTY_BOOKMARKS) : EMPTY_BOOKMARKS),
+    [k, byModule],
+  );
+  const hasActiveBookmark = bookmarks.some((b) => !b.sectionID);
+
+  const showTools = useLessonUIStore((s) => s.showTools);
+  const showPomodoro = useLessonUIStore((s) => s.showPomodoro);
+  const toggleTools = useLessonUIStore((s) => s.toggleTools);
+  const togglePomodoro = useLessonUIStore((s) => s.togglePomodoro);
+  const setSearchCourseOpen = useLessonUIStore((s) => s.setSearchCourseOpen);
+
   const focusMode = useSettingsStore((s) => s.focusMode);
   const fontSize = useSettingsStore((s) => s.fontSize);
   const incFontSize = useSettingsStore((s) => s.incFontSize);
@@ -95,13 +101,33 @@ export default function LessonToolbar({
       const next = order[(order.indexOf(contentWidth) + 1) % order.length];
       setContentWidth(next);
     },
-    bookmark: onToggleBookmark,
+    bookmark: () => {
+      if (!course || !module) return;
+      const k = `${course.id}:${module.id}`;
+      const bm = useBookmarksStore.getState().byModule[k] ?? [];
+      const existing = bm.find((b) => !b.sectionID);
+      if (existing) {
+        useBookmarksStore.getState().remove(existing.id);
+      } else {
+        useBookmarksStore.getState().toggle(course.id, module.id, module.name, null);
+      }
+    },
     focusMode: toggleFocusMode,
-    pomodoro: onTogglePomodoro,
-    tools: onToggleTools,
-    reviewCards: () => onReviewCards?.(),
-    quiz: () => onStartQuiz?.(),
-    review: () => onStartReview?.(),
+    pomodoro: togglePomodoro,
+    tools: toggleTools,
+    reviewCards: () => {
+      if (!course) return;
+      const found = courses.find((c) => c.id === course.id);
+      if (found) push({ type: 'userCardReview', course: found });
+    },
+    quiz: () => {
+      if (!course || !module) return;
+      push({ type: 'quiz', course, module });
+    },
+    review: () => {
+      if (!course) return;
+      push({ type: 'review', course });
+    },
   });
 
   const s = (label: string, k: string) => `${label} (${SHORTCUT[k]})`;
@@ -165,7 +191,17 @@ export default function LessonToolbar({
           <Button
             variant={hasActiveBookmark ? 'toggleActive' : 'toggle'}
             size="sm"
-            onClick={onToggleBookmark}
+            onClick={() => {
+              if (!course || !module) return;
+              const k = `${course.id}:${module.id}`;
+              const bm = useBookmarksStore.getState().byModule[k] ?? [];
+              const existing = bm.find((b) => !b.sectionID);
+              if (existing) {
+                useBookmarksStore.getState().remove(existing.id);
+              } else {
+                useBookmarksStore.getState().toggle(course.id, module.id, module.name, null);
+              }
+            }}
             title={s(t('lesson.bookmarkModule'), 'bookmark')}
           >
             {hasActiveBookmark ? t('icons.bookmarkFilled') : t('icons.bookmarkEmpty')}{' '}
@@ -186,7 +222,7 @@ export default function LessonToolbar({
       <Button
         variant={showPomodoro ? 'toggleActive' : 'toggle'}
         size="sm"
-        onClick={onTogglePomodoro}
+        onClick={togglePomodoro}
         title={s(t('pomodoro.title'), 'pomodoro')}
       >
         {t('icons.pomodoro')}
@@ -197,7 +233,7 @@ export default function LessonToolbar({
           <Button
             variant={showTools ? 'toggleActive' : 'toggle'}
             size="sm"
-            onClick={onToggleTools}
+            onClick={toggleTools}
             title={s(t('lesson.toggleStudyTools'), 'tools')}
           >
             {t('lesson.tools')}
@@ -210,20 +246,23 @@ export default function LessonToolbar({
           <Button
             variant="secondary"
             size="sm"
-            onClick={onSearchCourse}
+            onClick={() => setSearchCourseOpen(true)}
             title={t('lesson.searchCourse')}
           >
             {t('icons.search')} {t('lesson.searchCourse')}
           </Button>
         </>
       )}
-      {onReviewCards && !focusMode && (
+      {course && !focusMode && (
         <>
           <div className="h-3 w-px bg-gray-600" />
           <Button
             variant="secondary"
             size="sm"
-            onClick={onReviewCards}
+            onClick={() => {
+              const found = courses.find((c) => c.id === course.id);
+              if (found) push({ type: 'userCardReview', course: found });
+            }}
             title={s(t('lesson.reviewFlashcards'), 'reviewCards')}
           >
             {t('icons.cards')} {t('lesson.cards')}
@@ -236,7 +275,10 @@ export default function LessonToolbar({
           <Button
             variant="primary"
             size="sm"
-            onClick={onStartQuiz}
+            onClick={() => {
+              if (!course || !module) return;
+              push({ type: 'quiz', course, module });
+            }}
             title={s(t('common.quiz'), 'quiz')}
           >
             {t('common.quiz')}
@@ -244,7 +286,10 @@ export default function LessonToolbar({
           <Button
             variant="secondary"
             size="sm"
-            onClick={onStartReview}
+            onClick={() => {
+              if (!course) return;
+              push({ type: 'review', course });
+            }}
             title={s(t('common.review'), 'review')}
           >
             {t('common.review')}

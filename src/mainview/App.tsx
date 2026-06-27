@@ -85,10 +85,6 @@ export default function App() {
     startTransition(() => push({ type: 'lesson', course, module }));
   };
 
-  const handleStartReview = (course: Course) => {
-    startTransition(() => push({ type: 'review', course }));
-  };
-
   const handleSwitchCourse = (course: Course) => {
     startTransition(() => replace({ type: 'lesson', course, module: course.modules[0] }));
   };
@@ -137,10 +133,6 @@ export default function App() {
             initialSectionID={currentView.sectionID}
             onBack={() => replace({ type: 'moduleList', course: currentView.course })}
             onSelectModule={(m) => handleSelectModule(currentView.course, m)}
-            onStartQuiz={() =>
-              push({ type: 'quiz', course: currentView.course, module: currentView.module })
-            }
-            onStartReview={() => handleStartReview(currentView.course)}
           />
         );
 

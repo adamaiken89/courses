@@ -1,14 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { useBookmarks } from '../../hooks/useBookmarks';
-import type { Section } from '../../../bun/types';
+import { useLessonContext } from '../../sections/LessonContext';
 
 interface BookmarksTabProps {
   courseId: string;
   moduleId: string | number;
   moduleName: string;
   courseName: string;
-  sections: Section[];
-  visibleSection: string | null;
 }
 
 export default function BookmarksTab({
@@ -16,10 +14,9 @@ export default function BookmarksTab({
   moduleId,
   moduleName,
   courseName,
-  sections,
-  visibleSection,
 }: BookmarksTabProps) {
   const { t } = useTranslation();
+  const { sections, visibleSection } = useLessonContext();
   const { bookmarks, loading, handleToggleBookmark, handleDeleteBookmark } = useBookmarks(
     courseId,
     moduleId,

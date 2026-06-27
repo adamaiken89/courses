@@ -3,6 +3,22 @@ import { render, waitFor, act } from '@testing-library/react';
 import LessonSection from '../../mainview/sections/LessonSection';
 import { processLessonMarkdown, headingId } from '../lesson-markdown';
 import { mockFetch, restoreFetch } from './mock-fetch';
+import { useLessonUIStore } from '../../mainview/stores/lessonUIStore';
+import type { Course } from '../types';
+
+const mockCourse = {
+  id: 'test',
+  course: 'test',
+  displayName: 'Test Course',
+  targetLevel: 'beginner',
+  domain: 'test',
+  prerequisites: [],
+  learningObjectives: [],
+  modules: [{ id: 1, name: 'Intro Module', timeHours: 2, prerequisites: [], topics: [] }],
+  timeBudgetHours: 0,
+} as Course;
+
+const mockModule = { id: 1, name: 'Intro Module', timeHours: 2, prerequisites: [], topics: [] };
 
 const mockContent = `# Introduction
 
@@ -23,42 +39,34 @@ Second chapter.`;
 const processed = processLessonMarkdown(mockContent);
 
 const defaultProps = {
-  courseId: 'test',
-  courseName: 'Test Course',
-  module: { id: 1, name: 'Intro Module', timeHours: 2, prerequisites: [], topics: [] },
-  content: '',
-  h1: '',
-  meta: [],
-  bodyContent: '',
-  loading: true,
-  sections: [],
-  visibleSection: null,
-  isCompleted: false,
-  contentRef: { current: null } as unknown as React.RefObject<HTMLDivElement>,
-  scrollToSection: () => {},
-  handleScroll: () => {},
-  handleToggleCompleted: async () => {},
-  bookmarks: [],
-  highlights: [],
-  addHighlight: async () => {},
-  deleteHighlight: async () => {},
-  onToggleBookmark: async () => {},
-  showTools: false,
-  showPomodoro: false,
-  setShowTools: () => {},
-  showSections: false,
-  onToggleSections: () => {},
+  course: mockCourse,
+  module: mockModule,
 };
 
-afterEach(restoreFetch);
+afterEach(() => {
+  restoreFetch();
+  useLessonUIStore.setState({
+    showTools: false,
+    showPomodoro: false,
+    searchCourseOpen: false,
+  });
+});
 
 function mockAll() {
   mockFetch({
+    '/api/courses/test/modules/1/lesson': {
+      content: mockContent,
+      h1: processed.h1,
+      meta: processed.meta,
+      bodyContent: processed.bodyContent,
+      sections: processed.sections,
+    },
+    '/api/storage/completed': { completed: false },
+    '/api/courses/test/modules': mockCourse.modules,
+    '/api/storage/completed/count': { count: 0 },
     '/api/storage/bookmarks/module': [],
     '/api/storage/highlights': [],
-    '/lesson': { content: '' },
-    '/sections': [],
-    '/notes': [],
+    '/api/storage/notes': [],
   });
 }
 
@@ -75,17 +83,7 @@ describe('LessonSection snapshots', () => {
     mockAll();
     let container!: HTMLElement;
     await act(async () => {
-      ({ container } = render(
-        <LessonSection
-          {...defaultProps}
-          loading={false}
-          content={mockContent}
-          h1={processed.h1}
-          meta={processed.meta}
-          bodyContent={processed.bodyContent}
-          sections={processed.sections}
-        />,
-      ));
+      ({ container } = render(<LessonSection {...defaultProps} />));
       await new Promise((resolve) => setTimeout(resolve, 0));
     });
     await waitFor(() => expect(container.textContent).toContain('Introduction'));

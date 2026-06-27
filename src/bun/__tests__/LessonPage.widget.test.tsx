@@ -2,6 +2,7 @@ import { describe, expect, test, afterEach } from 'bun:test';
 import { render, waitFor, act } from '@testing-library/react';
 import LessonPage from '../../mainview/pages/LessonPage';
 import { mockFetch, restoreFetch } from './mock-fetch';
+import { useLessonUIStore } from '../../mainview/stores/lessonUIStore';
 import '../../mainview/i18n';
 
 const mockCourse = {
@@ -21,11 +22,16 @@ const props = {
   module: { id: 1, name: 'Algebra', timeHours: 3, prerequisites: [], topics: [] },
   onBack: () => {},
   onSelectModule: () => {},
-  onStartQuiz: () => {},
-  onStartReview: () => {},
 };
 
-afterEach(restoreFetch);
+afterEach(() => {
+  restoreFetch();
+  useLessonUIStore.setState({
+    showTools: false,
+    showPomodoro: false,
+    searchCourseOpen: false,
+  });
+});
 
 describe('LessonPage snapshot', () => {
   test('loading state', async () => {

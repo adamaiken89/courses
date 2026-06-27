@@ -6,13 +6,8 @@ import SearchOverlay from '../components/SearchOverlay';
 import PageLayout from '../layouts/PageLayout';
 import PageHeader from '../layouts/PageHeader';
 import PageContent from '../layouts/PageContent';
-import { useBookmarks } from '../hooks/useBookmarks';
-import { useHighlights } from '../hooks/useHighlights';
-import { useNotes } from '../hooks/useNotes';
-import { useLesson } from '../hooks/useLesson';
-import { useSettingsStore } from '../stores/settingsStore';
-import { useViewStore } from '../stores/viewStore';
 import { useCourseStore } from '../stores/courseStore';
+import { useLessonUIStore } from '../stores/lessonUIStore';
 import type { Course, ModuleMeta } from '../../bun/types';
 
 interface LessonFeatureProps {
@@ -21,8 +16,6 @@ interface LessonFeatureProps {
   initialSectionID?: string;
   onBack: () => void;
   onSelectModule: (m: ModuleMeta) => void;
-  onStartQuiz: () => void;
-  onStartReview: () => void;
 }
 
 export default function LessonFeature({
@@ -31,63 +24,15 @@ export default function LessonFeature({
   initialSectionID,
   onBack,
   onSelectModule,
-  onStartQuiz,
-  onStartReview,
 }: LessonFeatureProps) {
-  const push = useViewStore((s) => s.push);
   const courses = useCourseStore((s) => s.courses);
-  const [showTools, setShowTools] = useState(false);
-  const [showPomodoro, setShowPomodoro] = useState(false);
-  const [searchCourseOpen, setSearchCourseOpen] = useState(false);
+  const searchCourseOpen = useLessonUIStore((s) => s.searchCourseOpen);
+  const setSearchCourseOpen = useLessonUIStore((s) => s.setSearchCourseOpen);
   const [pendingSearchQuery, setPendingSearchQuery] = useState<string | null>(null);
-  const currentIdx = course.modules.findIndex((m) => m.id === module.id);
-  const hasPrev = currentIdx > 0;
-  const hasNext = currentIdx < course.modules.length - 1;
-
-  const {
-    content,
-    h1,
-    meta,
-    bodyContent,
-    loading,
-    sections,
-    visibleSection,
-    isCompleted,
-    completedCount,
-    totalModules,
-    contentRef,
-    scrollToSection,
-    handleScroll,
-    handleToggleCompleted,
-  } = useLesson(course.id, module.id, initialSectionID);
-
-  const {
-    bookmarks,
-    handleToggleBookmark: toggleBookmark,
-    hasActiveBookmark,
-  } = useBookmarks(course.id, module.id, visibleSection);
-
-  const { highlights, addHighlight, deleteHighlight } = useHighlights(course.id, module.id);
-  const { notes } = useNotes(course.id, module.id);
-
-  const handleToggleBookmark = () => {
-    const title = visibleSection
-      ? `${module.name} – ${sections.find((s) => s.id === visibleSection)?.heading}`
-      : module.name;
-    toggleBookmark(title, visibleSection);
-  };
-
-  const handleReviewCards = () => {
-    const found = courses.find((c) => c.id === course.id);
-    if (found) push({ type: 'userCardReview', course: found });
-  };
-
-  const showSections = useSettingsStore((s) => s.showSections);
-  const toggleSections = useSettingsStore((s) => s.toggleSections);
 
   useEffect(() => {
-    if (pendingSearchQuery) setPendingSearchQuery(null);
-  }, [module.id, pendingSearchQuery]);
+    setPendingSearchQuery(null);
+  }, [module.id]);
 
   const handleSearchNavigate = useCallback(
     (courseID: string, moduleID: string | number, query?: string) => {
@@ -99,23 +44,6 @@ export default function LessonFeature({
       }
     },
     [courses, onSelectModule],
-  );
-
-  const toolbar = (
-    <LessonToolbar
-      showTools={showTools}
-      showPomodoro={showPomodoro}
-      hasActiveBookmark={hasActiveBookmark}
-      completedCount={completedCount}
-      totalModules={totalModules}
-      onToggleBookmark={handleToggleBookmark}
-      onToggleTools={() => setShowTools(!showTools)}
-      onTogglePomodoro={() => setShowPomodoro(!showPomodoro)}
-      onReviewCards={handleReviewCards}
-      onStartQuiz={onStartQuiz}
-      onStartReview={onStartReview}
-      onSearchCourse={() => setSearchCourseOpen(true)}
-    />
   );
 
   return (
@@ -130,41 +58,13 @@ export default function LessonFeature({
             onSelect={onSelectModule}
           />
         }
-        toolbar={toolbar}
+        toolbar={<LessonToolbar />}
       />
       <PageContent className="px-0 py-0">
         <LessonSection
-          courseId={course.id}
-          courseName={course.displayName}
+          course={course}
           module={module}
-          content={content}
-          h1={h1}
-          meta={meta}
-          bodyContent={bodyContent}
-          loading={loading}
-          sections={sections}
-          visibleSection={visibleSection}
-          isCompleted={isCompleted}
-          contentRef={contentRef}
-          scrollToSection={scrollToSection}
-          handleScroll={handleScroll}
-          handleToggleCompleted={handleToggleCompleted}
-          bookmarks={bookmarks}
-          highlights={highlights}
-          notes={notes}
-          addHighlight={addHighlight}
-          deleteHighlight={deleteHighlight}
-          hasPrevModule={hasPrev}
-          hasNextModule={hasNext}
-          onPrevModule={hasPrev ? () => onSelectModule(course.modules[currentIdx - 1]) : undefined}
-          onNextModule={hasNext ? () => onSelectModule(course.modules[currentIdx + 1]) : undefined}
-          showTools={showTools}
-          showPomodoro={showPomodoro}
-          setShowTools={setShowTools}
-          showSections={showSections}
-          onToggleSections={toggleSections}
-          onToggleBookmark={toggleBookmark}
-          onCourseSearch={() => setSearchCourseOpen(true)}
+          initialSectionID={initialSectionID}
           initialSearchQuery={pendingSearchQuery}
         />
       </PageContent>

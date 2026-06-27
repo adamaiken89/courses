@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
@@ -19,54 +19,26 @@ import { rehypeSearchText } from '../components/rehype-search-text';
 import StudyTools from '../components/StudyTools';
 import { useSelection } from '../hooks/useSelection';
 import { useShortcuts } from '../hooks/useShortcuts';
+import { useLesson } from '../hooks/useLesson';
+import { useBookmarks } from '../hooks/useBookmarks';
+import { useHighlights } from '../hooks/useHighlights';
+import { useNotes } from '../hooks/useNotes';
+import { useLessonNav } from '../hooks/useLessonNav';
+import { useLessonSearch } from '../hooks/useLessonSearch';
+import { useLessonUIStore } from '../stores/lessonUIStore';
 import { useHighlightsStore } from '../stores/highlightsStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { THEME_TOKENS, themeToCSSVars } from '../themes';
+import LessonContext from './LessonContext';
 
 import type { PluggableList } from 'unified';
-
 import type { SelectionToolbarHandle } from '../components/lesson/SelectionToolbar';
-import type { ModuleMeta, Bookmark, Highlight, Note, Section } from '../../bun/types';
-import type { MetaField } from '../../bun/lesson-markdown';
-type DivRef = React.RefObject<HTMLDivElement>;
+import type { Course, ModuleMeta, Note } from '../../bun/types';
 
 interface Props {
-  courseId: string;
-  courseName: string;
+  course: Course;
   module: ModuleMeta;
-  content: string;
-  h1: string;
-  meta: MetaField[];
-  bodyContent: string;
-  loading: boolean;
-  sections: Section[];
-  visibleSection: string | null;
-  isCompleted: boolean;
-  contentRef: DivRef;
-  scrollToSection: (sectionId: string) => void;
-  handleScroll: () => void;
-  handleToggleCompleted: () => Promise<void>;
-  bookmarks: Bookmark[];
-  highlights: Highlight[];
-  notes?: Note[];
-  addHighlight: (
-    text: string,
-    color: string,
-    startOffset?: number,
-    endOffset?: number,
-  ) => Promise<void>;
-  deleteHighlight: (id: string) => Promise<void>;
-  onPrevModule?: () => void;
-  onNextModule?: () => void;
-  hasPrevModule?: boolean;
-  hasNextModule?: boolean;
-  showTools: boolean;
-  showPomodoro: boolean;
-  setShowTools: (v: boolean) => void;
-  showSections: boolean;
-  onToggleSections: () => void;
-  onToggleBookmark: (title: string, sectionID: string | null) => Promise<void>;
-  onCourseSearch?: () => void;
+  initialSectionID?: string;
   initialSearchQuery?: string | null;
 }
 
@@ -106,40 +78,45 @@ const components = {
 };
 
 export default function LessonSection({
-  courseId,
-  courseName,
+  course,
   module,
-  content,
-  h1,
-  meta,
-  bodyContent,
-  loading,
-  sections,
-  visibleSection,
-  isCompleted,
-  contentRef,
-  scrollToSection,
-  handleScroll,
-  handleToggleCompleted,
-  bookmarks,
-  highlights,
-  notes = [],
-  addHighlight: addHighlightFn,
-  deleteHighlight,
-  onPrevModule,
-  onNextModule,
-  hasPrevModule,
-  hasNextModule,
-  showTools,
-  showPomodoro,
-  setShowTools,
-  showSections,
-  onToggleSections,
-  onToggleBookmark,
-  onCourseSearch,
+  initialSectionID,
   initialSearchQuery,
 }: Props) {
   const { t } = useTranslation();
+
+  const {
+    content,
+    h1,
+    meta,
+    bodyContent,
+    loading,
+    sections,
+    visibleSection,
+    isCompleted,
+    contentRef,
+    scrollToSection,
+    handleScroll,
+    handleToggleCompleted,
+  } = useLesson(course.id, module.id, initialSectionID);
+
+  const { bookmarks, handleToggleBookmark: toggleBookmark } = useBookmarks(
+    course.id,
+    module.id,
+    visibleSection,
+  );
+  const {
+    highlights,
+    addHighlight: addHighlightFn,
+    deleteHighlight,
+  } = useHighlights(course.id, module.id);
+  const { notes } = useNotes(course.id, module.id);
+  const { hasPrev, hasNext, goPrev, goNext } = useLessonNav(course, module);
+
+  const showTools = useLessonUIStore((s) => s.showTools);
+  const showPomodoro = useLessonUIStore((s) => s.showPomodoro);
+  const setShowTools = useLessonUIStore((s) => s.toggleTools);
+
   const selectionToolbarRef = useRef<SelectionToolbarHandle>(null);
 
   const {
@@ -171,7 +148,8 @@ export default function LessonSection({
   const theme = useSettingsStore((s) => s.theme);
   const fontSize = useSettingsStore((s) => s.fontSize);
   const contentWidth = useSettingsStore((s) => s.contentWidth);
-  const toggleSections = onToggleSections;
+  const showSections = useSettingsStore((s) => s.showSections);
+  const toggleSections = useSettingsStore((s) => s.toggleSections);
   const themeVars = useMemo(() => themeToCSSVars(THEME_TOKENS[theme]), [theme]);
 
   const notesRef = useRef(notes);
@@ -231,30 +209,17 @@ export default function LessonSection({
     return () => el.removeEventListener('click', handler);
   }, [contentRef, handleTextSelection, setSelectedHighlight]);
 
-  const [searchActive, setSearchActive] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
-  const [totalMatches, setTotalMatches] = useState(0);
-
-  const handleSearchQueryChange = useCallback((q: string) => {
-    setSearchQuery(q);
-    setCurrentMatchIndex(0);
-  }, []);
-
-  const handleSearchPrev = useCallback(() => {
-    setCurrentMatchIndex((i) => (i > 0 ? i - 1 : totalMatches - 1));
-  }, [totalMatches]);
-
-  const handleSearchNext = useCallback(() => {
-    setCurrentMatchIndex((i) => (i < totalMatches - 1 ? i + 1 : 0));
-  }, [totalMatches]);
-
-  const handleSearchClose = useCallback(() => {
-    setSearchActive(false);
-    setSearchQuery('');
-    setCurrentMatchIndex(0);
-    setTotalMatches(0);
-  }, []);
+  const {
+    searchActive,
+    searchQuery,
+    currentMatchIndex,
+    totalMatches,
+    setSearchActive,
+    handleSearchQueryChange,
+    handleSearchPrev,
+    handleSearchNext,
+    handleSearchClose,
+  } = useLessonSearch(contentRef, module.id, initialSearchQuery);
 
   const rehypePlugins = useMemo(
     () =>
@@ -266,27 +231,12 @@ export default function LessonSection({
     [highlights, searchActive, searchQuery],
   );
 
-  useEffect(() => {
-    if (!searchActive || !searchQuery) return;
-    const el = contentRef.current;
-    if (!el) return;
-    const matches = el.querySelectorAll<HTMLElement>('mark[data-search-match]');
-    setTotalMatches(matches.length);
-    if (matches.length > 0) {
-      const idx = Math.min(currentMatchIndex, matches.length - 1);
-      const target = matches[idx];
-      const offset =
-        target.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop - 80;
-      el.scrollTop = offset;
-    }
-  }, [searchQuery, bodyContent, searchActive, currentMatchIndex, contentRef]);
-
   const handleToggleSectionBookmark = (
     sectionId: string,
     _hasBookmark: boolean,
     heading: string,
   ) => {
-    onToggleBookmark(`${module.name} – ${heading}`, sectionId);
+    toggleBookmark(`${module.name} – ${heading}`, sectionId);
   };
 
   function getTextOffset(
@@ -327,7 +277,7 @@ export default function LessonSection({
     const offsets = el ? getTextOffset(el, selection.range) : null;
     if (!offsets) return;
     await api.storage.addAnnotation({
-      courseID: courseId,
+      courseID: course.id,
       moduleID: module.id,
       selectedText: selection.text,
       startOffset: offsets.start,
@@ -337,12 +287,12 @@ export default function LessonSection({
     });
     closeToolbar();
     closeNoteEditor();
-    useHighlightsStore.getState().load(courseId, module.id);
+    useHighlightsStore.getState().load(course.id, module.id);
   };
 
   const handleCreateCard = async (front: string, back: string) => {
     if (!selection) return;
-    await api.usercards.create(courseId, module.id, front, back);
+    await api.usercards.create(course.id, module.id, front, back);
     closeToolbar();
     closeCardEditor();
   };
@@ -350,11 +300,11 @@ export default function LessonSection({
   useShortcuts('lesson', {
     prevModule: () => {
       if (showToolbar) return;
-      if (hasPrevModule && onPrevModule) onPrevModule();
+      if (hasPrev) goPrev();
     },
     nextModule: () => {
       if (showToolbar) return;
-      if (hasNextModule && onNextModule) onNextModule();
+      if (hasNext) goNext();
     },
     scrollUp: () => {
       if (showToolbar) return;
@@ -369,22 +319,8 @@ export default function LessonSection({
       useSettingsStore.getState().toggleSections();
     },
     findInPage: () => setSearchActive(true),
-    courseSearch: () => onCourseSearch?.(),
+    courseSearch: () => useLessonUIStore.getState().setSearchCourseOpen(true),
   });
-
-  useEffect(() => {
-    if (initialSearchQuery) {
-      setSearchActive(true);
-      setSearchQuery(initialSearchQuery);
-      setCurrentMatchIndex(0);
-      setTotalMatches(0);
-    } else {
-      setSearchActive(false);
-      setSearchQuery('');
-      setCurrentMatchIndex(0);
-      setTotalMatches(0);
-    }
-  }, [module.id, initialSearchQuery]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -405,33 +341,24 @@ export default function LessonSection({
       const absY = Math.abs(e.deltaY);
       if (absX > 40 && absX > absY * 1.5) {
         e.preventDefault();
-        if (e.deltaX > 0 && hasNextModule && onNextModule) onNextModule();
-        else if (e.deltaX < 0 && hasPrevModule && onPrevModule) onPrevModule();
+        if (e.deltaX > 0 && hasNext) goNext();
+        else if (e.deltaX < 0 && hasPrev) goPrev();
       }
     };
     el.addEventListener('wheel', handler, { passive: false });
     return () => el.removeEventListener('wheel', handler);
-  }, [hasPrevModule, hasNextModule, onPrevModule, onNextModule, contentRef]);
+  }, [hasPrev, hasNext, goPrev, goNext, contentRef]);
 
   if (loading)
     return <div className="p-8 text-center text-gray-400">{t('lesson.loadingLesson')}</div>;
 
   return (
-    <>
+    <LessonContext.Provider
+      value={{ contentRef, scrollToSection, sections, visibleSection, content }}
+    >
       <div className="flex flex-1 overflow-hidden">
         {showTools && !focusMode && (
-          <StudyTools
-            courseId={courseId}
-            courseName={courseName}
-            moduleId={module.id}
-            moduleName={module.name}
-            sections={sections}
-            visibleSection={visibleSection}
-            content={content}
-            contentRef={contentRef}
-            scrollToSection={scrollToSection}
-            onClose={() => setShowTools(false)}
-          />
+          <StudyTools courseId={course.id} moduleId={module.id} onClose={() => setShowTools()} />
         )}
         <div className="flex-1 flex flex-col min-w-0">
           {!showSections && !focusMode && (
@@ -598,6 +525,6 @@ export default function LessonSection({
           onCancel={closeNoteEditor}
         />
       )}
-    </>
+    </LessonContext.Provider>
   );
 }

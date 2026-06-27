@@ -4,15 +4,12 @@ import { useNotesStore } from '../../stores/notesStore';
 import { useHighlightsStore } from '../../stores/highlightsStore';
 import { showToast } from '../../toast';
 import { headingId } from '../../../bun/lesson-markdown';
-import type { Section, Highlight } from '../../../bun/types';
+import { useLessonContext } from '../../sections/LessonContext';
+import type { Highlight, Section } from '../../../bun/types';
 
 interface NotesHighlightsTabProps {
   courseId: string;
   moduleId: string | number;
-  sections: Section[];
-  visibleSection: string | null;
-  contentRef: React.RefObject<HTMLDivElement>;
-  scrollToSection: (sectionId: string) => void;
 }
 
 type MergedItem =
@@ -29,7 +26,10 @@ type MergedItem =
       linkedHighlight?: Highlight;
     };
 
-function scrollToHighlightEl(contentRef: React.RefObject<HTMLDivElement>, highlightId: string) {
+function scrollToHighlightEl(
+  contentRef: React.RefObject<HTMLDivElement | null>,
+  highlightId: string,
+) {
   const container = contentRef.current;
   if (!container) return false;
   const el = container.querySelector(`mark[data-highlight-id="${highlightId}"]`);
@@ -44,7 +44,7 @@ function scrollToHighlightEl(contentRef: React.RefObject<HTMLDivElement>, highli
 }
 
 function findSectionIdForHighlight(
-  contentRef: React.RefObject<HTMLDivElement>,
+  contentRef: React.RefObject<HTMLDivElement | null>,
   highlightId: string,
   sections: Section[],
 ): { id: string; heading: string } | null {
@@ -94,15 +94,9 @@ function findSectionIdForHighlight(
   return null;
 }
 
-export default function NotesHighlightsTab({
-  courseId,
-  moduleId,
-  sections,
-  visibleSection,
-  contentRef,
-  scrollToSection,
-}: NotesHighlightsTabProps) {
+export default function NotesHighlightsTab({ courseId, moduleId }: NotesHighlightsTabProps) {
   const { t } = useTranslation();
+  const { contentRef, scrollToSection, sections, visibleSection } = useLessonContext();
 
   const loadNotes = useNotesStore((s) => s.load);
   const addNote = useNotesStore((s) => s.add);
