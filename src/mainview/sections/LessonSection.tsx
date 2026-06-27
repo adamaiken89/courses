@@ -134,10 +134,28 @@ export default function LessonSection({
     closeCardEditor,
   } = useSelection(contentRef);
 
-  const activeHighlightColor = useMemo(
-    () => highlights.find((h) => h.id === selectedHighlightId)?.color,
-    [highlights, selectedHighlightId],
-  );
+  const activeHighlight = useMemo(() => {
+    if (selectedHighlightId) {
+      return highlights.find((h) => h.id === selectedHighlightId) ?? null;
+    }
+    const el = contentRef.current;
+    if (!selection || !el) return null;
+    const offsets = getTextOffset(el, selection.range);
+    if (!offsets) return null;
+    return (
+      highlights.find((h) => {
+        const hs = h.startOffset;
+        const he = h.endOffset;
+        return (
+          (offsets.start >= hs && offsets.start < he) ||
+          (offsets.end > hs && offsets.end <= he) ||
+          (offsets.start <= hs && offsets.end >= he)
+        );
+      }) ?? null
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlights, selectedHighlightId, selection]);
+  const activeHighlightColor = activeHighlight?.color;
 
   const [popoverNote, setPopoverNote] = useState<{ note: Note; x: number; y: number } | null>(null);
 
@@ -480,9 +498,9 @@ export default function LessonSection({
           onCreateCard={openCardEditor}
           onCopy={handleCopy}
           onDeleteHighlight={
-            selectedHighlightId
+            activeHighlight
               ? () => {
-                  deleteHighlight(selectedHighlightId);
+                  deleteHighlight(activeHighlight.id);
                   closeToolbar();
                 }
               : undefined

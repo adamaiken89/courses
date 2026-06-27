@@ -26,34 +26,26 @@ function ColorPickerRow({
   onSelectColor: (color: string) => void;
   onDeleteHighlight?: () => void;
 }) {
-  const { t } = useTranslation();
-
   return (
     <div className="flex items-center justify-center gap-2 px-3 py-2">
-      {Object.entries(HIGHLIGHT_COLORS).map(([name, color]) => {
-        const isActive = activeHighlightColor === name;
-        return (
-          <button
-            key={name}
-            onClick={() => (isActive ? onDeleteHighlight?.() : onSelectColor(name))}
-            className={`w-5 h-5 rounded-full border transition-transform shrink-0 ${
-              isActive
-                ? 'border-white scale-125 ring-1 ring-white'
-                : 'border-gray-500 hover:scale-125'
-            }`}
-            style={{ backgroundColor: color }}
-            title={name}
-          />
-        );
-      })}
-      {onDeleteHighlight && (
-        <>
-          <div className="w-px h-5 bg-gray-600" />
-          <Button variant="ghost" size="sm" onClick={onDeleteHighlight}>
-            {t('icons.close')}
-          </Button>
-        </>
-      )}
+      {Object.entries(HIGHLIGHT_COLORS)
+        .filter(([name]) => name !== 'note')
+        .map(([name, color]) => {
+          const isActive = activeHighlightColor === name;
+          return (
+            <button
+              key={name}
+              onClick={() => (isActive ? onDeleteHighlight?.() : onSelectColor(name))}
+              className={`w-5 h-5 rounded-full border transition-transform shrink-0 ${
+                isActive
+                  ? 'border-white scale-125 ring-1 ring-white'
+                  : 'border-gray-500 hover:scale-125'
+              }`}
+              style={{ backgroundColor: color }}
+              title={name}
+            />
+          );
+        })}
     </div>
   );
 }
