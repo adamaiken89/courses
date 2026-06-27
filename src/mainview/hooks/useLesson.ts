@@ -20,23 +20,12 @@ export function findVisibleHeading(container: HTMLElement, sections: Section[]):
   const containerRect = container.getBoundingClientRect();
   const threshold = containerRect.top + SCROLL_OFFSET;
 
-  const levelMap = new Map(sections.map((s) => [s.id, s.level]));
   let bestId: string | null = null;
-  let bestLevel = -1;
 
   for (const h of headings) {
     if (h.getBoundingClientRect().top <= threshold) {
-      const level = levelMap.get(h.id) ?? 0;
-      if (level >= bestLevel) {
-        bestLevel = level;
-        bestId = h.id;
-      }
+      bestId = h.id;
     }
-  }
-
-  const atBottom = container.scrollTop + container.clientHeight >= container.scrollHeight - 5;
-  if (atBottom) {
-    bestId = sections[sections.length - 1].id;
   }
 
   return bestId;

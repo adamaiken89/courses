@@ -531,6 +531,8 @@ export default function LessonSection({
                 {bodyContent}
               </ReactMarkdown>
 
+              <div style={{ height: '50vh' }} />
+
               {!focusMode && (
                 <div style={{ marginTop: '3rem' }}>
                   <button

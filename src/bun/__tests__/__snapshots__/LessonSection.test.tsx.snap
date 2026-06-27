@@ -9,5 +9,5 @@ exports[`LessonSection snapshots content loaded 1`] = `
 <h3 id="section-11">Section 1.1</h3>
 <p>Details here.</p>
 <h2 id="chapter-2">Chapter 2</h2>
-<p>Second chapter.</p><div style="margin-top: 3rem;"><button class="w-full py-3 rounded-lg font-semibold text-sm transition-all duration-200" style="background: var(--book-code-bg); color: var(--book-text); border: 1px solid; border-width: var(--book-h2-border); border-style: var(--book-h2-border); border-color: var(--book-h2-border);">Mark as Complete</button></div></div></div></div></div>"
+<p>Second chapter.</p><div style="height: 50vh;"></div><div style="margin-top: 3rem;"><button class="w-full py-3 rounded-lg font-semibold text-sm transition-all duration-200" style="background: var(--book-code-bg); color: var(--book-text); border: 1px solid; border-width: var(--book-h2-border); border-style: var(--book-h2-border); border-color: var(--book-h2-border);">Mark as Complete</button></div></div></div></div></div>"
 `;

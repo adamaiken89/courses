@@ -226,7 +226,7 @@ describe('findVisibleHeading', () => {
     ).toBe('subsection');
   });
 
-  test('prefers deeper heading over later shallower heading', () => {
+  test('uses last heading above threshold regardless of level', () => {
     const container = makeContainer([
       { id: 'deep', top: 10 },
       { id: 'shallow', top: 100 },
@@ -236,6 +236,6 @@ describe('findVisibleHeading', () => {
         { id: 'deep', heading: 'Deep Section', level: 3, parentID: null },
         { id: 'shallow', heading: 'Shallow Section', level: 1, parentID: null },
       ]),
-    ).toBe('deep');
+    ).toBe('shallow');
   });
 });
