@@ -58,21 +58,21 @@ describe('findModuleDir', () => {
       { name: '01-intro', isDirectory: () => true },
       { name: '02-advanced', isDirectory: () => true },
     ];
-    const result = loader.findModuleDir('/courses', 'test', 1);
+    const result = loader.findModuleDir('/courses', 'test', '01');
     expect(result).toContain('01-intro');
   });
 
   test('returns null when modules dir does not exist', async () => {
     loader = await import('../course-loader');
     mockState.exists = false;
-    const result = loader.findModuleDir('/courses', 'test', 1);
+    const result = loader.findModuleDir('/courses', 'test', '01');
     expect(result).toBeNull();
   });
 
   test('returns null when no matching module found', async () => {
     loader = await import('../course-loader');
     mockState.modulesDirEntries = [{ name: '01-intro', isDirectory: () => true }];
-    const result = loader.findModuleDir('/courses', 'test', 99);
+    const result = loader.findModuleDir('/courses', 'test', '99');
     expect(result).toBeNull();
   });
 });
@@ -123,20 +123,20 @@ describe('loadLesson', () => {
     loader = await import('../course-loader');
     mockState.modulesDirEntries = [{ name: '01-intro', isDirectory: () => true }];
     mockState.moduleLesson['01-intro'] = '# Intro\n\nContent';
-    const content = loader.loadLesson('test', 1);
+    const content = loader.loadLesson('test', '01');
     expect(content).toBe('# Intro\n\nContent');
   });
 
   test('throws when module not found', async () => {
     loader = await import('../course-loader');
     mockState.modulesDirEntries = [];
-    expect(() => loader.loadLesson('test', 99)).toThrow('Module 99 not found for course test');
+    expect(() => loader.loadLesson('test', '99')).toThrow('Module 99 not found for course test');
   });
 
   test('throws when courses dir not found', async () => {
     loader = await import('../course-loader');
     mockState.exists = false;
-    expect(() => loader.loadLesson('test', 1)).toThrow('Courses directory not found');
+    expect(() => loader.loadLesson('test', '01')).toThrow('Courses directory not found');
   });
 });
 
@@ -146,7 +146,7 @@ describe('loadQuiz', () => {
     mockState.modulesDirEntries = [{ name: '01-intro', isDirectory: () => true }];
     mockState.moduleQuiz['01-intro'] =
       '- id: q1\n  question: "?"\n  options:\n    A: a\n    B: b\n  answer: A\n  explanation: e\n';
-    const quiz = loader.loadQuiz('test', 1);
+    const quiz = loader.loadQuiz('test', '01');
     expect(quiz).toHaveLength(1);
     expect(quiz[0].id).toBe('q1');
   });
@@ -161,18 +161,18 @@ describe('loadQuiz', () => {
     // Our mock returns true for all existsSync calls.
     // This means we can't differentiate between "file exists" and "file doesn't exist"
     // with a simple boolean mock. Let's adjust: we make existsSync check if content exists.
-    expect(loader.loadQuiz('test', 1)).toEqual([]);
+    expect(loader.loadQuiz('test', '01')).toEqual([]);
   });
 
   test('throws when module not found', async () => {
     loader = await import('../course-loader');
-    expect(() => loader.loadQuiz('test', 99)).toThrow('Module 99 not found for course test');
+    expect(() => loader.loadQuiz('test', '99')).toThrow('Module 99 not found for course test');
   });
 
   test('throws when courses dir not found', async () => {
     loader = await import('../course-loader');
     mockState.exists = false;
-    expect(() => loader.loadQuiz('test', 1)).toThrow('Courses directory not found');
+    expect(() => loader.loadQuiz('test', '01')).toThrow('Courses directory not found');
   });
 });
 
@@ -208,7 +208,7 @@ describe('saveSRSDeck', () => {
         'test-1-q1': {
           id: 'test-1-q1',
           questionId: 'q1',
-          moduleId: 1,
+          moduleId: '01',
           courseId: 'test',
           question: 'Q?',
           answer: 'A',

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { Course } from '../../bun/types';
+import type { Bookmark, Course } from '../../bun/types';
 import { api } from '../api';
 import CourseSwitcher from '../components/CourseSwitcher';
 import PageContent from '../layouts/PageContent';
@@ -9,23 +9,9 @@ import PageHeader from '../layouts/PageHeader';
 import PageLayout from '../layouts/PageLayout';
 import { useCourseStore } from '../stores/courseStore';
 
-interface Bookmark {
-  id: string;
-  courseID: string;
-  moduleID: string;
-  sectionID: string | null;
-  title: string;
-  createdAt: string;
-}
-
 interface Props {
   onBack: () => void;
-  onOpen: (
-    courseID: string,
-    moduleID: string,
-    sectionID: string | null,
-    courses: Course[],
-  ) => void;
+  onOpen: (courseID: string, moduleID: string, sectionID: string | null, courses: Course[]) => void;
   onSwitchCourse: (course: Course) => void;
 }
 

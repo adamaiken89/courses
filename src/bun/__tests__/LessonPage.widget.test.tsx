@@ -11,7 +11,7 @@ const mockCourse = {
   displayName: 'Mathematics 101',
   domain: 'mathematics',
   prerequisites: [],
-  modules: [{ id: 1, name: 'Algebra', timeHours: 3, prerequisites: [], topics: [] }],
+  modules: [{ id: '01', name: 'Algebra', timeHours: 3, prerequisites: [], topics: [] }],
   timeBudgetHours: 20,
   targetLevel: 'beginner',
   learningObjectives: [],
@@ -19,7 +19,7 @@ const mockCourse = {
 
 const props = {
   course: mockCourse,
-  module: { id: 1, name: 'Algebra', timeHours: 3, prerequisites: [], topics: [] },
+  module: { id: '01', name: 'Algebra', timeHours: 3, prerequisites: [], topics: [] },
   onBack: () => {},
   onSelectModule: () => {},
 };
@@ -44,7 +44,7 @@ describe('LessonPage snapshot', () => {
 
   test('content loaded', async () => {
     mockFetch({
-      '/courses/math-101/modules/1/lesson': {
+      '/courses/math-101/modules/01/lesson': {
         content: '# Algebra\n\nContent here.\n\n## Section 1\n\nDetails.',
         h1: 'Algebra',
         meta: [{ key: 'est. study time', icon: '⏱', label: 'Study Time', value: '3h' }],

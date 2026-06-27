@@ -2,7 +2,8 @@ import { readdirSync, readFileSync, existsSync, mkdirSync, writeFileSync } from 
 import { join } from 'path';
 import * as yaml from 'js-yaml';
 import { logger } from './logger';
-import { normalizeModuleId, type Course, type ModuleMeta, type QuizQuestion, type SRSDeck } from './types';
+import { normalizeModuleId } from './utils';
+import type { Course, ModuleMeta, QuizQuestion, SRSDeck } from './types';
 import { processLessonMarkdown } from './lesson-markdown';
 
 const POSSIBLE_PATHS = [
@@ -30,7 +31,9 @@ export function parseCourse(yamlStr: string, directory: string): Course | null {
         id: normalizeModuleId(mod.id as string | number),
         name: String(mod.name || ''),
         timeHours: Number(mod.time_hours) || 0,
-        prerequisites: Array.isArray(mod.prerequisites) ? mod.prerequisites.map((p) => normalizeModuleId(p)) : [],
+        prerequisites: Array.isArray(mod.prerequisites)
+          ? mod.prerequisites.map((p) => normalizeModuleId(p))
+          : [],
         topics: Array.isArray(mod.topics) ? mod.topics.map(String) : [],
       });
     }
@@ -74,9 +77,7 @@ export function findModuleDir(
   const modulesDir = join(coursesDir, courseId, 'modules');
   if (!existsSync(modulesDir)) return null;
   const entries = readdirSync(modulesDir, { withFileTypes: true });
-  const match = entries.find(
-    (e) => e.isDirectory() && (e.name.startsWith(moduleId + '-')),
-  );
+  const match = entries.find((e) => e.isDirectory() && e.name.startsWith(moduleId + '-'));
   return match ? join(modulesDir, match.name) : null;
 }
 

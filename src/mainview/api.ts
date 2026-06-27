@@ -201,6 +201,7 @@ export const api = {
       request<{ count: number }>(
         `/storage/completed/count?courseID=${encodeURIComponent(courseID)}`,
       ),
+    clearAll: () => request<OkResponse>('/storage/clear', { method: 'POST' }),
   },
   usercards: {
     list: (courseId?: string, moduleId?: string) => {

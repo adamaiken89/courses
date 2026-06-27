@@ -261,9 +261,7 @@ export function toggleModuleCompleted(courseID: string, moduleID: string): boole
 
 export function getCompletedModuleIDs(courseID: string): string[] {
   const data = load();
-  return data.completedModules
-    .filter((m) => m.courseID === courseID)
-    .map((m) => m.moduleID);
+  return data.completedModules.filter((m) => m.courseID === courseID).map((m) => m.moduleID);
 }
 
 export function getCompletedModuleCount(courseID: string): number {
@@ -444,6 +442,17 @@ export function getSyncConfig(): {
     lastSyncedCommit: data.lastSyncedCommit || null,
     lastSyncTime: data.lastSyncTime || null,
   };
+}
+
+export function clearAllData(): void {
+  save({
+    highlights: [],
+    notes: [],
+    bookmarks: [],
+    completedModules: [],
+    studySessions: [],
+    userCards: [],
+  });
 }
 
 export function saveSyncConfig(config: {

@@ -16,7 +16,7 @@ describe('completionStore', () => {
   });
 
   test('get returns false for unknown key', () => {
-    expect(useCompletionStore.getState().get('course1', 1)).toBe(false);
+    expect(useCompletionStore.getState().get('course1', '01')).toBe(false);
   });
 
   test('getProgress returns 0/0 when no data', () => {
@@ -27,15 +27,15 @@ describe('completionStore', () => {
 
   test('load sets completed and loading false', async () => {
     mockFetch({ '/storage/completed': { completed: true } });
-    useCompletionStore.getState().load('course1', 1);
+    useCompletionStore.getState().load('course1', '01');
     await new Promise((resolve) => setTimeout(resolve, 0));
     await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(useCompletionStore.getState().get('course1', 1)).toBe(true);
+    expect(useCompletionStore.getState().get('course1', '01')).toBe(true);
   });
 
   test('loadCourse sets totalModules and completed from API', async () => {
     mockFetch({
-      '/courses/course1/modules': [{ id: 1 }, { id: 2 }, { id: 3 }],
+      '/courses/course1/modules': [{ id: '01' }, { id: '02' }, { id: '03' }],
       '/storage/completed/modules': { moduleIDs: ['1', '2'] },
     });
     useCompletionStore.getState().loadCourse('course1');

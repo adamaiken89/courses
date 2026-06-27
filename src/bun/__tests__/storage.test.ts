@@ -41,7 +41,7 @@ describe('highlights', () => {
     mod = await import('../storage');
     const h = mod.addHighlight('c1', '01', 'selected text', 0, 13, 'pink');
     expect(h.courseID).toBe('c1');
-    expect(h.moduleID).toBe(1);
+    expect(h.moduleID).toBe('01');
     expect(h.selectedText).toBe('selected text');
     expect(h.startOffset).toBe(0);
     expect(h.endOffset).toBe(13);
@@ -52,15 +52,15 @@ describe('highlights', () => {
 
   test('addHighlight defaults color to yellow', async () => {
     mod = await import('../storage');
-    const h = mod.addHighlight('c1', 1, 'text', 0, 4);
+    const h = mod.addHighlight('c1', '01', 'text', 0, 4);
     expect(h.color).toBe('yellow');
   });
 
   test('getHighlightsForModule returns highlights sorted by createdAt', async () => {
     mod = await import('../storage');
-    mod.addHighlight('c1', 1, 'early', 0, 5, 'yellow');
-    const h2 = mod.addHighlight('c1', 1, 'late', 6, 10, 'pink');
-    const highlights = mod.getHighlightsForModule('c1', 1);
+    mod.addHighlight('c1', '01', 'early', 0, 5, 'yellow');
+    const h2 = mod.addHighlight('c1', '01', 'late', 6, 10, 'pink');
+    const highlights = mod.getHighlightsForModule('c1', '01');
     expect(highlights).toHaveLength(2);
     expect(highlights[0].selectedText).toBe('early');
     expect(highlights[1].selectedText).toBe('late');
@@ -69,60 +69,60 @@ describe('highlights', () => {
 
   test('getHighlightsForModule filters by courseID and moduleID', async () => {
     mod = await import('../storage');
-    mod.addHighlight('c1', 1, 'a', 0, 1);
-    mod.addHighlight('c1', 2, 'b', 0, 1);
-    mod.addHighlight('c2', 1, 'c', 0, 1);
-    expect(mod.getHighlightsForModule('c1', 1)).toHaveLength(1);
-    expect(mod.getHighlightsForModule('c1', 1)[0].selectedText).toBe('a');
-    expect(mod.getHighlightsForModule('c1', 2)).toHaveLength(1);
-    expect(mod.getHighlightsForModule('c2', 1)).toHaveLength(1);
+    mod.addHighlight('c1', '01', 'a', 0, 1);
+    mod.addHighlight('c1', '02', 'b', 0, 1);
+    mod.addHighlight('c2', '01', 'c', 0, 1);
+    expect(mod.getHighlightsForModule('c1', '01')).toHaveLength(1);
+    expect(mod.getHighlightsForModule('c1', '01')[0].selectedText).toBe('a');
+    expect(mod.getHighlightsForModule('c1', '02')).toHaveLength(1);
+    expect(mod.getHighlightsForModule('c2', '01')).toHaveLength(1);
   });
 
   test('deleteHighlight removes highlight', async () => {
     mod = await import('../storage');
-    const h = mod.addHighlight('c1', 1, 'text', 0, 4);
-    expect(mod.getHighlightsForModule('c1', 1)).toHaveLength(1);
+    const h = mod.addHighlight('c1', '01', 'text', 0, 4);
+    expect(mod.getHighlightsForModule('c1', '01')).toHaveLength(1);
     mod.deleteHighlight(h.id);
-    expect(mod.getHighlightsForModule('c1', 1)).toHaveLength(0);
+    expect(mod.getHighlightsForModule('c1', '01')).toHaveLength(0);
   });
 
   test('deleteHighlight is idempotent for missing id', async () => {
     mod = await import('../storage');
-    mod.addHighlight('c1', 1, 'text', 0, 4);
+    mod.addHighlight('c1', '01', 'text', 0, 4);
     mod.deleteHighlight('nonexistent');
-    expect(mod.getHighlightsForModule('c1', 1)).toHaveLength(1);
+    expect(mod.getHighlightsForModule('c1', '01')).toHaveLength(1);
   });
 
   test('addHighlight deduplicates same location and text, updates color only', async () => {
     mod = await import('../storage');
-    const h1 = mod.addHighlight('c1', 1, 'text', 0, 4, 'yellow');
-    const h2 = mod.addHighlight('c1', 1, 'text', 0, 4, 'pink');
+    const h1 = mod.addHighlight('c1', '01', 'text', 0, 4, 'yellow');
+    const h2 = mod.addHighlight('c1', '01', 'text', 0, 4, 'pink');
     expect(h2.id).toBe(h1.id);
     expect(h2.color).toBe('pink');
-    expect(mod.getHighlightsForModule('c1', 1)).toHaveLength(1);
+    expect(mod.getHighlightsForModule('c1', '01')).toHaveLength(1);
   });
 
   test('addHighlight does not dedup different text', async () => {
     mod = await import('../storage');
-    mod.addHighlight('c1', 1, 'text', 0, 4, 'yellow');
-    mod.addHighlight('c1', 1, 'other', 0, 4, 'pink');
-    expect(mod.getHighlightsForModule('c1', 1)).toHaveLength(2);
+    mod.addHighlight('c1', '01', 'text', 0, 4, 'yellow');
+    mod.addHighlight('c1', '01', 'other', 0, 4, 'pink');
+    expect(mod.getHighlightsForModule('c1', '01')).toHaveLength(2);
   });
 
   test('addHighlight does not dedup different offsets', async () => {
     mod = await import('../storage');
-    mod.addHighlight('c1', 1, 'text', 0, 4, 'yellow');
-    mod.addHighlight('c1', 1, 'text', 5, 9, 'pink');
-    expect(mod.getHighlightsForModule('c1', 1)).toHaveLength(2);
+    mod.addHighlight('c1', '01', 'text', 0, 4, 'yellow');
+    mod.addHighlight('c1', '01', 'text', 5, 9, 'pink');
+    expect(mod.getHighlightsForModule('c1', '01')).toHaveLength(2);
   });
 });
 
 describe('notes', () => {
   test('addNote creates note with correct fields', async () => {
     mod = await import('../storage');
-    const n = mod.addNote('c1', 1, 'my note');
+    const n = mod.addNote('c1', '01', 'my note');
     expect(n.courseID).toBe('c1');
-    expect(n.moduleID).toBe(1);
+    expect(n.moduleID).toBe('01');
     expect(n.content).toBe('my note');
     expect(n.highlightID).toBeNull();
     expect(n.sectionID).toBeNull();
@@ -133,16 +133,16 @@ describe('notes', () => {
 
   test('addNote with highlightID and sectionID', async () => {
     mod = await import('../storage');
-    const n = mod.addNote('c1', 1, 'linked note', 'h-1', 's-1');
+    const n = mod.addNote('c1', '01', 'linked note', 'h-1', 's-1');
     expect(n.highlightID).toBe('h-1');
     expect(n.sectionID).toBe('s-1');
   });
 
   test('getNotesForModule returns notes sorted by createdAt', async () => {
     mod = await import('../storage');
-    mod.addNote('c1', 1, 'first');
-    const n2 = mod.addNote('c1', 1, 'second');
-    const notes = mod.getNotesForModule('c1', 1);
+    mod.addNote('c1', '01', 'first');
+    const n2 = mod.addNote('c1', '01', 'second');
+    const notes = mod.getNotesForModule('c1', '01');
     expect(notes).toHaveLength(2);
     expect(notes[0].content).toBe('first');
     expect(notes[notes.length - 1].id).toBe(n2.id);
@@ -150,27 +150,27 @@ describe('notes', () => {
 
   test('updateNote updates content', async () => {
     mod = await import('../storage');
-    const n = mod.addNote('c1', 1, 'original');
+    const n = mod.addNote('c1', '01', 'original');
     mod.updateNote(n.id, 'updated');
-    const notes = mod.getNotesForModule('c1', 1);
+    const notes = mod.getNotesForModule('c1', '01');
     expect(notes[0].content).toBe('updated');
     expect(notes[0].updatedAt).toBeDefined();
   });
 
   test('updateNote no-ops for missing id', async () => {
     mod = await import('../storage');
-    mod.addNote('c1', 1, 'original');
+    mod.addNote('c1', '01', 'original');
     mod.updateNote('nonexistent', 'updated');
-    const notes = mod.getNotesForModule('c1', 1);
+    const notes = mod.getNotesForModule('c1', '01');
     expect(notes[0].content).toBe('original');
   });
 
   test('deleteNote removes note', async () => {
     mod = await import('../storage');
-    const n = mod.addNote('c1', 1, 'text');
-    expect(mod.getNotesForModule('c1', 1)).toHaveLength(1);
+    const n = mod.addNote('c1', '01', 'text');
+    expect(mod.getNotesForModule('c1', '01')).toHaveLength(1);
     mod.deleteNote(n.id);
-    expect(mod.getNotesForModule('c1', 1)).toHaveLength(0);
+    expect(mod.getNotesForModule('c1', '01')).toHaveLength(0);
   });
 });
 
@@ -179,7 +179,7 @@ describe('annotations', () => {
     mod = await import('../storage');
     const { highlight, note } = mod.addAnnotation({
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       selectedText: 'selected',
       startOffset: 0,
       endOffset: 8,
@@ -196,9 +196,9 @@ describe('annotations', () => {
 describe('bookmarks', () => {
   test('addBookmark creates bookmark with all fields', async () => {
     mod = await import('../storage');
-    const b = mod.addBookmark('c1', 1, 'Chapter 1', 'chapter-1', 42);
+    const b = mod.addBookmark('c1', '01', 'Chapter 1', 'chapter-1', 42);
     expect(b.courseID).toBe('c1');
-    expect(b.moduleID).toBe(1);
+    expect(b.moduleID).toBe('01');
     expect(b.title).toBe('Chapter 1');
     expect(b.sectionID).toBe('chapter-1');
     expect(b.scrollPosition).toBe(42);
@@ -208,15 +208,15 @@ describe('bookmarks', () => {
 
   test('addBookmark with defaults', async () => {
     mod = await import('../storage');
-    const b = mod.addBookmark('c1', 1, 'Title');
+    const b = mod.addBookmark('c1', '01', 'Title');
     expect(b.sectionID).toBeNull();
     expect(b.scrollPosition).toBe(0);
   });
 
   test('getAllBookmarks returns all bookmarks', async () => {
     mod = await import('../storage');
-    mod.addBookmark('c1', 1, 'first');
-    mod.addBookmark('c1', 2, 'second');
+    mod.addBookmark('c1', '01', 'first');
+    mod.addBookmark('c1', '02', 'second');
     const all = mod.getAllBookmarks();
     expect(all).toHaveLength(2);
     const titles = all.map((b) => b.title).sort();
@@ -225,8 +225,8 @@ describe('bookmarks', () => {
 
   test('getBookmarksForCourse filters by courseID', async () => {
     mod = await import('../storage');
-    mod.addBookmark('c1', 1, 'a');
-    mod.addBookmark('c2', 1, 'b');
+    mod.addBookmark('c1', '01', 'a');
+    mod.addBookmark('c2', '01', 'b');
     const books = mod.getBookmarksForCourse('c1');
     expect(books).toHaveLength(1);
     expect(books[0].title).toBe('a');
@@ -234,15 +234,15 @@ describe('bookmarks', () => {
 
   test('getBookmarksForModule filters by both', async () => {
     mod = await import('../storage');
-    mod.addBookmark('c1', 1, 'a');
-    mod.addBookmark('c1', 2, 'b');
-    mod.addBookmark('c2', 1, 'c');
-    expect(mod.getBookmarksForModule('c1', 1)).toHaveLength(1);
+    mod.addBookmark('c1', '01', 'a');
+    mod.addBookmark('c1', '02', 'b');
+    mod.addBookmark('c2', '01', 'c');
+    expect(mod.getBookmarksForModule('c1', '01')).toHaveLength(1);
   });
 
   test('deleteBookmark removes bookmark', async () => {
     mod = await import('../storage');
-    const b = mod.addBookmark('c1', 1, 't');
+    const b = mod.addBookmark('c1', '01', 't');
     expect(mod.getAllBookmarks()).toHaveLength(1);
     mod.deleteBookmark(b.id);
     expect(mod.getAllBookmarks()).toHaveLength(0);
@@ -250,39 +250,39 @@ describe('bookmarks', () => {
 
   test('isBookmarked returns true only for bookmarked course+module', async () => {
     mod = await import('../storage');
-    mod.addBookmark('c1', 1, 't');
-    expect(mod.isBookmarked('c1', 1)).toBe(true);
-    expect(mod.isBookmarked('c1', 2)).toBe(false);
-    expect(mod.isBookmarked('c2', 1)).toBe(false);
+    mod.addBookmark('c1', '01', 't');
+    expect(mod.isBookmarked('c1', '01')).toBe(true);
+    expect(mod.isBookmarked('c1', '02')).toBe(false);
+    expect(mod.isBookmarked('c2', '01')).toBe(false);
   });
 });
 
 describe('module completion', () => {
   test('isModuleCompleted returns false initially', async () => {
     mod = await import('../storage');
-    expect(mod.isModuleCompleted('c1', 1)).toBe(false);
+    expect(mod.isModuleCompleted('c1', '01')).toBe(false);
   });
 
   test('toggleModuleCompleted adds module, returns true', async () => {
     mod = await import('../storage');
-    const result = mod.toggleModuleCompleted('c1', 1);
+    const result = mod.toggleModuleCompleted('c1', '01');
     expect(result).toBe(true);
-    expect(mod.isModuleCompleted('c1', 1)).toBe(true);
+    expect(mod.isModuleCompleted('c1', '01')).toBe(true);
   });
 
   test('toggleModuleCompleted removes module, returns false', async () => {
     mod = await import('../storage');
-    mod.toggleModuleCompleted('c1', 1);
-    const result = mod.toggleModuleCompleted('c1', 1);
+    mod.toggleModuleCompleted('c1', '01');
+    const result = mod.toggleModuleCompleted('c1', '01');
     expect(result).toBe(false);
-    expect(mod.isModuleCompleted('c1', 1)).toBe(false);
+    expect(mod.isModuleCompleted('c1', '01')).toBe(false);
   });
 
   test('getCompletedModuleCount returns count for course', async () => {
     mod = await import('../storage');
-    mod.toggleModuleCompleted('c1', 1);
-    mod.toggleModuleCompleted('c1', 2);
-    mod.toggleModuleCompleted('c2', 1);
+    mod.toggleModuleCompleted('c1', '01');
+    mod.toggleModuleCompleted('c1', '02');
+    mod.toggleModuleCompleted('c2', '01');
     expect(mod.getCompletedModuleCount('c1')).toBe(2);
     expect(mod.getCompletedModuleCount('c2')).toBe(1);
   });
@@ -321,7 +321,7 @@ describe('study sessions', () => {
     mod = await import('../storage');
     const s = mod.addStudySession({
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 30,
       type: 'reading',
     });
@@ -336,7 +336,7 @@ describe('study sessions', () => {
     const s = mod.addStudySession({
       date: '2024-01-15',
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 15,
       type: 'quiz',
       score: 3,
@@ -352,21 +352,21 @@ describe('study sessions', () => {
     mod.addStudySession({
       date: '2024-01-10',
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 10,
       type: 'reading',
     });
     mod.addStudySession({
       date: '2024-01-12',
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 20,
       type: 'reading',
     });
     mod.addStudySession({
       date: '2024-01-11',
       courseID: 'c2',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 5,
       type: 'reading',
     });
@@ -381,14 +381,14 @@ describe('study sessions', () => {
     mod.addStudySession({
       date: daysAgo(1),
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 10,
       type: 'reading',
     });
     mod.addStudySession({
       date: daysAgo(10),
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 10,
       type: 'reading',
     });
@@ -400,14 +400,14 @@ describe('study sessions', () => {
     mod.addStudySession({
       date: '2024-01-10',
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 10,
       type: 'reading',
     });
     mod.addStudySession({
       date: '2024-01-11',
       courseID: 'c2',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 5,
       type: 'reading',
     });
@@ -419,14 +419,14 @@ describe('study sessions', () => {
     mod.addStudySession({
       date: daysAgo(1),
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 10,
       type: 'reading',
     });
     mod.addStudySession({
       date: daysAgo(10),
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 10,
       type: 'reading',
     });
@@ -440,7 +440,7 @@ describe('study sessions', () => {
 
   test('getDailyStreak returns 1 when one session today', async () => {
     mod = await import('../storage');
-    mod.addStudySession({ courseID: 'c1', moduleID: 1, durationMinutes: 10, type: 'reading' });
+    mod.addStudySession({ courseID: 'c1', moduleID: '01', durationMinutes: 10, type: 'reading' });
     expect(mod.getDailyStreak()).toBe(1);
   });
 
@@ -449,21 +449,21 @@ describe('study sessions', () => {
     mod.addStudySession({
       date: daysAgo(0),
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 10,
       type: 'reading',
     });
     mod.addStudySession({
       date: daysAgo(1),
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 10,
       type: 'reading',
     });
     mod.addStudySession({
       date: daysAgo(2),
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 10,
       type: 'reading',
     });
@@ -475,21 +475,21 @@ describe('study sessions', () => {
     mod.addStudySession({
       date: daysAgo(0),
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 10,
       type: 'reading',
     });
     mod.addStudySession({
       date: daysAgo(1),
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 10,
       type: 'reading',
     });
     mod.addStudySession({
       date: daysAgo(3),
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 10,
       type: 'reading',
     });
@@ -501,7 +501,7 @@ describe('study sessions', () => {
     mod.addStudySession({
       date: daysAgo(5),
       courseID: 'c1',
-      moduleID: 1,
+      moduleID: '01',
       durationMinutes: 10,
       type: 'reading',
     });
@@ -512,9 +512,9 @@ describe('study sessions', () => {
 describe('user cards', () => {
   test('addUserCard creates card with SM-2 defaults', async () => {
     mod = await import('../storage');
-    const c = mod.addUserCard('c1', 1, 'front text', 'back text');
+    const c = mod.addUserCard('c1', '01', 'front text', 'back text');
     expect(c.courseId).toBe('c1');
-    expect(c.moduleId).toBe(1);
+    expect(c.moduleId).toBe('01');
     expect(c.front).toBe('front text');
     expect(c.back).toBe('back text');
     expect(c.easeFactor).toBe(2.5);
@@ -528,24 +528,24 @@ describe('user cards', () => {
 
   test('getUserCards filters by courseId', async () => {
     mod = await import('../storage');
-    mod.addUserCard('c1', 1, 'f1', 'b1');
-    mod.addUserCard('c2', 1, 'f2', 'b2');
+    mod.addUserCard('c1', '01', 'f1', 'b1');
+    mod.addUserCard('c2', '01', 'f2', 'b2');
     const cards = mod.getUserCards('c1');
     expect(cards).toHaveLength(1);
   });
 
   test('getUserCards filters by courseId and moduleId', async () => {
     mod = await import('../storage');
-    mod.addUserCard('c1', 1, 'f1', 'b1');
-    mod.addUserCard('c1', 2, 'f2', 'b2');
-    const cards = mod.getUserCards('c1', 2);
+    mod.addUserCard('c1', '01', 'f1', 'b1');
+    mod.addUserCard('c1', '02', 'f2', 'b2');
+    const cards = mod.getUserCards('c1', '02');
     expect(cards).toHaveLength(1);
   });
 
   test('getAllUserCards returns all sorted by createdAt', async () => {
     mod = await import('../storage');
-    mod.addUserCard('c1', 1, 'f1', 'b1');
-    const c2 = mod.addUserCard('c1', 2, 'f2', 'b2');
+    mod.addUserCard('c1', '01', 'f1', 'b1');
+    const c2 = mod.addUserCard('c1', '02', 'f2', 'b2');
     const all = mod.getAllUserCards();
     expect(all).toHaveLength(2);
     expect(all[all.length - 1].id).toBe(c2.id);
@@ -553,14 +553,14 @@ describe('user cards', () => {
 
   test('getUserCardById returns card or undefined', async () => {
     mod = await import('../storage');
-    const c = mod.addUserCard('c1', 1, 'f', 'b');
+    const c = mod.addUserCard('c1', '01', 'f', 'b');
     expect(mod.getUserCardById(c.id)?.front).toBe('f');
     expect(mod.getUserCardById('nonexistent')).toBeUndefined();
   });
 
   test('updateUserCard updates front and back', async () => {
     mod = await import('../storage');
-    const c = mod.addUserCard('c1', 1, 'old front', 'old back');
+    const c = mod.addUserCard('c1', '01', 'old front', 'old back');
     const updated = mod.updateUserCard(c.id, { front: 'new front', back: 'new back' });
     expect(updated).not.toBeNull();
     expect(updated!.front).toBe('new front');
@@ -574,7 +574,7 @@ describe('user cards', () => {
 
   test('deleteUserCard removes card', async () => {
     mod = await import('../storage');
-    const c = mod.addUserCard('c1', 1, 'f', 'b');
+    const c = mod.addUserCard('c1', '01', 'f', 'b');
     expect(mod.getAllUserCards()).toHaveLength(1);
     mod.deleteUserCard(c.id);
     expect(mod.getAllUserCards()).toHaveLength(0);
@@ -582,7 +582,7 @@ describe('user cards', () => {
 
   test('reviewUserCard: correct first review', async () => {
     mod = await import('../storage');
-    const c = mod.addUserCard('c1', 1, 'f', 'b');
+    const c = mod.addUserCard('c1', '01', 'f', 'b');
     const now = new Date('2024-06-15T12:00:00Z');
     const r = mod.reviewUserCard(c.id, true, now);
     expect(r!.repetitions).toBe(1);
@@ -594,7 +594,7 @@ describe('user cards', () => {
 
   test('reviewUserCard: correct second review', async () => {
     mod = await import('../storage');
-    const c = mod.addUserCard('c1', 1, 'f', 'b');
+    const c = mod.addUserCard('c1', '01', 'f', 'b');
     const now = new Date('2024-06-15T12:00:00Z');
     mod.reviewUserCard(c.id, true, now);
     const r = mod.reviewUserCard(c.id, true, new Date('2024-06-16T12:00:00Z'));
@@ -605,7 +605,7 @@ describe('user cards', () => {
 
   test('reviewUserCard: correct third review uses ease factor', async () => {
     mod = await import('../storage');
-    const c = mod.addUserCard('c1', 1, 'f', 'b');
+    const c = mod.addUserCard('c1', '01', 'f', 'b');
     mod.reviewUserCard(c.id, true, new Date('2024-06-15T12:00:00Z'));
     mod.reviewUserCard(c.id, true, new Date('2024-06-16T12:00:00Z'));
     const r = mod.reviewUserCard(c.id, true, new Date('2024-06-22T12:00:00Z'));
@@ -615,7 +615,7 @@ describe('user cards', () => {
 
   test('reviewUserCard: incorrect resets', async () => {
     mod = await import('../storage');
-    const c = mod.addUserCard('c1', 1, 'f', 'b');
+    const c = mod.addUserCard('c1', '01', 'f', 'b');
     mod.reviewUserCard(c.id, true, new Date('2024-06-15T12:00:00Z')); // correct once
     const r = mod.reviewUserCard(c.id, false, new Date('2024-06-16T12:00:00Z'));
     expect(r!.repetitions).toBe(0);
@@ -625,7 +625,7 @@ describe('user cards', () => {
 
   test('reviewUserCard: ease factor floor at 1.3', async () => {
     mod = await import('../storage');
-    const c = mod.addUserCard('c1', 1, 'f', 'b');
+    const c = mod.addUserCard('c1', '01', 'f', 'b');
     // 6 wrong reviews: ease = 2.5 - 6*0.2 = 1.3
     mod.reviewUserCard(c.id, false, new Date('2024-06-15T12:00:00Z'));
     mod.reviewUserCard(c.id, false, new Date('2024-06-16T12:00:00Z'));
@@ -643,7 +643,7 @@ describe('user cards', () => {
 
   test('toggleUserCardStar toggles star', async () => {
     mod = await import('../storage');
-    const c = mod.addUserCard('c1', 1, 'f', 'b');
+    const c = mod.addUserCard('c1', '01', 'f', 'b');
     expect(mod.getUserCardById(c.id)!.isStarred).toBe(false);
     mod.toggleUserCardStar(c.id);
     expect(mod.getUserCardById(c.id)!.isStarred).toBe(true);
@@ -661,18 +661,18 @@ describe('edge cases', () => {
   test('handles missing file: load returns empty storage', async () => {
     state.exists = false;
     mod = await import('../storage');
-    expect(mod.getHighlightsForModule('c1', 1)).toEqual([]);
-    expect(mod.getNotesForModule('c1', 1)).toEqual([]);
+    expect(mod.getHighlightsForModule('c1', '01')).toEqual([]);
+    expect(mod.getNotesForModule('c1', '01')).toEqual([]);
     expect(mod.getAllBookmarks()).toEqual([]);
-    const c = mod.addUserCard('c1', 1, 'f', 'b');
+    const c = mod.addUserCard('c1', '01', 'f', 'b');
     expect(c.front).toBe('f');
   });
 
   test('handles corrupted JSON file', async () => {
     state.data = 'not valid json{{{';
     mod = await import('../storage');
-    const h = mod.addHighlight('c1', 1, 'survived', 0, 8);
+    const h = mod.addHighlight('c1', '01', 'survived', 0, 8);
     expect(h.selectedText).toBe('survived');
-    expect(mod.getHighlightsForModule('c1', 1)).toHaveLength(1);
+    expect(mod.getHighlightsForModule('c1', '01')).toHaveLength(1);
   });
 });

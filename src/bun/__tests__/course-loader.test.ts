@@ -15,13 +15,13 @@ learning_objectives:
   - Understand X
   - Understand Y
 modules:
-  - id: 1
+  - id: "01"
     name: Intro
     time_hours: 2
     prerequisites: []
     topics:
       - basics
-  - id: 2
+  - id: "02"
     name: Advanced
     time_hours: 3
     prerequisites:
@@ -41,10 +41,10 @@ modules:
     expect(result!.prerequisites).toEqual(['basic math']);
     expect(result!.learningObjectives).toEqual(['Understand X', 'Understand Y']);
     expect(result!.modules).toHaveLength(2);
-    expect(result!.modules[0].id).toBe('1');
+    expect(result!.modules[0].id).toBe('01');
     expect(result!.modules[0].name).toBe('Intro');
     expect(result!.modules[0].timeHours).toBe(2);
-    expect(result!.modules[1].prerequisites).toEqual(['1']);
+    expect(result!.modules[1].prerequisites).toEqual(['01']);
     expect(result!.modules[1].topics).toEqual(['advanced']);
   });
 
@@ -226,10 +226,10 @@ describe('createSRSCard', () => {
 
   test('creates card with correct fields', () => {
     const fixedDate = new Date('2024-01-01T00:00:00Z');
-    const card = createSRSCard(q, 1, 'math', fixedDate);
-    expect(card.id).toBe('math-1-q1');
+    const card = createSRSCard(q, '01', 'math', fixedDate);
+    expect(card.id).toBe('math-01-q1');
     expect(card.questionId).toBe('q1');
-    expect(card.moduleId).toBe(1);
+    expect(card.moduleId).toBe('01');
     expect(card.courseId).toBe('math');
     expect(card.question).toBe('What is 2+2?');
     expect(card.answer).toBe('B. 4');
@@ -244,7 +244,7 @@ describe('createSRSCard', () => {
 
   test('appends option text to answer', () => {
     const q2: QuizQuestion = { ...q, answer: 'A', options: { A: '3', B: '4' } };
-    const card = createSRSCard(q2, 1, 'math', new Date('2024-01-01'));
+    const card = createSRSCard(q2, '01', 'math', new Date('2024-01-01'));
     expect(card.answer).toBe('A. 3');
   });
 });
@@ -253,7 +253,7 @@ describe('performReview', () => {
   const baseCard: SRSCard = {
     id: 'test-1-q1',
     questionId: 'q1',
-    moduleId: 1,
+    moduleId: '01',
     courseId: 'test',
     question: 'Q?',
     answer: 'A',

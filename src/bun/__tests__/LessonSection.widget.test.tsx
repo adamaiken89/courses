@@ -14,11 +14,11 @@ const mockCourse = {
   domain: 'test',
   prerequisites: [],
   learningObjectives: [],
-  modules: [{ id: 1, name: 'Intro Module', timeHours: 2, prerequisites: [], topics: [] }],
+  modules: [{ id: '01', name: 'Intro Module', timeHours: 2, prerequisites: [], topics: [] }],
   timeBudgetHours: 0,
 } as Course;
 
-const mockModule = { id: 1, name: 'Intro Module', timeHours: 2, prerequisites: [], topics: [] };
+const mockModule = { id: '01', name: 'Intro Module', timeHours: 2, prerequisites: [], topics: [] };
 
 const mockContent = `# Introduction
 
@@ -54,7 +54,7 @@ afterEach(() => {
 
 function mockAll() {
   mockFetch({
-    '/api/courses/test/modules/1/lesson': {
+    '/api/courses/test/modules/01/lesson': {
       content: mockContent,
       h1: processed.h1,
       meta: processed.meta,

@@ -3,12 +3,8 @@ import { useTranslation } from 'react-i18next';
 
 import type { CourseStats, GlobalStats } from '../../bun/stats';
 import { api } from '../api';
-import {
-  ACCENT_INDIGO_LIGHT,
-  COMPLETION_GREEN,
-  DASHBOARD_DEFAULT_TEXT,
-  WARNING_AMBER,
-} from '../colors';
+import { ACCENT_INDIGO_LIGHT, COMPLETION_GREEN, WARNING_AMBER } from '../colors';
+import { StatCard } from '../components/ui/StatCard';
 import PageContent from '../layouts/PageContent';
 import PageHeader from '../layouts/PageHeader';
 import PageLayout from '../layouts/PageLayout';
@@ -18,28 +14,6 @@ import { showToast } from '../toast';
 interface DashboardPageProps {
   courseID?: string;
   onBack: () => void;
-}
-
-function StatCard({
-  label,
-  value,
-  suffix,
-  color,
-}: {
-  label: string;
-  value: string | number;
-  suffix?: string;
-  color?: string;
-}) {
-  return (
-    <div className="bg-gray-800 border border-gray-700 rounded-xl p-4">
-      <p className="text-[10px] text-gray-500 uppercase tracking-wider">{label}</p>
-      <p className="text-2xl font-bold mt-1" style={{ color: color ?? DASHBOARD_DEFAULT_TEXT }}>
-        {value}
-        {suffix && <span className="text-sm font-normal text-gray-500 ml-1">{suffix}</span>}
-      </p>
-    </div>
-  );
 }
 
 export default function DashboardPage({ courseID, onBack }: DashboardPageProps) {

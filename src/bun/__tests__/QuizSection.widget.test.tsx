@@ -26,7 +26,7 @@ const mockQuestions = [
 
 const defaultProps = {
   courseId: 'test',
-  moduleId: 1,
+  moduleId: '01',
   onBack: () => {},
 };
 

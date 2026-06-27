@@ -173,7 +173,12 @@
       "solarizedDesc": "Scientific amber, long sessions",
       "catppuccin": "Catppuccin",
       "catppuccinDesc": "Pastel purple, gentle contrast"
-    }
+    },
+    "dangerZone": "Danger Zone",
+    "clearDataDesc": "Permanently delete all highlights, notes, bookmarks, completed modules, study sessions, and flashcards. This cannot be undone.",
+    "clearAllData": "Clear All Data",
+    "confirmClearData": "Are you sure? Click again to confirm.",
+    "clearDataSuccess": "All data cleared"
   },
   "studyTools": {
     "title": "Study Tools",

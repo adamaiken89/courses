@@ -1,17 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { headingId } from '../../../bun/lesson-markdown';
-import type { Highlight, Section } from '../../../bun/types';
+import type { Highlight } from '../../../bun/types';
 import { useLessonContext } from '../../sections/LessonContext';
 import { useHighlightsStore } from '../../stores/highlightsStore';
 import { useNotesStore } from '../../stores/notesStore';
 import { showToast } from '../../toast';
-
-interface NotesHighlightsTabProps {
-  courseId: string;
-  moduleId: string;
-}
+import { findSectionIdForHighlight, scrollToHighlightEl } from './notes-helpers';
 
 type MergedItem =
   | { kind: 'highlight'; highlight: Highlight }
@@ -27,72 +22,9 @@ type MergedItem =
       linkedHighlight?: Highlight;
     };
 
-function scrollToHighlightEl(
-  contentRef: React.RefObject<HTMLDivElement | null>,
-  highlightId: string,
-) {
-  const container = contentRef.current;
-  if (!container) return false;
-  const el = container.querySelector(`mark[data-highlight-id="${highlightId}"]`);
-  if (!el) return false;
-  const offset =
-    el.getBoundingClientRect().top -
-    container.getBoundingClientRect().top +
-    container.scrollTop -
-    60;
-  container.scrollTop = offset;
-  return true;
-}
-
-function findSectionIdForHighlight(
-  contentRef: React.RefObject<HTMLDivElement | null>,
-  highlightId: string,
-  sections: Section[],
-): { id: string; heading: string } | null {
-  const container = contentRef.current;
-  if (!container) return null;
-  const el = container.querySelector(`mark[data-highlight-id="${highlightId}"]`);
-  if (!el) return null;
-  let node: HTMLElement | null = el.parentElement;
-  while (node && node !== container) {
-    const prevSibling = node.previousElementSibling as HTMLElement | null;
-    if (prevSibling && /^H[1-6]$/.test(prevSibling.tagName)) {
-      const hId = prevSibling.id;
-      const heading = prevSibling.textContent?.trim() ?? '';
-      if (hId) {
-        const sec = sections.find((s) => s.id === hId);
-        return { id: hId, heading: sec?.heading ?? heading };
-      }
-      if (heading) {
-        const sec = sections.find((s) => s.heading === heading);
-        return { id: sec?.id ?? headingId(heading), heading };
-      }
-    }
-    if (!prevSibling) {
-      node = node.parentElement;
-    } else {
-      let child: Element | null = prevSibling;
-      let last: Element = child;
-      while (child) {
-        last = child;
-        child = child.lastElementChild;
-      }
-      if (/^H[1-6]$/.test(last.tagName)) {
-        const hId = (last as HTMLElement).id;
-        const heading = last.textContent?.trim() ?? '';
-        if (hId) {
-          const sec = sections.find((s) => s.id === hId);
-          return { id: hId, heading: sec?.heading ?? heading };
-        }
-        if (heading) {
-          const sec = sections.find((s) => s.heading === heading);
-          return { id: sec?.id ?? headingId(heading), heading };
-        }
-      }
-      node = prevSibling;
-    }
-  }
-  return null;
+interface NotesHighlightsTabProps {
+  courseId: string;
+  moduleId: string;
 }
 
 export default function NotesHighlightsTab({ courseId, moduleId }: NotesHighlightsTabProps) {

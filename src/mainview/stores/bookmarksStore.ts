@@ -20,11 +20,7 @@ interface BookmarksState {
   ): Promise<void>;
   remove(id: string): Promise<void>;
   getForModule(courseId: string, moduleId: string): Bookmark[];
-  getActive(
-    courseId: string,
-    moduleId: string,
-    sectionID: string | null,
-  ): Bookmark | undefined;
+  getActive(courseId: string, moduleId: string, sectionID: string | null): Bookmark | undefined;
 }
 
 export const useBookmarksStore = create<BookmarksState>((set, get) => ({

@@ -6,7 +6,7 @@ import '../../mainview/i18n';
 const mockBookmark = {
   id: 'b1',
   courseID: 'course1',
-  moduleID: 1,
+  moduleID: '01',
   title: 'Chapter 1',
   sectionID: null,
   scrollPosition: 0,
@@ -27,25 +27,25 @@ describe('bookmarksStore', () => {
   });
 
   test('getForModule returns empty array for unknown module', () => {
-    expect(useBookmarksStore.getState().getForModule('c', 1)).toEqual([]);
+    expect(useBookmarksStore.getState().getForModule('c', '01')).toEqual([]);
   });
 
   test('getActive returns undefined for unknown module', () => {
-    expect(useBookmarksStore.getState().getActive('c', 1, null)).toBeUndefined();
+    expect(useBookmarksStore.getState().getActive('c', '01', null)).toBeUndefined();
   });
 
   test('load fetches bookmarks and stores them', async () => {
     mockFetch({ '/storage/bookmarks/module': [mockBookmark] });
-    useBookmarksStore.getState().load('course1', 1);
+    useBookmarksStore.getState().load('course1', '01');
     await new Promise((resolve) => setTimeout(resolve, 0));
     await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(useBookmarksStore.getState().getForModule('course1', 1)).toHaveLength(1);
+    expect(useBookmarksStore.getState().getForModule('course1', '01')).toHaveLength(1);
   });
 
   test('remove deletes bookmark and removes from state', async () => {
     useBookmarksStore.setState({ byModule: { 'course1:1': [mockBookmark] } });
     mockFetch({ '/storage/bookmarks/b1': { ok: true } });
     await useBookmarksStore.getState().remove('b1');
-    expect(useBookmarksStore.getState().getForModule('course1', 1)).toEqual([]);
+    expect(useBookmarksStore.getState().getForModule('course1', '01')).toEqual([]);
   });
 });

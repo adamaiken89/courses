@@ -9,7 +9,7 @@ const mockCourse: Course = {
   displayName: 'Mathematics 101',
   domain: 'mathematics',
   prerequisites: [],
-  modules: [{ id: 1, name: 'Algebra', timeHours: 3, prerequisites: [], topics: [] }],
+  modules: [{ id: '01', name: 'Algebra', timeHours: 3, prerequisites: [], topics: [] }],
   timeBudgetHours: 20,
   targetLevel: 'beginner',
   learningObjectives: [],

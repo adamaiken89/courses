@@ -25,7 +25,7 @@ const mockQuestions = [
   },
 ];
 
-const defaultProps = { courseId: 'test', moduleId: 1 };
+const defaultProps = { courseId: 'test', moduleId: '01' };
 
 afterEach(restoreFetch);
 

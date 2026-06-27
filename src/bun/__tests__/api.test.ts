@@ -26,7 +26,9 @@ describe('api', () => {
   });
 
   test('courses.modules returns modules', async () => {
-    const mockModules = [{ id: 1, name: 'Algebra', timeHours: 3, prerequisites: [], topics: [] }];
+    const mockModules = [
+      { id: '01', name: 'Algebra', timeHours: 3, prerequisites: [], topics: [] },
+    ];
     mockFetch({ '/courses/math/modules': mockModules });
     const result = await api.courses.modules('math');
     expect(result).toEqual(mockModules);
@@ -40,8 +42,8 @@ describe('api', () => {
       sections: [],
       bodyContent: '',
     };
-    mockFetch({ '/courses/math/modules/1/lesson': mockLesson });
-    const result = await api.courses.lesson('math', 1);
+    mockFetch({ '/courses/math/modules/01/lesson': mockLesson });
+    const result = await api.courses.lesson('math', '01');
     expect(result.content).toBe('# Algebra');
   });
 
@@ -57,8 +59,8 @@ describe('api', () => {
         tags: [],
       },
     ];
-    mockFetch({ '/courses/math/modules/1/quiz': mockQuiz });
-    const result = await api.courses.quiz('math', 1);
+    mockFetch({ '/courses/math/modules/01/quiz': mockQuiz });
+    const result = await api.courses.quiz('math', '01');
     expect(result).toHaveLength(1);
   });
 
@@ -75,7 +77,7 @@ describe('api', () => {
         type: 'lesson',
         courseID: 'math',
         courseName: 'Math',
-        moduleID: 1,
+        moduleID: '01',
         moduleName: 'Algebra',
         sectionID: 's1',
         snippet: 'Algebra',
@@ -106,7 +108,7 @@ describe('api', () => {
       },
     ];
     mockFetch({ '/quiz/start': mockQuestions });
-    const result = await api.quiz.start('math', 1);
+    const result = await api.quiz.start('math', '01');
     expect(result).toEqual(mockQuestions);
   });
 
@@ -121,7 +123,7 @@ describe('api', () => {
       {
         id: 'h1',
         courseID: 'math',
-        moduleID: 1,
+        moduleID: '01',
         selectedText: 'text',
         color: 'yellow',
         startOffset: 0,
@@ -130,7 +132,7 @@ describe('api', () => {
       },
     ];
     mockFetch({ '/storage/highlights': mockHighlights });
-    const result = await api.storage.highlights('math', 1);
+    const result = await api.storage.highlights('math', '01');
     expect(result).toEqual(mockHighlights);
   });
 
@@ -138,7 +140,7 @@ describe('api', () => {
     const mockHL = {
       id: 'h1',
       courseID: 'math',
-      moduleID: 1,
+      moduleID: '01',
       selectedText: 'text',
       color: 'green',
       startOffset: 0,
@@ -148,7 +150,7 @@ describe('api', () => {
     mockFetch({ '/storage/highlights': mockHL });
     const result = await api.storage.addHighlight({
       courseID: 'math',
-      moduleID: 1,
+      moduleID: '01',
       selectedText: 'text',
       startOffset: 0,
       endOffset: 4,
@@ -174,7 +176,7 @@ describe('api', () => {
       {
         id: 'uc1',
         courseId: 'math',
-        moduleId: 1,
+        moduleId: '01',
         front: 'Q?',
         back: 'A.',
         easeFactor: 2.5,

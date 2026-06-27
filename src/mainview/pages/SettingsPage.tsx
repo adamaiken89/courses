@@ -68,6 +68,34 @@ const THEME_CARDS: ThemeCard[] = [
   },
 ];
 
+function ClearDataButton() {
+  const { t } = useTranslation();
+  const [confirming, setConfirming] = useState(false);
+
+  const handleClear = async () => {
+    if (!confirming) {
+      setConfirming(true);
+      setTimeout(() => setConfirming(false), 5000);
+      return;
+    }
+    await api.storage.clearAll();
+    showToast.success('settings.clearDataSuccess');
+    window.location.reload();
+  };
+
+  return (
+    <Button
+      variant="danger"
+      size="lg"
+      onClick={() => {
+        void handleClear();
+      }}
+    >
+      {confirming ? t('settings.confirmClearData') : t('settings.clearAllData')}
+    </Button>
+  );
+}
+
 interface Props {
   onBack: () => void;
 }
@@ -344,6 +372,12 @@ export default function SettingsPage({ onBack }: Props) {
               </button>
             ))}
           </div>
+        </section>
+
+        <section className="bg-red-900/30 border border-red-800 rounded-xl p-6 mb-6">
+          <h3 className="text-lg font-semibold mb-2 text-red-400">{t('settings.dangerZone')}</h3>
+          <p className="text-sm text-gray-400 mb-4">{t('settings.clearDataDesc')}</p>
+          <ClearDataButton />
         </section>
 
         <section className="bg-gray-800 rounded-xl p-6">

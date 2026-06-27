@@ -11,13 +11,13 @@ const mockCourse = {
   prerequisites: [],
   modules: [
     {
-      id: 1,
+      id: '01',
       name: 'Algebra Basics',
       timeHours: 3,
       prerequisites: [],
       topics: ['equations', 'variables'],
     },
-    { id: 2, name: 'Geometry', timeHours: 2, prerequisites: [], topics: ['shapes'] },
+    { id: '02', name: 'Geometry', timeHours: 2, prerequisites: [], topics: ['shapes'] },
   ],
   timeBudgetHours: 20,
   targetLevel: 'beginner',
