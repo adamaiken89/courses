@@ -35,6 +35,8 @@ const aNote = {
   id: 'n1',
   courseID: 'math',
   moduleID: '01',
+  highlightID: null,
+  sectionID: null,
   content: 'Important note',
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-01T00:00:00.000Z',

@@ -36,13 +36,17 @@ void mock.module('../hooks/useQuizEngine', () => ({
   useQuizEngine: () => ({
     ...mockReturn,
     ...mockActions,
-    get currentQuestion() { return mockReturn.questions[mockReturn.currentIndex] ?? undefined; },
+    get currentQuestion() {
+      return mockReturn.questions[mockReturn.currentIndex] ?? undefined;
+    },
     get hasAnswer() {
       const q = mockReturn.questions[mockReturn.currentIndex];
       return q ? mockReturn.selectedAnswers[q.id] !== undefined : false;
     },
     get score() {
-      return mockReturn.questions.filter((q: QuizQuestion) => mockReturn.selectedAnswers[q.id] === q.answer).length;
+      return mockReturn.questions.filter(
+        (q: QuizQuestion) => mockReturn.selectedAnswers[q.id] === q.answer,
+      ).length;
     },
     get percentage() {
       return mockReturn.questions.length > 0

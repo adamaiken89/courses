@@ -32,7 +32,7 @@ function mockSelection(text: string, collapsed: boolean, rangeRect?: Partial<DOM
 }
 
 afterEach(() => {
-  // @ts-expect-error
+  // @ts-expect-error getSelection is read-only on Window type; deleting to reset mock
   delete (window as Record<string, unknown>).getSelection;
 });
 
@@ -82,7 +82,7 @@ describe('useSelection', () => {
 
   test('closeToolbar clears everything', () => {
     const removeAllRanges = (() => {}) as Selection['removeAllRanges'];
-    window.getSelection = () => ({ removeAllRanges } as unknown as Selection);
+    window.getSelection = () => ({ removeAllRanges }) as unknown as Selection;
     const { result } = renderHook(() => useSelection());
     act(() => result.current.openNoteEditor());
     act(() => result.current.closeToolbar());
@@ -104,7 +104,9 @@ describe('useSelection', () => {
     window.getSelection = () => mockSelection('selected text', false);
     const ref = { current: document.body };
     const { result } = renderHook(() => useSelection(ref));
-    act(() => { fireEvent(document, new (window as any).Event('selectionchange')); });
+    act(() => {
+      fireEvent(document, new Event('selectionchange'));
+    });
     expect(result.current.showToolbar).toBe(true);
   });
 

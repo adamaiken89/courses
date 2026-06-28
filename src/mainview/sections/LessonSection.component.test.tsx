@@ -14,7 +14,8 @@ const setNoteText = mock<(text: string) => void>();
 const closeToolbar = mock<() => void>();
 const closeNoteEditor = mock<() => void>();
 const closeCardEditor = mock<() => void>();
-const addHighlight = mock<(text: string, color: string, startOffset?: number, endOffset?: number) => Promise<void>>();
+const addHighlight =
+  mock<(text: string, color: string, startOffset?: number, endOffset?: number) => Promise<void>>();
 const deleteHighlight = mock<(id: string) => Promise<void>>();
 const handleToggleBookmark = mock<(title: string, sectionId: string | null) => Promise<void>>();
 const goPrev = mock<() => void>();
@@ -188,7 +189,9 @@ void mock.module('../components/StudyTools', () => ({
 }));
 
 void mock.module('../components/PomodoroTimer', () => ({
-  default: ({ compact }: { compact?: boolean }) => <div data-testid="pomodoro-timer" data-compact={String(compact)} />,
+  default: ({ compact }: { compact?: boolean }) => (
+    <div data-testid="pomodoro-timer" data-compact={String(compact)} />
+  ),
 }));
 
 void mock.module('../components/MermaidDiagram', () => ({
@@ -305,21 +308,21 @@ describe('LessonSection', () => {
 
   test('renders selection toolbar when there is a selection', () => {
     mockSelection.showToolbar = true;
-    mockSelection.selection = { text: 'selected', range: new (window as any).Range() };
+    mockSelection.selection = { text: 'selected', range: new Range() };
     const { container } = render(<LessonSection {...props} />);
     expect(container.querySelector('[data-testid="selection-toolbar"]')).toBeTruthy();
   });
 
   test('renders note editor when open', () => {
     mockSelection.showNoteEditor = true;
-    mockSelection.selection = { text: 'note text', range: new (window as any).Range() };
+    mockSelection.selection = { text: 'note text', range: new Range() };
     const { container } = render(<LessonSection {...props} />);
     expect(container.querySelector('[data-testid="note-editor"]')).toBeTruthy();
   });
 
   test('renders card editor when open', () => {
     mockSelection.showCardEditor = true;
-    mockSelection.selection = { text: 'card text', range: new (window as any).Range() };
+    mockSelection.selection = { text: 'card text', range: new Range() };
     const { container } = render(<LessonSection {...props} />);
     expect(container.querySelector('[data-testid="card-editor"]')).toBeTruthy();
   });

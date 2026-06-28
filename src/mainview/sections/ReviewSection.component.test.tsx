@@ -37,7 +37,9 @@ void mock.module('../hooks/useReviewState', () => ({
   useReviewState: () => ({
     ...mockReturn,
     ...mockActions,
-    get currentCard() { return mockReturn.cards[mockReturn.currentIndex] ?? undefined; },
+    get currentCard() {
+      return mockReturn.cards[mockReturn.currentIndex] ?? undefined;
+    },
   }),
 }));
 

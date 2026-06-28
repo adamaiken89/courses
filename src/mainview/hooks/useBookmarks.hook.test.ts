@@ -33,11 +33,17 @@ function mockResponse(method: string, data: unknown) {
   mockResponses.set(method, data);
 }
 
-const aBookmark = (overrides: Partial<{
-  id: string; courseID: string; moduleID: string; sectionID: string | null;
-  title: string; scrollPosition: number; createdAt: string;
-}> & { id: string }): NonNullable<ReturnType<typeof useBookmarksStore.getState>['byModule'][string][number]> => ({
-  id: 'b1',
+const aBookmark = (
+  overrides: Partial<{
+    id: string;
+    courseID: string;
+    moduleID: string;
+    sectionID: string | null;
+    title: string;
+    scrollPosition: number;
+    createdAt: string;
+  }> & { id: string },
+): NonNullable<ReturnType<typeof useBookmarksStore.getState>['byModule'][string][number]> => ({
   courseID: 'math',
   moduleID: '01',
   sectionID: null,
@@ -89,7 +95,15 @@ describe('useBookmarks', () => {
 
   test('handleToggleBookmark calls store toggle with correct args', async () => {
     mockResponse('getModuleBookmarks', []);
-    mockResponse('addBookmark', { id: 'new-bm', courseID: 'math', moduleID: '01', sectionID: 's1', title: 'My Bookmark', scrollPosition: 0, createdAt: '2024-01-01T00:00:00.000Z' });
+    mockResponse('addBookmark', {
+      id: 'new-bm',
+      courseID: 'math',
+      moduleID: '01',
+      sectionID: 's1',
+      title: 'My Bookmark',
+      scrollPosition: 0,
+      createdAt: '2024-01-01T00:00:00.000Z',
+    });
     const { result } = renderHook(() => useBookmarks('math', '01', null));
     await act(async () => {
       await result.current.handleToggleBookmark('My Bookmark', 's1');
