@@ -5,11 +5,7 @@ mermaid.initialize({ startOnLoad: false, theme: 'default' });
 
 let counter = 0;
 
-export default function MermaidDiagram({
-  code,
-}: {
-  code: string;
-}) {
+export default function MermaidDiagram({ code }: { code: string }) {
   const ref = useRef<HTMLDivElement>(null);
   const [svg, setSvg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);

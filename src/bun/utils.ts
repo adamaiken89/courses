@@ -8,14 +8,13 @@ export function normalizeModuleId(id: string | number): string {
 }
 
 export function findSubjectsDir(): string | null {
-  const dir = dirname(fileURLToPath(import.meta.url))
-  const candidate = resolve(dir, 'subjects')
+  const dir = dirname(fileURLToPath(import.meta.url));
+  const candidate = resolve(dir, 'subjects');
   if (existsSync(candidate)) {
     console.log(`Found subjects directory at: ${candidate}`);
     return candidate;
   }
 
-  // bundle: <bundle>/bun/subjects
   console.log(`Subjects directory not found in ${candidate}. Checking bundle path...`);
-  return resolve(dir, '..', '..', 'subjects');
+  return resolve(dir, '..', 'subjects');
 }

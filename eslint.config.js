@@ -30,15 +30,18 @@ export default tseslint.config(
       },
     },
     rules: {
-      '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/consistent-type-imports': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': 'error',
-      '@typescript-eslint/prefer-nullish-coalescing': ['error', {
-        ignoreConditionalTests: true,
-        ignoreMixedLogicalExpressions: true,
-        ignorePrimitives: { string: true, boolean: true },
-      }],
+      '@typescript-eslint/prefer-nullish-coalescing': [
+        'error',
+        {
+          ignoreConditionalTests: true,
+          ignoreMixedLogicalExpressions: true,
+          ignorePrimitives: { string: true, boolean: true },
+        },
+      ],
       'no-console': 'error',
       'react/jsx-uses-react': 'off',
       'react/react-in-jsx-scope': 'off',

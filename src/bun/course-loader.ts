@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'fs';
-import * as yaml from 'js-yaml';
+import * as yaml from './yaml';
 import { join } from 'path';
 
 import { processLessonMarkdown } from './lesson-markdown';
@@ -9,7 +9,7 @@ import { findSubjectsDir, normalizeModuleId } from './utils';
 import type { Course, ModuleMeta, QuizQuestion, SRSDeck } from './types';
 
 export function parseCourse(yamlStr: string, directory: string): Course | null {
-  const raw = yaml.load(yamlStr) as Record<string, unknown>;
+  const raw = yaml.parse(yamlStr) as Record<string, unknown>;
   if (!raw || typeof raw.subject !== 'string' || !raw.subject) return null;
 
   const moduleList: ModuleMeta[] = [];
@@ -44,7 +44,7 @@ export function parseCourse(yamlStr: string, directory: string): Course | null {
 }
 
 export function parseQuiz(yamlStr: string): QuizQuestion[] {
-  const raw = yaml.load(yamlStr) as Record<string, unknown>[];
+  const raw = yaml.parse(yamlStr) as Record<string, unknown>[];
   if (!Array.isArray(raw)) return [];
 
   return raw.map((q) => ({

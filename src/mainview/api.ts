@@ -1,72 +1,42 @@
-import type { SearchResult } from '../bun/search';
-import type { CourseStats, GlobalStats } from '../bun/stats';
-import type {
-  Bookmark,
-  Course,
-  Highlight,
-  ModuleMeta,
-  Note,
-  QuizQuestion,
-  Section,
-  SRSCard,
-  SRSDeck,
-  UserCard,
-} from '../bun/types';
+import type { AppRequests } from '../bun/rpc-schema';
+import type { QuizQuestion, SRSDeck } from '../bun/types';
 import { logger } from './logger';
+import { rpc as defaultRpc } from './rpc';
 import { showToast } from './toast';
 
-const API_PORT = new URLSearchParams(window.location.search).get('apiPort') ?? '50001';
-const BASE = `http://localhost:${API_PORT}/api`;
+type TypedRPCRequest = {
+  [K in keyof AppRequests]: (
+    params: AppRequests[K]['params'],
+  ) => Promise<AppRequests[K]['response']>;
+};
 
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const method = options?.method ?? 'GET';
-  logger.debug({ method, path }, 'API request');
-  const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...options,
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({ error: res.statusText }));
-    const message = err.error || `HTTP ${res.status}`;
-    logger.error({ status: res.status, path, method }, `API error: ${message}`);
+let _rpcRequest = defaultRpc.request as TypedRPCRequest;
+
+export type MockRPC = { request: Record<string, (...args: unknown[]) => Promise<unknown>> };
+
+export function __setRPC(mock: typeof defaultRpc | MockRPC): void {
+  _rpcRequest = mock.request as TypedRPCRequest;
+}
+
+async function request<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (e) {
+    const message = (e as Error).message;
+    logger.error({ err: message }, 'RPC error');
     showToast.error('toast.apiError', { values: { message } });
-    throw new Error(message);
+    throw e;
   }
-  logger.debug({ status: res.status, path }, 'API response');
-  return res.json();
 }
 
-import type { MetaField } from '../bun/lesson-markdown';
-
-interface LessonResponse {
-  content: string;
-  h1: string;
-  meta: MetaField[];
-  sections: Section[];
-  bodyContent: string;
-}
-
-interface OkResponse {
-  ok: true;
-}
-
-interface QuizState {
-  currentIndex: number;
-  selectedAnswers: Record<string, string>;
-  isCompleted: boolean;
-  currentQuestion: QuizQuestion | null;
-  score: { correct: number; total: number };
-  percentage: number;
-}
+export type ApiClient = typeof api;
 
 export const api = {
   search: (q: string, courseID?: string) =>
-    request<SearchResult[]>(
-      `/search?q=${encodeURIComponent(q)}${courseID ? `&courseID=${encodeURIComponent(courseID)}` : ''}`,
-    ),
+    request(() => _rpcRequest.search({ query: q, courseID })),
   stats: {
-    course: (courseID: string) => request<CourseStats>(`/stats/${courseID}`),
-    global: () => request<GlobalStats>('/stats/global'),
+    course: (courseId: string) => request(() => _rpcRequest.getCourseStats({ courseId })),
+    global: () => request(() => _rpcRequest.getGlobalStats()),
     logSession: (data: {
       courseID: string;
       moduleID: string;
@@ -74,58 +44,36 @@ export const api = {
       type: 'reading' | 'quiz' | 'review';
       score?: number;
       total?: number;
-    }) => request<{ ok: true }>('/stats/session', { method: 'POST', body: JSON.stringify(data) }),
+    }) => request(() => _rpcRequest.logSession(data)),
   },
   courses: {
-    list: () => request<Course[]>('/courses'),
-    modules: (courseId: string) => request<ModuleMeta[]>(`/courses/${courseId}/modules`),
+    list: () => request(() => _rpcRequest.coursesList()),
+    modules: (courseId: string) => request(() => _rpcRequest.modulesList({ courseId })),
     lesson: (courseId: string, moduleId: string) =>
-      request<LessonResponse>(`/courses/${courseId}/modules/${moduleId}/lesson`),
+      request(() => _rpcRequest.loadLesson({ courseId, moduleId })),
     quiz: (courseId: string, moduleId: string) =>
-      request<QuizQuestion[]>(`/courses/${courseId}/modules/${moduleId}/quiz`),
+      request(() => _rpcRequest.loadQuiz({ courseId, moduleId })),
     sections: (courseId: string, moduleId: string) =>
-      request<Section[]>(`/courses/${courseId}/modules/${moduleId}/sections`),
+      request(() => _rpcRequest.getSections({ courseId, moduleId })),
     srs: {
-      get: (courseId: string) => request<SRSDeck>(`/courses/${courseId}/srs`),
+      get: (courseId: string) => request(() => _rpcRequest.getSRSDeck({ courseId })),
       filter: (courseId: string, filter: string) =>
-        request<SRSCard[]>(`/courses/${courseId}/srs/filter/${filter}`),
+        request(() => _rpcRequest.filterSRSCards({ courseId, filter })),
       toggleStar: (courseId: string, cardId: string) =>
-        request<SRSDeck>(`/courses/${courseId}/srs`, {
-          method: 'POST',
-          body: JSON.stringify({ cardId }),
-        }),
+        request(() => _rpcRequest.toggleSRSStar({ courseId, cardId })),
       review: (courseId: string, cardId: string, correct: boolean, deck: SRSDeck) =>
-        request<SRSCard>(`/courses/${courseId}/srs/review`, {
-          method: 'POST',
-          body: JSON.stringify({ cardId, correct, deck }),
-        }),
+        request(() => _rpcRequest.reviewSRSCard({ courseId, cardId, correct, deck })),
       create: (courseId: string, question: QuizQuestion, moduleId: string) =>
-        request<SRSCard>(`/courses/${courseId}/srs/create`, {
-          method: 'POST',
-          body: JSON.stringify({ question, moduleId }),
-        }),
+        request(() => _rpcRequest.createSRSCard({ courseId, question, moduleId })),
     },
   },
   quiz: {
     start: (courseId: string, moduleId: string) =>
-      request<QuizQuestion[]>('/quiz/start', {
-        method: 'POST',
-        body: JSON.stringify({ courseId, moduleId }),
-      }),
-    state: () => request<QuizState>('/quiz/state'),
-    select: (answer: string) =>
-      request<OkResponse>('/quiz/select', {
-        method: 'POST',
-        body: JSON.stringify({ answer }),
-      }),
-    next: () => request<OkResponse>('/quiz/next', { method: 'POST' }),
-    reset: () => request<OkResponse>('/quiz/reset', { method: 'POST' }),
+      request(() => _rpcRequest.quizStart({ courseId, moduleId })),
   },
   storage: {
     highlights: (courseID: string, moduleID: string) =>
-      request<Highlight[]>(
-        `/storage/highlights?courseID=${encodeURIComponent(courseID)}&moduleID=${moduleID}`,
-      ),
+      request(() => _rpcRequest.getHighlights({ courseID, moduleID })),
     addHighlight: (data: {
       courseID: string;
       moduleID: string;
@@ -133,7 +81,7 @@ export const api = {
       startOffset: number;
       endOffset: number;
       color?: string;
-    }) => request<Highlight>('/storage/highlights', { method: 'POST', body: JSON.stringify(data) }),
+    }) => request(() => _rpcRequest.addHighlight(data)),
     addAnnotation: (data: {
       courseID: string;
       moduleID: string;
@@ -142,118 +90,70 @@ export const api = {
       endOffset: number;
       color: string;
       noteContent: string;
-    }) =>
-      request<{ highlight: Highlight; note: Note }>('/storage/annotations', {
-        method: 'POST',
-        body: JSON.stringify(data),
-      }),
-    deleteHighlight: (id: string) =>
-      request<OkResponse>(`/storage/highlights/${id}`, { method: 'DELETE' }),
+    }) => request(() => _rpcRequest.addAnnotation(data)),
+    deleteHighlight: (id: string) => request(() => _rpcRequest.deleteHighlight({ id })),
     notes: (courseID: string, moduleID: string) =>
-      request<Note[]>(
-        `/storage/notes?courseID=${encodeURIComponent(courseID)}&moduleID=${moduleID}`,
-      ),
+      request(() => _rpcRequest.getNotes({ courseID, moduleID })),
     addNote: (data: {
       courseID: string;
       moduleID: string;
       content: string;
       highlightID?: string;
       sectionID?: string;
-    }) => request<Note>('/storage/notes', { method: 'POST', body: JSON.stringify(data) }),
+    }) => request(() => _rpcRequest.addNote(data)),
     updateNote: (id: string, content: string) =>
-      request<OkResponse>(`/storage/notes/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ content }),
-      }),
-    deleteNote: (id: string) => request<OkResponse>(`/storage/notes/${id}`, { method: 'DELETE' }),
-    bookmarks: () => request<Bookmark[]>('/storage/bookmarks'),
+      request(() => _rpcRequest.updateNote({ id, content })),
+    deleteNote: (id: string) => request(() => _rpcRequest.deleteNote({ id })),
+    bookmarks: () => request(() => _rpcRequest.getAllBookmarks()),
     courseBookmarks: (courseID: string) =>
-      request<Bookmark[]>(`/storage/bookmarks/course/${courseID}`),
+      request(() => _rpcRequest.getCourseBookmarks({ courseID })),
     moduleBookmarks: (courseID: string, moduleID: string) =>
-      request<Bookmark[]>(`/storage/bookmarks/module/${courseID}/${moduleID}`),
+      request(() => _rpcRequest.getModuleBookmarks({ courseID, moduleID })),
     addBookmark: (data: {
       courseID: string;
       moduleID: string;
       title: string;
       sectionID?: string;
       scrollPosition?: number;
-    }) => request<Bookmark>('/storage/bookmarks', { method: 'POST', body: JSON.stringify(data) }),
-    deleteBookmark: (id: string) =>
-      request<OkResponse>(`/storage/bookmarks/${id}`, { method: 'DELETE' }),
+    }) => request(() => _rpcRequest.addBookmark(data)),
+    deleteBookmark: (id: string) => request(() => _rpcRequest.deleteBookmark({ id })),
     checkBookmark: (courseID: string, moduleID: string) =>
-      request<boolean>(
-        `/storage/check-bookmark?courseID=${encodeURIComponent(courseID)}&moduleID=${moduleID}`,
-      ),
+      request(() => _rpcRequest.checkBookmark({ courseID, moduleID })),
     completedModules: (courseID: string) =>
-      request<{ moduleIDs: string[] }>(
-        `/storage/completed/modules?courseID=${encodeURIComponent(courseID)}`,
+      request(() =>
+        _rpcRequest.getCompletedModuleIDs({ courseID }).then((ids) => ({ moduleIDs: ids })),
       ),
     isCompleted: (courseID: string, moduleID: string) =>
-      request<{ completed: boolean }>(
-        `/storage/completed?courseID=${encodeURIComponent(courseID)}&moduleID=${moduleID}`,
+      request(() =>
+        _rpcRequest.isModuleCompleted({ courseID, moduleID }).then((v) => ({ completed: v })),
       ),
     toggleCompleted: (courseID: string, moduleID: string) =>
-      request<{ completed: boolean }>('/storage/completed', {
-        method: 'POST',
-        body: JSON.stringify({ courseID, moduleID }),
-      }),
-    completedCount: (courseID: string) =>
-      request<{ count: number }>(
-        `/storage/completed/count?courseID=${encodeURIComponent(courseID)}`,
+      request(() =>
+        _rpcRequest.toggleModuleCompleted({ courseID, moduleID }).then((v) => ({ completed: v })),
       ),
-    clearAll: () => request<OkResponse>('/storage/clear', { method: 'POST' }),
+    completedCount: (courseID: string) =>
+      request(() => _rpcRequest.getCompletedModuleCount({ courseID }).then((v) => ({ count: v }))),
+    clearAll: () => request(() => _rpcRequest.clearAllData()),
   },
   usercards: {
-    list: (courseId?: string, moduleId?: string) => {
-      const params = new URLSearchParams();
-      if (courseId) params.set('courseId', courseId);
-      if (moduleId !== undefined) params.set('moduleId', moduleId);
-      return request<UserCard[]>(`/usercards?${params.toString()}`);
-    },
+    list: (courseId?: string, moduleId?: string) =>
+      request(() => _rpcRequest.getUserCards({ courseId, moduleId })),
     create: (courseId: string, moduleId: string, front: string, back: string) =>
-      request<UserCard>('/usercards', {
-        method: 'POST',
-        body: JSON.stringify({ courseId, moduleId, front, back }),
-      }),
-    delete: (id: string) =>
-      request<OkResponse>(`/usercards/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+      request(() => _rpcRequest.addUserCard({ courseId, moduleId, front, back })),
+    delete: (id: string) => request(() => _rpcRequest.deleteUserCard({ id })),
     review: (id: string, correct: boolean) =>
-      request<UserCard>(`/usercards/${encodeURIComponent(id)}/review`, {
-        method: 'POST',
-        body: JSON.stringify({ correct }),
-      }),
-    toggleStar: (id: string) =>
-      request<UserCard>(`/usercards/${encodeURIComponent(id)}/star`, { method: 'POST' }),
+      request(() => _rpcRequest.reviewUserCard({ id, correct })),
+    toggleStar: (id: string) => request(() => _rpcRequest.toggleUserCardStar({ id })),
   },
   gemini: {
-    hasKey: () => request<{ hasKey: boolean }>('/gemini/key'),
-    setKey: (key: string) =>
-      request<OkResponse>('/gemini/key', { method: 'POST', body: JSON.stringify({ key }) }),
+    hasKey: () => request(() => _rpcRequest.geminiHasKey().then((v) => ({ hasKey: v }))),
+    setKey: (key: string) => request(() => _rpcRequest.geminiSetKey({ key })),
     ask: (question: string, context: string) =>
-      request<{ response: string }>('/gemini/ask', {
-        method: 'POST',
-        body: JSON.stringify({ question, context }),
-      }),
+      request(() => _rpcRequest.geminiAsk({ question, context }).then((v) => ({ response: v }))),
   },
   sync: {
-    status: () =>
-      request<{
-        lastSyncTime: string | null;
-        lastSyncedCommit: string | null;
-        isSyncing: boolean;
-        remoteRepoURL: string;
-      }>('/sync/status'),
-    start: () =>
-      request<{
-        success: boolean;
-        commitHash: string;
-        message: string;
-        unchanged?: boolean;
-      }>('/sync/start', { method: 'POST' }),
-    setURL: (url: string) =>
-      request<OkResponse>('/sync/config', {
-        method: 'POST',
-        body: JSON.stringify({ remoteRepoURL: url }),
-      }),
+    status: () => request(() => _rpcRequest.getSyncStatus()),
+    start: () => request(() => _rpcRequest.syncStart()),
+    setURL: (url: string) => request(() => _rpcRequest.syncSetURL({ remoteRepoURL: url })),
   },
 };

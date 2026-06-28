@@ -51,13 +51,6 @@ async function getLatestRemoteCommit(repoURL: string): Promise<string> {
 
   let [, owner, repo] = match;
   const cleanRepo = repo.replace(/\.git$/, '');
-  if (owner === '') {
-    owner = 'adamaiken89';
-  }
-  if (repo === '') {
-    repo = 'course-content';
-  }
-
   const res = await fetch(`https://api.github.com/repos/${owner}/${cleanRepo}/commits/main`, {
     headers: { Accept: 'application/vnd.github.v3+json' },
   });

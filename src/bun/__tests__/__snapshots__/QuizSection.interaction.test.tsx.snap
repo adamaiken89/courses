@@ -1,3 +1,0 @@
-// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
-
-exports[`QuizSection interaction shows loading state initially 1`] = `"<div class="p-8 text-center text-gray-400">Loading quiz...</div>"`;

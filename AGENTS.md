@@ -60,6 +60,7 @@ src/
 ## Course data model
 
 Subjects in `assets/subjects/<dir>/`. Dir name → `Subject.id`. Each subject:
+
 - `syllabus.yaml`
 - `modules/<NN-name>/lesson.md`
 - `modules/<NN-name>/quiz.yaml`
@@ -77,6 +78,7 @@ Module dir matching: `findModuleDir` scans `modules/<id>/` for `NN-` prefix.
 ## Code quality
 
 - Run `bun run knip` to find and remove unused code, exports, types, and dependencies.
+- Avoid `Record<string, any>` in tests. Define concrete recursive types (e.g. `type LocaleValue = string | { [key: string]: LocaleValue }`). Export shared types from source modules for test reuse.
 
 ## Scroll layout invariant
 

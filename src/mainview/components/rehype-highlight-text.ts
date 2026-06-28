@@ -1,13 +1,14 @@
 import type { Highlight } from '../../bun/types';
 
-type HastText = { type: 'text'; value: string };
-type HastElement = {
+export type HastText = { type: 'text'; value: string };
+export type HastElement = {
   type: 'element';
   tagName: string;
   properties?: Record<string, string>;
   children: HastNode[];
 };
-type HastNode = HastText | HastElement | { type: string; [key: string]: unknown };
+export type HastRoot = { type: 'root'; children: HastNode[] };
+export type HastNode = HastText | HastElement | HastRoot | { type: string; [key: string]: unknown };
 
 export const HIGHLIGHT_COLORS: Record<string, string> = {
   yellow: '#facc15',

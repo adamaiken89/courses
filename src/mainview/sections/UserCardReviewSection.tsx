@@ -27,7 +27,7 @@ export default function UserCardReviewSection({ courseId }: Props) {
   }, []);
 
   const toggleStar = useCallback(async (card: UserCard) => {
-    return api.usercards.toggleStar(card.id);
+    return (await api.usercards.toggleStar(card.id)) ?? card;
   }, []);
 
   const {
