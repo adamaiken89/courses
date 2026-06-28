@@ -57,7 +57,7 @@ bun run knip           # find unused code/exports/dependencies
 
 ## Project structure
 
-```
+```bash
 src/
 ├── mainview/           # React frontend (Vite)
 │   ├── layouts/        # PageLayout, PageHeader, PageContent
