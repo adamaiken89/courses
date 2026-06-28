@@ -1,12 +1,15 @@
-import '../i18n';
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 
-import { beforeEach, describe, expect, test } from 'bun:test';
-
+import i18n from '../i18n';
 import { useSettingsStore } from './settingsStore';
 
 beforeEach(() => {
   localStorage.clear();
   useSettingsStore.setState(useSettingsStore.getInitialState());
+});
+
+afterEach(() => {
+  void i18n.changeLanguage('en-US');
 });
 
 describe('settingsStore', () => {

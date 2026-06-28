@@ -1,6 +1,10 @@
-import { describe, expect, test, mock, beforeEach } from 'bun:test';
+import { describe, expect, test, beforeEach, mock } from 'bun:test';
 
-const state = {
+import { fsMockImpl, fsMockState } from '../test-fs-shared';
+
+mock.module('fs', () => fsMockState);
+
+let state = {
   exists: true,
   data: JSON.stringify({
     highlights: [],
@@ -12,14 +16,30 @@ const state = {
   }),
 };
 
-mock.module('fs', () => ({
-  existsSync: () => state.exists,
-  readFileSync: () => state.data,
-  writeFileSync: (_path: unknown, raw: string) => {
-    state.data = raw;
-  },
-  mkdirSync: () => {},
-}));
+beforeEach(() => {
+  state = {
+    exists: true,
+    data: JSON.stringify({
+      highlights: [],
+      notes: [],
+      bookmarks: [],
+      completedModules: [],
+      studySessions: [],
+      userCards: [],
+    }),
+  };
+  Object.assign(fsMockImpl, {
+    existsSync: () => state.exists,
+    readFileSync: () => state.data,
+    writeFileSync: (_path: string, raw: string) => {
+      state.data = raw;
+    },
+    mkdirSync: () => {},
+    readdirSync: () => [],
+    rmSync: () => {},
+    cpSync: (_src: string, _dest: string) => {},
+  });
+});
 
 type Storage = typeof import('./storage');
 let mod: Storage;

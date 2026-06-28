@@ -3,7 +3,7 @@
   "js/ts.preferences.importModuleSpecifier": "relative",
   "js/ts.preferences.importModuleSpecifierEnding": "minimal",
   "js/ts.preferences.includePackageJsonAutoImports": "off",
-  "js/ts.suggest.autoImports": true,
+  "js/ts.suggest.autoImports": false,
   "js/ts.updateImportsOnFileMove.enabled": "always",
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSave": false,

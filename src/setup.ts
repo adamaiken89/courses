@@ -1,8 +1,15 @@
 import * as jestDomMatchers from '@testing-library/jest-dom/matchers';
 import { cleanup } from '@testing-library/react';
 import { afterEach, expect, mock } from 'bun:test';
+import { Window } from 'happy-dom';
+
+import { fsMockState } from './test-fs-shared';
 
 expect.extend(jestDomMatchers);
+
+void mock.module('fs', () => fsMockState);
+
+
 
 class MockElectroview {
   constructor(_config: Record<string, unknown>) {}
@@ -42,14 +49,9 @@ const _log = console.log;
 console.warn = () => {};
 console.error = () => {};
 console.log = () => {};
-import './mainview/i18n';
 console.warn = _warn;
 console.error = _error;
 console.log = _log;
-/* eslint-enable no-console */
-
-import { Window } from 'happy-dom';
-
 interface TestGlobals {
   IS_REACT_ACT_ENVIRONMENT: boolean;
   window: Window & typeof globalThis;
@@ -67,9 +69,11 @@ interface TestGlobals {
   URL: typeof globalThis.URL;
   URLSearchParams: typeof globalThis.URLSearchParams;
   crypto: Crypto;
+  Event: typeof Event;
   MutationObserver: typeof globalThis.MutationObserver;
   customElements: CustomElementRegistry;
   IntersectionObserver: { new (): { observe(): void; unobserve(): void; disconnect(): void } };
+  Range: typeof Range;
   requestAnimationFrame: (callback: FrameRequestCallback) => number;
   cancelAnimationFrame: (id: number) => void;
   fetch: (...args: unknown[]) => Promise<unknown>;
@@ -102,6 +106,7 @@ g.document = win.document;
 g.self = win;
 g.top = win;
 g.parent = win;
+g.Event = win.Event as typeof Event;
 g.location = win.location;
 g.navigator = win.navigator;
 g.localStorage = win.localStorage;
@@ -122,6 +127,36 @@ g.IntersectionObserver = class {
 g.requestAnimationFrame = (cb: FrameRequestCallback) => setTimeout(cb, 16);
 g.cancelAnimationFrame = (id: number) => clearTimeout(id);
 g.fetch = async () => new Promise(() => {});
+class MockRange {
+  commonAncestorContainer: HTMLElement;
+  constructor() {
+    this.commonAncestorContainer = document.body;
+  }
+  getBoundingClientRect() {
+    return {
+      top: 0, left: 0, right: 0, bottom: 0,
+      width: 0, height: 0, x: 0, y: 0,
+      toJSON: () => ({}),
+    };
+  }
+  setStart() {}
+  setEnd() {}
+  selectNodeContents() {}
+  deleteContents() {}
+  extractContents() {
+    return document.createDocumentFragment();
+  }
+  cloneContents() {
+    return document.createDocumentFragment();
+  }
+  insertNode() {}
+  surroundContents() {}
+  toString() { return ''; }
+  cloneRange() { return new MockRange(); }
+  collapse() {}
+}
+g.Range = MockRange as unknown as typeof Range;
+
 g.NodeFilter = {
   SHOW_ALL: -1,
   SHOW_ELEMENT: 1,

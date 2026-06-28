@@ -36,7 +36,8 @@ const aQuestion = {
   question: 'What is 2+2?',
   options: { a: '3', b: '4', c: '5', d: '6' },
   answer: 'b',
-  difficulty: 'easy',
+  difficulty: 1,
+  tags: [],
   explanation: '2+2=4',
 };
 

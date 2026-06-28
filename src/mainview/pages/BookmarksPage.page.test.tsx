@@ -1,26 +1,26 @@
 import { render } from '@testing-library/react';
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
 
 import type { Bookmark } from '../../bun/types';
+import { __setRPC } from '../api';
 import i18n from '../i18n';
 import { useCourseStore } from '../stores/courseStore';
 
-const mockBookmarksFn = mock((): Promise<Bookmark[]> => Promise.resolve([]));
-const mockDeleteBookmarkFn = mock((_id: string): Promise<void> => Promise.resolve());
-const mockCoursesListFn = mock((): Promise<never[]> => Promise.resolve([]));
+const mockResponses = new Map<string, unknown>();
+const mockRPC = {
+  request: new Proxy({} as Record<string, (p: unknown) => Promise<unknown>>, {
+    get(_, method: string) {
+      return (_p: unknown) => {
+        if (!mockResponses.has(method)) return Promise.reject(new Error(`No mock for ${method}`));
+        return Promise.resolve(mockResponses.get(method));
+      };
+    },
+  }),
+};
 
-void mock.module('../api', () => ({
-  api: {
-    storage: {
-      bookmarks: () => mockBookmarksFn(),
-      deleteBookmark: (id: string) => mockDeleteBookmarkFn(id),
-    },
-    courses: {
-      list: () => mockCoursesListFn(),
-    },
-  },
-  __setRPC: mock(() => {}),
-}));
+beforeAll(() => {
+  __setRPC(mockRPC);
+});
 
 void mock.module('../components/CourseSwitcher', () => ({
   default: ({ onSelect }: { onSelect: () => void }) => (
@@ -63,16 +63,12 @@ const mockBookmark: Bookmark = {
 describe('BookmarksPage', () => {
   beforeEach(() => {
     void i18n.changeLanguage('en-US');
-    mockBookmarksFn.mockClear();
-    mockDeleteBookmarkFn.mockClear();
-    mockCoursesListFn.mockClear();
-    mockBookmarksFn.mockImplementation(() => Promise.resolve([]));
-    mockCoursesListFn.mockImplementation(() => Promise.resolve([]));
+    mockResponses.clear();
     useCourseStore.setState({ courses: [], loading: false, error: null, loaded: true });
   });
 
   test('shows loading state initially', () => {
-    mockBookmarksFn.mockImplementation(() => new Promise(() => {}));
+    mockResponses.set('getAllBookmarks', new Promise(() => {}));
     const { container } = render(
       <BookmarksPage onBack={() => {}} onOpen={() => {}} onSwitchCourse={() => {}} />,
     );
@@ -80,6 +76,7 @@ describe('BookmarksPage', () => {
   });
 
   test('shows empty message when no bookmarks', async () => {
+    mockResponses.set('getAllBookmarks', []);
     const { container } = render(
       <BookmarksPage onBack={() => {}} onOpen={() => {}} onSwitchCourse={() => {}} />,
     );
@@ -88,7 +85,7 @@ describe('BookmarksPage', () => {
   });
 
   test('renders bookmarks list', async () => {
-    mockBookmarksFn.mockImplementation(() => Promise.resolve([mockBookmark]));
+    mockResponses.set('getAllBookmarks', [mockBookmark]);
     const { container } = render(
       <BookmarksPage onBack={() => {}} onOpen={() => {}} onSwitchCourse={() => {}} />,
     );
@@ -97,7 +94,7 @@ describe('BookmarksPage', () => {
   });
 
   test('calls onOpen when bookmark clicked', async () => {
-    mockBookmarksFn.mockImplementation(() => Promise.resolve([mockBookmark]));
+    mockResponses.set('getAllBookmarks', [mockBookmark]);
     let opened: { courseID: string; moduleID: string } | null = null;
     const { container } = render(
       <BookmarksPage
@@ -117,6 +114,7 @@ describe('BookmarksPage', () => {
   });
 
   test('calls onBack when back button clicked', async () => {
+    mockResponses.set('getAllBookmarks', []);
     let called = false;
     const { container } = render(
       <BookmarksPage

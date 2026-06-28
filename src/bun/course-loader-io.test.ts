@@ -1,4 +1,6 @@
-import { describe, expect, test, mock, beforeEach } from 'bun:test';
+import { describe, expect, test, beforeEach } from 'bun:test';
+
+import { fsMockImpl } from '../test-fs-shared';
 
 const mockState = {
   exists: true,
@@ -10,10 +12,11 @@ const mockState = {
   writtenFiles: [] as Array<{ path: string; data: string }>,
 };
 
-mock.module('fs', () => ({
-  existsSync: () => mockState.exists,
-  readdirSync: () => mockState.modulesDirEntries,
-  readFileSync: (path: string) => {
+beforeEach(() => {
+  Object.assign(fsMockImpl, {
+    existsSync: () => mockState.exists,
+    readdirSync: () => mockState.modulesDirEntries,
+    readFileSync: (path: string) => {
     const syllabusMatch = path.match(/\/([^/]+)\/syllabus\.yaml$/);
     if (syllabusMatch && syllabusMatch[1] in mockState.courseSyllabi) {
       return mockState.courseSyllabi[syllabusMatch[1]];
@@ -36,7 +39,10 @@ mock.module('fs', () => ({
     mockState.writtenFiles.push({ path, data });
   },
   mkdirSync: () => {},
-}));
+  rmSync: () => {},
+  cpSync: (_src: string, _dest: string) => {},
+});
+});
 
 type Loader = typeof import('./course-loader');
 let loader: Loader;

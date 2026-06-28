@@ -1,0 +1,19 @@
+{
+  "cards": {
+    "test-1-q1": {
+      "id": "test-1-q1",
+      "questionId": "q1",
+      "moduleId": "01",
+      "courseId": "test",
+      "question": "Q?",
+      "answer": "A",
+      "explanation": "E",
+      "easeFactor": 2.5,
+      "interval": 0,
+      "repetitions": 0,
+      "nextReviewDate": "2024-01-01T00:00:00.000Z",
+      "lastReviewed": null,
+      "isStarred": false
+    }
+  }
+}

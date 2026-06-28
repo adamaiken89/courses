@@ -10,10 +10,10 @@ description: Use when writing tests for CourseReader code. Nature-based: unit, p
 | Nature | File Pattern | Mock Policy | Assertions |
 |--------|-------------|-------------|------------|
 | Unit | `<Name>.test.ts` | None | `toEqual`/`toBe`, `test.each`, full input coverage |
-| Page snapshot | `<Name>.page.test.tsx` | API + layout shells via `mock.module()` | `toMatchSnapshot()` |
-| Component | `<Name>.component.test.tsx` | Minimal — mock only external deps | `userEvent` → `toBeInTheDocument()`, optional snapshot |
-| Hook | `<Name>.hook.test.ts` | API layer only (Proxy RPC or `__setRPC`) | State transitions, `expect.soft()` |
-| Store | `<Name>.store.test.ts` | API layer only (Proxy RPC or `__setRPC`) | State transitions, `expect.soft()` |
+| Page snapshot | `<Name>.page.test.tsx` | `__setRPC` for API; `mock.module` for leaf layouts only | `toMatchSnapshot()` |
+| Component | `<Name>.component.test.tsx` | `__setRPC` for API; Zustand `setState()` for stores | `userEvent` → `toBeInTheDocument()`, optional snapshot |
+| Hook | `<Name>.hook.test.ts` | `__setRPC` Proxy for API; Zustand `setState()` for stores | State transitions, `expect.soft()` |
+| Store | `<Name>.store.test.ts` | `__setRPC` Proxy for API | State transitions, `expect.soft()` |
 
 ## Unit Tests
 
@@ -91,8 +91,8 @@ describe('functionUnderTest', () => {
 > Page components MAY also have companion `<Name>.component.test.tsx` for interaction testing.
 
 **Rules:**
-- Mock API layer and layout components via `mock.module()` BEFORE imports.
-- Mock layouts as simple divs with `data-testid` attributes.
+- Mock API via `__setRPC` Proxy pattern — never `mock.module('../api')`.
+- Mock layouts as simple divs with `data-testid` attributes via `mock.module` (safe — leaf modules).
 - Use `render()` from `@testing-library/react`.
 - Wait for async: `await waitFor(() => { expect(...).toBeInTheDocument() })` — never `Bun.sleep(N)` (flaky).
 - `toMatchSnapshot()` to capture full layout structure.
@@ -102,18 +102,28 @@ describe('functionUnderTest', () => {
 
 ```typescript
 import { render, screen, waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { __setRPC } from '../api';
 
-const mockFetchFn = mock((): Promise<unknown> => Promise.resolve(null));
-
-void mock.module('../api', () => ({
-  api: {
-    someModule: {
-      method: (id: string) => mockFetchFn(id),
+const mockResponses = new Map<string, unknown>();
+const mockRPC = {
+  request: new Proxy({} as Record<string, (p: unknown) => Promise<unknown>>, {
+    get(_, method: string) {
+      return (_p: unknown) => {
+        if (!mockResponses.has(method)) return Promise.reject(new Error(`No mock for ${method}`));
+        return Promise.resolve(mockResponses.get(method));
+      };
     },
-  },
-  __setRPC: mock(() => {}),
-}));
+  }),
+};
+
+function mockResponse(method: string, data: unknown) {
+  mockResponses.set(method, data);
+}
+
+beforeAll(() => {
+  __setRPC(mockRPC);
+});
 
 void mock.module('../layouts/PageLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
@@ -137,20 +147,17 @@ import PageComponent from './PageComponent';
 
 describe('PageComponent', () => {
   beforeEach(() => {
-    mockFetchFn.mockClear();
-    mockFetchFn.mockImplementation(() => Promise.resolve(null));
+    mockResponses.clear();
   });
 
   test('matches snapshot — loading state', () => {
-    mockFetchFn.mockImplementation(() => new Promise(() => {}));
+    mockResponse('someMethod', new Promise(() => {}));
     const { container } = render(<PageComponent onBack={() => {}} />);
     expect(container).toMatchSnapshot();
   });
 
   test('matches snapshot — data loaded', async () => {
-    mockFetchFn.mockImplementation(() =>
-      Promise.resolve({ title: 'Loaded' }),
-    );
+    mockResponse('someMethod', { title: 'Loaded' });
     const { container } = render(<PageComponent onBack={() => {}} />);
     await waitFor(() => {
       expect(screen.getByText('Loaded')).toBeInTheDocument();
@@ -159,7 +166,7 @@ describe('PageComponent', () => {
   });
 
   test('matches snapshot — empty/error state', async () => {
-    mockFetchFn.mockImplementation(() => Promise.resolve(null));
+    mockResponse('someMethod', null);
     const { container } = render(<PageComponent onBack={() => {}} />);
     await waitFor(() => {
       expect(container.querySelector('[data-testid="page-content"]')).toBeTruthy();
@@ -176,7 +183,9 @@ describe('PageComponent', () => {
 **Source files:** `src/mainview/pages/*.tsx`, `src/mainview/sections/*.tsx`, `src/mainview/components/**/*.tsx`
 
 **Rules:**
-- Mock only external dependencies (API, stores if cross-cutting). Keep component internals real.
+- Mock API via `__setRPC` Proxy — never `mock.module('../api')`.
+- Control Zustand stores via `store.setState()` in `beforeEach`.
+- Keep component internals real — do not mock hooks or sub-components unless they are leaf modules imported by no other test.
 - Use `userEvent` (not `fireEvent`) for realistic interaction — dispatches hover/focus/blur chains.
 - Assert with `toBeInTheDocument()` / `not.toBeInTheDocument()` (from `@testing-library/jest-dom`) — stronger than `toBeTruthy()`/`toBeNull()`.
 - Use `screen.getBy*` over destructuring from `render()` (resilient to refactors).
@@ -189,18 +198,34 @@ describe('PageComponent', () => {
 ```typescript
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeAll, beforeEach, describe, expect, mock, test } from 'bun:test';
+import { __setRPC } from '../api';
 
-void mock.module('../api', () => ({
-  api: { /* minimal mock */ },
-  __setRPC: mock(() => {}),
-}));
+const mockResponses = new Map<string, unknown>();
+const mockRPC = {
+  request: new Proxy({} as Record<string, (p: unknown) => Promise<unknown>>, {
+    get(_, method: string) {
+      return (_p: unknown) => {
+        if (!mockResponses.has(method)) return Promise.reject(new Error(`No mock for ${method}`));
+        return Promise.resolve(mockResponses.get(method));
+      };
+    },
+  }),
+};
+
+function mockResponse(method: string, data: unknown) {
+  mockResponses.set(method, data);
+}
+
+beforeAll(() => {
+  __setRPC(mockRPC);
+});
 
 import ComponentUnderTest from './ComponentUnderTest';
 
 describe('ComponentUnderTest', () => {
   beforeEach(() => {
-    // reset state/mocks
+    mockResponses.clear();
   });
 
   test('renders initial state correctly', () => {
@@ -239,8 +264,8 @@ describe('ComponentUnderTest', () => {
 **Source files:** `src/mainview/hooks/use<Name>.ts`
 
 **Rules:**
-- Mock API layer via Proxy RPC (`__setRPC`) or `mock.module('../api', ...)`.
-- `beforeEach`: reset store state via `useXStore.setState({...defaults})`.
+- Mock API layer via Proxy RPC (`__setRPC`) — never `mock.module('../api')`.
+- Control Zustand stores via `store.setState()` in `beforeEach`.
 - Test state transitions: trigger action → assert new state.
 - Use `expect.soft()` for multi-field assertions (reports all failures, not just first).
 - Prefer structured `toEqual` over multiple granular `toBe` calls.
@@ -251,16 +276,36 @@ describe('ComponentUnderTest', () => {
 
 ```typescript
 import { renderHook, act } from '@testing-library/react';
-import { describe, expect, test, mock } from 'bun:test';
+import { beforeAll, beforeEach, describe, expect, test } from 'bun:test';
+import { __setRPC } from '../api';
 
-void mock.module('../api', () => ({
-  api: { /* minimal mock */ },
-  __setRPC: mock(() => {}),
-}));
+const mockResponses = new Map<string, unknown>();
+const mockRPC = {
+  request: new Proxy({} as Record<string, (p: unknown) => Promise<unknown>>, {
+    get(_, method: string) {
+      return (_p: unknown) => {
+        if (!mockResponses.has(method)) return Promise.reject(new Error(`No mock for ${method}`));
+        return Promise.resolve(mockResponses.get(method));
+      };
+    },
+  }),
+};
+
+function mockResponse(method: string, data: unknown) {
+  mockResponses.set(method, data);
+}
+
+beforeAll(() => {
+  __setRPC(mockRPC);
+});
 
 import { useTargetHook } from './useTargetHook';
 
 describe('useTargetHook', () => {
+  beforeEach(() => {
+    mockResponses.clear();
+  });
+
   test('returns initial state', () => {
     const { result } = renderHook(() => useTargetHook('arg'));
     expect(result.current).toEqual(
@@ -269,6 +314,7 @@ describe('useTargetHook', () => {
   });
 
   test('updates state on action', async () => {
+    mockResponse('someMethod', { result: true });
     const { result } = renderHook(() => useTargetHook('arg'));
     await act(async () => {
       await result.current.doSomething();
@@ -285,7 +331,7 @@ describe('useTargetHook', () => {
 **Source files:** `src/mainview/stores/<Name>.ts`
 
 **Rules:**
-- Mock API layer via Proxy RPC (`__setRPC`) or `mock.module('../api', ...)`.
+- Mock API layer via `__setRPC` Proxy — never `mock.module('../api')`.
 - `beforeEach`: reset store state via `useXStore.setState({...defaults})`.
 - Test state transitions: trigger action → assert new state.
 - Use `expect.soft()` for multi-field assertions (reports all failures, not just first).
@@ -459,12 +505,53 @@ function makeDeck(cards: SRSCard[]): SRSDeck {
 
 ## Mock Patterns Reference
 
-| Pattern | Use When | Example |
-|---------|----------|---------|
-| `mock.module(path, factory)` | Mock entire module (API, layouts) | `void mock.module('../api', () => ({ api: {...} }))` |
-| `mock(() => ...)` | Mock individual functions | `const fn = mock(() => Promise.resolve(null))` |
-| Proxy RPC via `__setRPC` | Mock backend API calls in stores/hooks | `__setRPC({ request: new Proxy(...) })` |
-| Factory helpers | Build test data with defaults | `makeCard({ id: 'a', isStarred: true })` |
+| Pattern | Use When | Pollution Risk | Example |
+|---------|----------|----------------|---------|
+| `__setRPC` Proxy | API mocking in any test | None — runtime DI | `__setRPC({ request: new Proxy(...) })` |
+| `store.setState()` | Reset Zustand state | None — direct state | `useXStore.setState({ ...defaults })` |
+| `mock.module(path, factory)` | Leaf components/layouts only | **Permanent** — no cleanup | `mock.module('../layouts/PageLayout', ...)` |
+| `mock(() => ...)` | Mock individual functions | None — local scope | `const fn = mock(() => Promise.resolve(null))` |
+| Factory helpers | Build test data with defaults | None — pure functions | `makeCard({ id: 'a', isStarred: true })` |
+
+## Anti-pollution Rules
+
+Bun's `mock.module()` is process-global and irrevocable. Once applied, every
+subsequent test file in the same process sees the mock. There is no cleanup.
+
+**Rule 1: Never `mock.module` shared modules.**
+Modules imported by multiple test files (e.g., `../api`, stores, hooks) must
+NOT be mocked via `mock.module`. This causes cascading failures when test
+execution order changes.
+
+**Rule 2: Use `__setRPC` for API mocking.**
+`api.ts` exports `__setRPC(mock)` which swaps the internal RPC handler at
+runtime. Each test file calls `beforeAll(() => __setRPC(...))` independently.
+No module-level pollution.
+
+**Rule 3: Use `store.setState()` for store state.**
+Zustand stores expose `setState()` — call it directly in `beforeEach` to
+reset state. Never mock the store import.
+
+**Rule 4: `mock.module` is safe ONLY for isolated leaf modules.**
+Modules that are imported by exactly one test file and have no downstream
+test dependencies. Examples: layout stubs (PageLayout, PageHeader,
+PageContent), leaf component stubs (StatCard, MermaidDiagram).
+
+**Rule 5: Reset global singletons in `afterEach`.**
+If your code modifies global state (i18n, console, timers), restore it in
+`afterEach` (not `beforeEach` — the mutation may happen as the last test).
+Zustand `setState()` does not restore external singletons.
+
+**Safe mock targets (only used by one test file):**
+- `../layouts/PageLayout`, `PageHeader`, `PageContent` (page snapshot tests)
+- `../components/StudyTools`, `MermaidDiagram`, `NoteEditor` (section tests)
+- `react-markdown` (LessonSection tests only)
+
+**Dangerous mock targets (shared across test files):**
+- `../api` → affects ALL stores, hooks, sections, pages
+- `../hooks/useFoo` → affects hook tests and component tests
+- `../components/ui` → affects any component importing Button
+- Any Zustand store module → affects all tests that import that store
 
 ## Conventions
 
