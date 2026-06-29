@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useOptimistic, useRef, useState } from 'react';
+import { startTransition, useCallback, useEffect, useOptimistic, useRef, useState } from 'react';
 
 import type { MetaField } from '../../bun/lesson-markdown';
 import type { Section } from '../../bun/types';
@@ -112,7 +112,9 @@ export function useLesson(
   const { toggle } = completion;
 
   const handleToggleCompleted = useCallback(async () => {
-    toggleOptimistic(1);
+    startTransition(() => {
+      toggleOptimistic(1);
+    });
     await toggle(courseId, moduleId);
   }, [courseId, moduleId, toggle, toggleOptimistic]);
 

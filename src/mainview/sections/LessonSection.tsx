@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import ReactMarkdown from 'react-markdown';
 import rehypeHighlight from 'rehype-highlight';
+import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
 import type { PluggableList } from 'unified';
 
@@ -387,7 +388,7 @@ export default function LessonSection({
             >
               {h1 && (
                 <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
+                  remarkPlugins={[remarkGfm, remarkBreaks]}
                   rehypePlugins={rehypePlugins}
                   components={components}
                 >
@@ -399,7 +400,7 @@ export default function LessonSection({
                   {meta.map((m, i) => {
                     const isDesc = m.key === 'description';
                     return (
-                      <span key={m.key}>
+                      <span key={m.key} style={isDesc ? { flexBasis: '100%' } : undefined}>
                         {!isDesc && i > 0 && <span className="meta-divider" />}
                         <span className={`meta-item${isDesc ? ' meta-description' : ''}`}>
                           <span className="meta-icon">{m.icon}</span>
@@ -412,7 +413,7 @@ export default function LessonSection({
                 </div>
               )}
               <ReactMarkdown
-                remarkPlugins={[remarkGfm]}
+                remarkPlugins={[remarkGfm, remarkBreaks]}
                 rehypePlugins={rehypePlugins}
                 components={components}
               >

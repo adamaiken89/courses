@@ -1,6 +1,6 @@
 import type { Highlight } from '../../bun/types';
 
-export type HastText = { type: 'text'; value: string };
+type HastText = { type: 'text'; value: string };
 export type HastElement = {
   type: 'element';
   tagName: string;

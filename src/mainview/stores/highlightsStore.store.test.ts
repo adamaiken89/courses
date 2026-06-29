@@ -31,9 +31,12 @@ describe('highlightsStore', () => {
   });
 
   test('load handles error', async () => {
+    const origError = console.error;
+    console.error = () => {};
     deleteMock('getHighlights');
     await useHighlightsStore.getState().load('math', '01');
     expect(useHighlightsStore.getState().byModule['math:01']).toEqual([]);
+    console.error = origError;
   });
 
   test('add inserts highlight', async () => {

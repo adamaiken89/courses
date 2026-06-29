@@ -1,10 +1,19 @@
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, test } from 'bun:test';
 
 import { clearMocks, mockResponse, setupRPC } from '../test-utils';
 import { useLesson } from './useLesson';
 
 setupRPC();
+
+async function renderHookAndSettle<Result>(callback: () => Result) {
+  let result!: { current: Result };
+  await act(async () => {
+    result = renderHook(callback).result;
+    await new Promise((r) => setTimeout(r, 0));
+  });
+  return result;
+}
 
 beforeEach(() => {
   clearMocks();
@@ -27,7 +36,7 @@ const defaultCompletion = {
 
 describe('useLesson', () => {
   test('initial state has loading true', () => {
-    mockResponse('loadLesson', lessonData);
+    mockResponse('loadLesson', new Promise(() => {}));
     const { result } = renderHook(() => useLesson('math', '01', defaultCompletion));
     expect(result.current.loading).toBe(true);
     expect(result.current.content).toBe('');
@@ -37,8 +46,7 @@ describe('useLesson', () => {
 
   test('load populates content and sections', async () => {
     mockResponse('loadLesson', lessonData);
-    const { result } = renderHook(() => useLesson('math', '01', defaultCompletion));
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    const result = await renderHookAndSettle(() => useLesson('math', '01', defaultCompletion));
     expect(result.current.content).toBe(lessonData.content);
     expect(result.current.h1).toBe(lessonData.h1);
     expect(result.current.meta).toEqual(lessonData.meta);
@@ -47,16 +55,17 @@ describe('useLesson', () => {
   });
 
   test('load failure sets loading false', async () => {
+    const origWarn = console.warn;
+    console.warn = () => {};
     mockResponse('loadLesson', undefined);
-    const { result } = renderHook(() => useLesson('math', '01', defaultCompletion));
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    const result = await renderHookAndSettle(() => useLesson('math', '01', defaultCompletion));
     expect(result.current.content).toBe('');
+    console.warn = origWarn;
   });
 
   test('isCompleted reads from completion prop', async () => {
     mockResponse('loadLesson', lessonData);
-    const { result } = renderHook(() => useLesson('math', '01', defaultCompletion));
-    await waitFor(() => expect(result.current.loading).toBe(false));
+    const result = await renderHookAndSettle(() => useLesson('math', '01', defaultCompletion));
     expect(result.current.isCompleted).toBe(false);
   });
 
@@ -66,9 +75,9 @@ describe('useLesson', () => {
       toggleCalled = true;
     };
     mockResponse('loadLesson', lessonData);
-    const { result } = renderHook(() => useLesson('math', '01', { ...defaultCompletion, toggle }));
-    await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(result.current.isCompleted).toBe(false);
+    const result = await renderHookAndSettle(() =>
+      useLesson('math', '01', { ...defaultCompletion, toggle }),
+    );
     await act(async () => {
       await result.current.handleToggleCompleted();
     });
@@ -76,21 +85,22 @@ describe('useLesson', () => {
   });
 
   test('scrollToSection no-ops when contentRef is null', () => {
-    mockResponse('loadLesson', lessonData);
+    mockResponse('loadLesson', new Promise(() => {}));
     const { result } = renderHook(() => useLesson('math', '01', defaultCompletion));
     expect(() => result.current.scrollToSection('sec1')).not.toThrow();
   });
 
   test('handleScroll no-ops when contentRef is null', () => {
-    mockResponse('loadLesson', lessonData);
+    mockResponse('loadLesson', new Promise(() => {}));
     const { result } = renderHook(() => useLesson('math', '01', defaultCompletion));
     expect(() => result.current.handleScroll()).not.toThrow();
   });
 
   test('initialSectionID sets visibleSection', async () => {
     mockResponse('loadLesson', lessonData);
-    const { result } = renderHook(() => useLesson('math', '01', defaultCompletion, 'sec1'));
+    const result = await renderHookAndSettle(() =>
+      useLesson('math', '01', defaultCompletion, 'sec1'),
+    );
     expect(result.current.visibleSection).toBe('sec1');
-    await waitFor(() => expect(result.current.loading).toBe(false));
   });
 });

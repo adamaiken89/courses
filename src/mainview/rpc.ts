@@ -16,4 +16,3 @@ if (typeof window !== 'undefined' && (window as any).__electrobun) {
 }
 
 export const rpc = rpcInstance;
-export type RPCClient = typeof rpc;

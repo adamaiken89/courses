@@ -10,6 +10,7 @@ setupRPC();
 beforeEach(() => {
   useBookmarksStore.setState({ byModule: {}, loading: {} });
   clearMocks();
+  mockResponse('getModuleBookmarks', new Promise(() => {}));
 });
 
 const aBookmark = (

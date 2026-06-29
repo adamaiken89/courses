@@ -43,10 +43,13 @@ describe('notesStore', () => {
   });
 
   test('load handles API error', async () => {
+    const origError = console.error;
+    console.error = () => {};
     deleteMock('getNotes');
     await useNotesStore.getState().load('math', '01');
     expect(useNotesStore.getState().byModule['math:01']).toEqual([]);
     expect(useNotesStore.getState().loading['math:01']).toBe(false);
+    console.error = origError;
   });
 
   test('load sets empty array for non-array response', async () => {

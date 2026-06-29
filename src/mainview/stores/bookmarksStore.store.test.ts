@@ -30,9 +30,12 @@ describe('bookmarksStore', () => {
   });
 
   test('load handles error', async () => {
+    const origError = console.error;
+    console.error = () => {};
     deleteMock('getModuleBookmarks');
     await useBookmarksStore.getState().load('math', '01');
     expect(useBookmarksStore.getState().byModule['math:01']).toEqual([]);
+    console.error = origError;
   });
 
   test('toggle creates bookmark when none exists', async () => {

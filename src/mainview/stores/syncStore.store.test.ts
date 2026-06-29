@@ -34,9 +34,15 @@ describe('syncStore', () => {
   });
 
   test('loadStatus handles error', async () => {
+    const origError = console.error;
+    const origWarn = console.warn;
+    console.error = () => {};
+    console.warn = () => {};
     deleteMock('getSyncStatus');
     await useSyncStore.getState().loadStatus();
     expect(useSyncStore.getState().error).toBeTruthy();
+    console.error = origError;
+    console.warn = origWarn;
   });
 
   test('startSync successful sync', async () => {
@@ -64,10 +70,16 @@ describe('syncStore', () => {
   });
 
   test('startSync handles exception', async () => {
+    const origError = console.error;
+    const origWarn = console.warn;
+    console.error = () => {};
+    console.warn = () => {};
     deleteMock('syncStart');
     await useSyncStore.getState().startSync();
     expect(useSyncStore.getState().isSyncing).toBe(false);
     expect(useSyncStore.getState().error).toBeTruthy();
+    console.error = origError;
+    console.warn = origWarn;
   });
 
   test('setRepoURL sets URL and clears error', async () => {
@@ -78,9 +90,15 @@ describe('syncStore', () => {
   });
 
   test('setRepoURL handles error', async () => {
+    const origError = console.error;
+    const origWarn = console.warn;
+    console.error = () => {};
+    console.warn = () => {};
     deleteMock('syncSetURL');
     await useSyncStore.getState().setRepoURL('https://invalid');
     expect(useSyncStore.getState().remoteRepoURL).toBe('');
     expect(useSyncStore.getState().error).toBeTruthy();
+    console.error = origError;
+    console.warn = origWarn;
   });
 });

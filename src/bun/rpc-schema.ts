@@ -15,16 +15,7 @@ import type {
   UserCard,
 } from './types';
 
-export interface QuizState {
-  currentIndex: number;
-  selectedAnswers: Record<string, string>;
-  isCompleted: boolean;
-  currentQuestion: QuizQuestion | null;
-  score: { correct: number; total: number };
-  percentage: number;
-}
-
-export interface LessonResponse {
+interface LessonResponse {
   content: string;
   h1: string;
   meta: MetaField[];
@@ -32,26 +23,21 @@ export interface LessonResponse {
   bodyContent: string;
 }
 
-export interface SyncStatus {
+interface SyncStatus {
   lastSyncTime: string | null;
   lastSyncedCommit: string | null;
   isSyncing: boolean;
   remoteRepoURL: string;
 }
 
-export interface SyncResult {
+interface SyncResult {
   success: boolean;
   commitHash: string;
   message: string;
   unchanged?: boolean;
 }
 
-export interface SemesterInfo {
-  name: string;
-  courses: string[];
-}
-
-export type CourseRequests = {
+type CourseRequests = {
   coursesList: { params: void; response: Course[] };
   modulesList: { params: { courseId: string }; response: ModuleMeta[] };
   loadLesson: { params: { courseId: string; moduleId: string }; response: LessonResponse };
@@ -61,7 +47,7 @@ export type CourseRequests = {
   quizStart: { params: { courseId: string; moduleId: string }; response: QuizQuestion[] };
 };
 
-export type SRSRequests = {
+type SRSRequests = {
   getSRSDeck: { params: { courseId: string }; response: SRSDeck };
   filterSRSCards: { params: { courseId: string; filter: string }; response: SRSCard[] };
   toggleSRSStar: { params: { courseId: string; cardId: string }; response: SRSDeck };
@@ -75,7 +61,7 @@ export type SRSRequests = {
   };
 };
 
-export type AnnotationRequests = {
+type AnnotationRequests = {
   getHighlights: { params: { courseID: string; moduleID: string }; response: Highlight[] };
   addHighlight: {
     params: {
@@ -131,7 +117,7 @@ export type AnnotationRequests = {
   checkBookmark: { params: { courseID: string; moduleID: string }; response: boolean };
 };
 
-export type ProgressRequests = {
+type ProgressRequests = {
   isModuleCompleted: { params: { courseID: string; moduleID: string }; response: boolean };
   toggleModuleCompleted: { params: { courseID: string; moduleID: string }; response: boolean };
   getCompletedModuleIDs: { params: { courseID: string }; response: string[] };
@@ -154,13 +140,13 @@ export type ProgressRequests = {
   geminiAsk: { params: { question: string; context: string }; response: string };
 };
 
-export type SyncRequests = {
+type SyncRequests = {
   getSyncStatus: { params: void; response: SyncStatus };
   syncStart: { params: void; response: SyncResult };
   syncSetURL: { params: { remoteRepoURL: string }; response: { ok: true } };
 };
 
-export type UserCardRequests = {
+type UserCardRequests = {
   getUserCards: { params: { courseId?: string; moduleId?: string }; response: UserCard[] };
   addUserCard: {
     params: { courseId: string; moduleId: string; front: string; back: string };

@@ -1,0 +1,95 @@
+- id: "3.1"
+  question: "Where does a Zustand store action that calls API belong on the test spectrum?"
+  options:
+    A: "E2E test only"
+    B: "Unit test — mock API layer (MSW), test state transitions"
+    C: "Unit test — no mocks (too coupled to implementation)"
+    D: "Integration test — real API endpoint"
+  answer: B
+  explanation: "Store actions with API calls are Tier 2. Mock the API layer via MSW, keep the store real. Test that state transitions (loading → loaded/error) happen correctly."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "3.2"
+  question: "What signals a component should be refactored before testing?"
+  options:
+    A: "Component uses useState"
+    B: "Setup code is longer than assertion code (Tier 3 signal)"
+    C: "Component uses Tailwind CSS classes"
+    D: "Component has TypeScript types"
+  answer: B
+  explanation: "When setup (store.setState, server.use, mock.module) is longer than the test assertions, the component has too many dependencies. Refactor into smaller pieces before testing."
+  difficulty: 2
+  tags: [concept]
+
+- id: "3.3"
+  question: "What is the mock cost of testing a pure sorting function?"
+  options:
+    A: "Mock MSW"
+    B: "Mock the store"
+    C: "Zero mocks — pure function, direct import"
+    D: "Mock the sorting function itself"
+  answer: C
+  explanation: "Pure functions have no side effects, no API calls, no state dependencies. They are Tier 1 — import directly, call with inputs, assert outputs."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "3.4"
+  question: "Why push tests 'left' on the test spectrum?"
+  options:
+    A: "Left-side tests are more thorough"
+    B: "Left-side tests are faster and less fragile (fewer dependencies)"
+    C: "Left-side tests don't need assertions"
+    D: "Left-side tests run in CI only"
+  answer: B
+  explanation: "Pushing left means fewer mocked dependencies, less setup code, faster execution, and fewer false failures from unrelated changes. Each step right adds mock maintenance and fragility."
+  difficulty: 1
+  tags: [concept]
+
+- id: "3.5"
+  question: "What's the difference between 'one behavior per it' and 'one assertion per it'?"
+  options:
+    A: "They are the same concept"
+    B: "One behavior allows multiple assertions when verifying same outcome"
+    C: "One behavior requires snapshot tests"
+    D: "One assertion per it is always preferred"
+  answer: B
+  explanation: "One behavior = group assertions that verify the same result. Example: checking multiple fields of a returned object in one toEqual. One assertion per it would create three tests for one function call."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "3.6"
+  question: "Which test type catches type mismatches between API response and store consumption?"
+  options:
+    A: "Unit test of store (mocked API returns typed response)"
+    B: "Unit test of parser (verify type cast)"
+    C: "Integration test (real fetch through MSW into real store into real component)"
+    D: "E2E test (real browser, real network)"
+  answer: C
+  explanation: "Integration tests with MSW catch the full chain: MSW returns HttpResponse → store parses with real fetch → component reads real store. If types don't match (string vs number ID), the integration test fails."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "3.7"
+  question: "When should you write an E2E test instead of an integration test?"
+  options:
+    A: "For every React component"
+    B: "For critical user flows that cross multiple pages (auth, payment)"
+    C: "For pure utility functions"
+    D: "Never — integration tests are always sufficient"
+  answer: B
+  explanation: "E2E catches real browser APIs, cross-page navigation, and third-party interactions that testing-library can't simulate. Limit to 5-10 critical flows due to speed and flakiness cost."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "3.8"
+  question: "What's the recommended file naming convention per test nature from the reader project?"
+  options:
+    A: "<Name>.test.tsx for all test types"
+    B: "<Name>.unit.tsx, <Name>.int.tsx, <Name>.e2e.tsx"
+    C: "<Name>.test.ts (unit), <Name>.component.test.tsx (component), <Name>.page.test.tsx (page snapshot)"
+    D: "<Name>.spec.ts for everything"
+  answer: C
+  explanation: "Different test natures have different setup patterns. Co-locating them with distinct suffixes makes it clear what each test does and allows targeted test runs (e.g., 'vitest *.component.test.tsx')."
+  difficulty: 2
+  tags: [terminology]

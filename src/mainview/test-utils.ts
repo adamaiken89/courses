@@ -33,23 +33,6 @@ export function hasMock(method: string): boolean {
   return mockResponses.has(method);
 }
 
-export function mockErrorResponse(method: string, message: string) {
-  mockResponses.set(method, new Error(message));
-}
-
-const originalResponses = new Map<string, unknown>();
-
-export function saveMocks() {
-  originalResponses.clear();
-  for (const [k, v] of mockResponses) originalResponses.set(k, v);
-}
-
-export function restoreMocks() {
-  mockResponses.clear();
-  for (const [k, v] of originalResponses) mockResponses.set(k, v);
-  originalResponses.clear();
-}
-
 export function setupRPC(rpc?: { request: Record<string, (p: unknown) => Promise<unknown>> }) {
   beforeAll(() => __setRPC(rpc ?? mockRPC));
 }

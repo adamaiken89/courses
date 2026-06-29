@@ -40,7 +40,6 @@ class MockElectroview {
 }
 void mock.module('electrobun/view', () => ({ Electroview: MockElectroview }));
 
-/* eslint-disable no-console */
 const _warn = console.warn;
 const _error = console.error;
 const _log = console.log;

@@ -1,0 +1,108 @@
+subject: "Advanced React Testing"
+language: en
+time_budget_hours: 30
+target_level: advanced
+domain: "React + zustand + Tailwind + vitest + testing-library + MSW"
+prerequisites:
+  - React fundamentals (hooks, context, state)
+  - Basic test experience (vitest or jest)
+  - Zustand basics (create store, useStore)
+learning_objectives:
+  - Mock zustand stores without module-level pollution
+  - Intercept HTTP via MSW for test + dev reuse
+  - Apply unit vs integration decision tree by dependency tier
+  - Use userEvent, waitFor, act correctly without warnings
+  - Refactor Tier-3 code into testable units
+  - Test error paths, edge cases, and async flows
+  - Integrate tests into CI with flaky detection
+
+modules:
+  - id: 1
+    name: "Mock Strategies for Zustand"
+    time_hours: 2.5
+    prerequisites: []
+    topics: [zustand, mocking, store.setState, factory patterns]
+
+  - id: 2
+    name: "MSW for Network Layer Mocking"
+    time_hours: 2.5
+    prerequisites: [1]
+    topics: [msw, network mocking, dev-reuse, handlers]
+
+  - id: 3
+    name: "Test Boundaries — Unit vs Integration"
+    time_hours: 1.5
+    prerequisites: [1, 2]
+    topics: [decision tree, dependency tiers, mock cost]
+
+  - id: 4
+    name: "Integration Test Tools — userEvent, waitFor, act"
+    time_hours: 2
+    prerequisites: [3]
+    topics: [userEvent, waitFor, act, testing-library]
+
+  - id: 5
+    name: "Random act() Warnings — Cause and Fix"
+    time_hours: 1.5
+    prerequisites: [4]
+    topics: [act, async updates, React batching, microtasks]
+
+  - id: 6
+    name: "Refactoring for Testability — Extract Pure Logic"
+    time_hours: 2
+    prerequisites: [3]
+    topics: [pure functions, Tier 1 extraction, business logic]
+
+  - id: 7
+    name: "Refactoring for Testability — Dependency Injection"
+    time_hours: 2
+    prerequisites: [6]
+    topics: [DI patterns, hooks-as-DI, breaking Tier 3]
+
+  - id: 8
+    name: "Testing Library Ecosystem — Query Best Practices"
+    time_hours: 2
+    prerequisites: [4]
+    topics: [getByRole, queries, data-testid, accessible queries]
+
+  - id: 9
+    name: "MSW Deep Dive — Advanced Patterns"
+    time_hours: 2
+    prerequisites: [2]
+    topics: [graphql, lifecycle, error simulation, handlers organization]
+
+  - id: 10
+    name: "Error and Edge Path Testing"
+    time_hours: 2
+    prerequisites: [4, 5]
+    topics: [expect.soft, test.each, boundary coverage, failure modes]
+
+  - id: 11
+    name: "Snapshot Strategy"
+    time_hours: 1.5
+    prerequisites: [8]
+    topics: [page snapshots, inline vs external, when to delete]
+
+  - id: 12
+    name: "Custom Hook Testing Patterns"
+    time_hours: 2
+    prerequisites: [4, 5]
+    topics: [renderHook, state transitions, async timing]
+
+  - id: 13
+    name: "CI Integration and Flaky Test Management"
+    time_hours: 1.5
+    prerequisites: [10]
+    topics: [parallel sharding, flaky detection, test caching]
+
+  - id: 14
+    name: "Performance Testing in React"
+    time_hours: 2
+    prerequisites: [12]
+    topics: [render count, large lists, timers, profiling]
+
+  - id: 15
+    name: "Capstone — Refactor a Real Tier-3 Component"
+    time_hours: 2.5
+    prerequisites: [6, 7, 8, 9, 10]
+    topics: [integration, full cycle, refactor, test]

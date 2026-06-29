@@ -1,6 +1,6 @@
-import { fireEvent, render, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 
 import type { Course, ModuleMeta } from '../../bun/types';
 import { useCompletionStore } from '../stores/completionStore';
@@ -149,64 +149,72 @@ function installMockSelection(mockSel: ReturnType<typeof makeMockSelection>) {
   };
 }
 
+globalThis.requestAnimationFrame = (cb: FrameRequestCallback) => {
+  cb(0);
+  return 0;
+};
+
+async function renderAndSettle(ui: React.ReactElement) {
+  let result!: ReturnType<typeof render>;
+  await act(async () => {
+    result = render(ui);
+    await new Promise((r) => setTimeout(r, 0));
+  });
+  return result;
+}
+
 describe('LessonSection', () => {
   const user = userEvent.setup();
   const props = { course: mockCourse, module: mockModuleMeta };
 
-  test('renders loading state', () => {
+  afterEach(async () => {
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 0));
+    });
+  });
+
+  test('renders loading state', async () => {
     deleteMock('loadLesson');
     mockResponse('loadLesson', new Promise(() => {}));
-    const { container } = render(<LessonSection {...props} />);
+    const { container } = await renderAndSettle(<LessonSection {...props} />);
     expect(container.textContent).toContain('Loading lesson');
   });
 
   test('renders lesson content when loaded', async () => {
-    const { container } = render(<LessonSection {...props} />);
-    await waitFor(() => {
-      expect(container.textContent).toContain('Test Heading');
-    });
+    const { container } = await renderAndSettle(<LessonSection {...props} />);
+    expect(container.textContent).toContain('Test Heading');
     expect(container.textContent).toContain('Test body content');
   });
 
   test('renders completion button when not completed', async () => {
-    const { container } = render(<LessonSection {...props} />);
-    await waitFor(() => {
-      expect(container.textContent).toContain('Mark as Complete');
-    });
+    const { container } = await renderAndSettle(<LessonSection {...props} />);
+    expect(container.textContent).toContain('Mark as Complete');
   });
 
   test('renders completed state', async () => {
     mockResponse('isModuleCompleted', true);
-    const { container } = render(<LessonSection {...props} />);
-    await waitFor(() => {
-      expect(container.textContent).toContain('Completed');
-    });
+    const { container } = await renderAndSettle(<LessonSection {...props} />);
+    expect(container.textContent).toContain('Completed');
     expect(container.textContent).not.toContain('Mark as Complete');
   });
 
   test('renders pomodoro timer when enabled', async () => {
     useLessonUIStore.setState({ showPomodoro: true });
-    const { container } = render(<LessonSection {...props} />);
-    await waitFor(() => {
-      expect(container.textContent).toContain('Focus');
-    });
+    const { container } = await renderAndSettle(<LessonSection {...props} />);
+    expect(container.textContent).toContain('Focus');
   });
 
   test('renders study tools when showTools is true and not focusing', async () => {
     useLessonUIStore.setState({ showTools: true });
-    const { container } = render(<LessonSection {...props} />);
-    await waitFor(() => {
-      expect(container.querySelector('[data-testid="study-tools"]')).toBeTruthy();
-    });
+    const { container } = await renderAndSettle(<LessonSection {...props} />);
+    expect(container.querySelector('[data-testid="study-tools"]')).toBeTruthy();
   });
 
   test('hides study tools when focus mode is on', async () => {
     useLessonUIStore.setState({ showTools: true });
     useSettingsStore.setState({ focusMode: true });
-    const { container } = render(<LessonSection {...props} />);
-    await waitFor(() => {
-      expect(container.textContent).toContain('Test Heading');
-    });
+    const { container } = await renderAndSettle(<LessonSection {...props} />);
+    expect(container.textContent).toContain('Test Heading');
     expect(container.querySelector('[data-testid="study-tools"]')).toBeNull();
   });
 
@@ -218,25 +226,20 @@ describe('LessonSection', () => {
       sections: [{ id: 's1', heading: 'Section One', level: 1, parentID: null }],
     });
     useSettingsStore.setState({ showSections: true });
-    const { container } = render(<LessonSection {...props} />);
-    await waitFor(() => {
-      expect(container.textContent).toContain('Test Heading');
-    });
+    const { container } = await renderAndSettle(<LessonSection {...props} />);
+    expect(container.textContent).toContain('Test Heading');
     expect(container.querySelector('[data-testid="sections-panel"]')).toBeTruthy();
   });
 
   test('renders viewer search when search is active via initialSearchQuery', async () => {
-    const { getByTestId } = render(<LessonSection {...props} initialSearchQuery="test query" />);
-    await waitFor(() => {
-      expect(getByTestId('viewer-search')).toBeTruthy();
-    });
+    const { getByTestId } = await renderAndSettle(
+      <LessonSection {...props} initialSearchQuery="test query" />,
+    );
+    expect(getByTestId('viewer-search')).toBeTruthy();
   });
 
   test('renders selection toolbar when there is a selection', async () => {
-    const { container, getByTestId } = render(<LessonSection {...props} />);
-    await waitFor(() => {
-      expect(container.textContent).toContain('Test Heading');
-    });
+    const { getByTestId } = await renderAndSettle(<LessonSection {...props} />);
 
     const contentDiv = getByTestId('lesson-content');
     const mockSel = makeMockSelection('some selectable text', contentDiv);
@@ -251,10 +254,7 @@ describe('LessonSection', () => {
   });
 
   test('renders note editor when open', async () => {
-    const { container, getByTestId, getByText } = render(<LessonSection {...props} />);
-    await waitFor(() => {
-      expect(container.textContent).toContain('Test Heading');
-    });
+    const { getByTestId, getByText } = await renderAndSettle(<LessonSection {...props} />);
 
     const contentDiv = getByTestId('lesson-content');
     const mockSel = makeMockSelection('note-worthy text', contentDiv);
@@ -275,10 +275,7 @@ describe('LessonSection', () => {
   });
 
   test('renders card editor when open', async () => {
-    const { container, getByTestId, getByText } = render(<LessonSection {...props} />);
-    await waitFor(() => {
-      expect(container.textContent).toContain('Test Heading');
-    });
+    const { getByTestId, getByText } = await renderAndSettle(<LessonSection {...props} />);
 
     const contentDiv = getByTestId('lesson-content');
     const mockSel = makeMockSelection('card-worthy text', contentDiv);
@@ -299,10 +296,7 @@ describe('LessonSection', () => {
   });
 
   test('renders toggle sections button when sections panel hidden and not focusing', async () => {
-    const { container } = render(<LessonSection {...props} />);
-    await waitFor(() => {
-      expect(container.textContent).toContain('Test Heading');
-    });
+    const { container } = await renderAndSettle(<LessonSection {...props} />);
     expect(container.textContent).toContain('☰');
   });
 
@@ -310,10 +304,7 @@ describe('LessonSection', () => {
     mockResponse('toggleModuleCompleted', undefined);
     mockResponse('logSession', undefined);
 
-    const { getByTestId } = render(<LessonSection {...props} />);
-    await waitFor(() => {
-      expect(getByTestId('complete-btn')).toBeTruthy();
-    });
+    const { getByTestId } = await renderAndSettle(<LessonSection {...props} />);
 
     await user.click(getByTestId('complete-btn'));
 

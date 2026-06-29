@@ -8,6 +8,7 @@ setupRPC();
 
 beforeEach(() => {
   clearMocks();
+  mockResponse('logSession', { ok: true });
 });
 
 const aQuestion = {
@@ -42,10 +43,18 @@ describe('useQuizEngine', () => {
   });
 
   test('load failed shows empty questions', async () => {
+    const origError = console.error;
+    const origWarn = console.warn;
+    console.error = () => {};
+    console.warn = () => {};
+
     deleteMock('quizStart');
     const { result } = renderHook(() => useQuizEngine('math', '01'));
     await waitFor(() => expect(result.current.status).toBe('ready'));
     expect(result.current.questions).toEqual([]);
+
+    console.error = origError;
+    console.warn = origWarn;
   });
 
   test('selectAnswer records answer', async () => {

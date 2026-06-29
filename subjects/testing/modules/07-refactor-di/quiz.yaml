@@ -1,0 +1,95 @@
+- id: "7.1"
+  question: "What is the simplest DI pattern to make a component testable?"
+  options:
+    A: "Dependency injection container library"
+    B: "Prop injection — pass data as props instead of reading stores inside"
+    C: "React Context"
+    D: "Module-level mock.module"
+  answer: B
+  explanation: "Prop injection is the simplest: instead of reading useStore inside the component, the parent passes data as props. The component becomes a pure rendering unit with zero mocks."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "7.2"
+  question: "How does hooks-as-DI improve testability?"
+  options:
+    A: "Hooks can't be mocked"
+    B: "The hook becomes a single dependency boundary — test hook separately, mock in component test"
+    C: "Hooks eliminate the need for mocking"
+    D: "Hooks automatically inject all dependencies"
+  answer: B
+  explanation: "Wrap all store reads in one custom hook. Test the hook with renderHook (store mocks). Mock the hook at module boundary for the component test. Two testable units instead of one untestable."
+  difficulty: 2
+  tags: [concept]
+
+- id: "7.3"
+  question: "What's the risk of using mock.module on a custom hook used by multiple test files?"
+  options:
+    A: "No risk — mock.module is scoped per file"
+    B: "Process-global pollution — mock leaks to unrelated tests"
+    C: "TypeScript compilation errors"
+    D: "Slower test execution"
+  answer: B
+  explanation: "mock.module is process-global. If useCoursePageData is used by 3 test files and one mocks it with mock.module, the other 2 files see the mock. This causes cascading failures."
+  difficulty: 2
+  tags: [concept]
+
+- id: "7.4"
+  question: "When is prop injection preferred over hooks-as-DI?"
+  options:
+    A: "Never — hooks-as-DI is always better"
+    B: "When the component reads 1-2 stores for display only and data can come from parent"
+    C: "When the component has 5+ store dependencies"
+    D: "When using TypeScript"
+  answer: B
+  explanation: "Prop injection is simpler and avoids mock.module entirely. Use it when the component primarily displays data (doesn't need to fetch it) and dependencies are manageable."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "7.5"
+  question: "What does store composition mean?"
+  options:
+    A: "Importing multiple stores in one file"
+    B: "Creating a selector that reads from multiple stores and returns derived data"
+    C: "Merging all stores into one global store"
+    D: "Duplicating store state across components"
+  answer: B
+  explanation: "Store composition creates a selector function that reads from multiple stores (e.g., useAuthStore + useCourseStore) and returns derived data. This selector is tested independently."
+  difficulty: 2
+  tags: [terminology]
+
+- id: "7.6"
+  question: "After breaking a Tier 3 component using hooks-as-DI, what do you test?"
+  options:
+    A: "Only the component"
+    B: "Only the hook"
+    C: "Both — the hook with renderHook (store mocks), the component with hook mock"
+    D: "Nothing — the refactoring made testing unnecessary"
+  answer: C
+  explanation: "The hook gets tested with renderHook and store mocks. The component gets tested with the hook mocked. The pure logic extracted from both gets tested with zero mocks."
+  difficulty: 3
+  tags: [concept]
+
+- id: "7.7"
+  question: "What's the difference between hook-as-DI and store composition?"
+  options:
+    A: "No difference — same concept"
+    B: "Hook-as-DI is designed to be mocked (import boundary); store composition is tested directly (never mocked)"
+    C: "Hook-as-DI uses renderHook; store composition uses useStore directly"
+    D: "Store composition only works with zustand"
+  answer: B
+  explanation: "Hook-as-DI creates a boundary that can be mocked (safer with mock.module since it's per-test-file). Store composition merges stores into a selector that's always tested directly, never mocked."
+  difficulty: 3
+  tags: [comparison]
+
+- id: "7.8"
+  question: "What's the first step when breaking a Tier 3 component?"
+  options:
+    A: "Start writing integration tests"
+    B: "Extract pure business logic (Module 6) — separate data transformation from side effects"
+    C: "Add mock.module for all dependencies"
+    D: "Skip testing and write E2E tests instead"
+  answer: B
+  explanation: "Extract pure logic first (filtering, sorting, validation). This removes Tier 1-worthy code from the Tier 3 component. Then apply DI patterns to the remaining store/routing dependencies."
+  difficulty: 2
+  tags: [scenario]

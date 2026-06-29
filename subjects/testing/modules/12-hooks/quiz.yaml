@@ -1,0 +1,95 @@
+- id: "12.1"
+  question: "What does renderHook do?"
+  options:
+    A: "Renders a component with the hook inside"
+    B: "Creates a minimal test component that calls the hook and captures return values"
+    C: "Mocks the hook and returns fake data"
+    D: "Executes the hook in Node.js runtime without React"
+  answer: B
+  explanation: "renderHook creates an internal React component that calls your hook. result.current always reflects the latest return value after each render."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "12.2"
+  question: "How do you update props for a hook test?"
+  options:
+    A: "Call the hook function again with new props"
+    B: "Use rerender() from renderHook return value"
+    C: "Create a new renderHook call"
+    D: "Props cannot be changed after initial render"
+  answer: B
+  explanation: "rerender(newProps) re-renders the test component with updated props, triggering the hook to re-evaluate with the new prop values."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "12.3"
+  question: "Why test the loading state separately from the success state?"
+  options:
+    A: "Loading state cannot be tested"
+    B: "If you only test final state, a bug where loading never becomes true (UI shows no spinner) goes unnoticed"
+    C: "Loading state is always true"
+    D: "Success state automatically tests loading state"
+  answer: B
+  explanation: "The loading state is transient. If you only test final state, you miss bugs where the loading flag is never set (user sees no spinner, action feels unresponsive)."
+  difficulty: 2
+  tags: [concept]
+
+- id: "12.4"
+  question: "How do you trigger a store update in a hook test and assert the hook's reaction?"
+  options:
+    A: "Directly modify result.current"
+    B: "act(() => store.setState(...)) — then assert result.current"
+    C: "Re-render the test component"
+    D: "Store updates can't be tested in hooks"
+  answer: B
+  explanation: "Wrapping store.setState in act() triggers React's batching and re-render. After that, result.current reflects the hook's new return value based on updated store state."
+  difficulty: 2
+  tags: [application]
+
+- id: "12.5"
+  question: "How do you test that a hook's useEffect cleanup works correctly?"
+  options:
+    A: "It can't be tested directly"
+    B: "Call unmount() and check that side effects (intervals, subscriptions) are removed"
+    C: "The cleanup runs automatically after each test"
+    D: "Use console.log to verify cleanup"
+  answer: B
+  explanation: "unmount() triggers all useEffect cleanup functions. After unmount, verify no side effects fire (timers, event listeners, subscriptions)."
+  difficulty: 2
+  tags: [application]
+
+- id: "12.6"
+  question: "What happens if you don't call act() around store.setState in a hook test?"
+  options:
+    A: "The test passes but may show act() warning and result.current may not update immediately"
+    B: "Nothing — store.setState always works synchronously"
+    C: "The test crashes"
+    D: "The hook unmounts"
+  answer: A
+  explanation: "Without act(), React may batch the update asynchronously. result.current might still show old state when asserted. An act() warning is also shown."
+  difficulty: 2
+  tags: [concept]
+
+- id: "12.7"
+  question: "How do you test a hook that uses React Router's useParams?"
+  options:
+    A: "Mock useParams with vi.mock"
+    B: "Use renderHook's wrapper option with MemoryRouter and route"
+    C: "Can't test hooks that use router"
+    D: "Pass params as prop to the hook"
+  answer: B
+  explanation: "Use renderHook(() => useParams(), { wrapper: MemoryRouter }). Set MemoryRouter's initialEntries to the desired URL path. No mocking needed."
+  difficulty: 3
+  tags: [application]
+
+- id: "12.8"
+  question: "What does result.current contain after a state update in the hook?"
+  options:
+    A: "The previous value — only updates after test ends"
+    B: "The latest return value after React commits the re-render"
+    C: "The hook function source code"
+    D: "undefined — must read from store directly"
+  answer: B
+  explanation: "result.current is a ref that gets updated on each render cycle. After act() completes, React has committed the DOM update, and result.current reflects the latest hook return value."
+  difficulty: 1
+  tags: [terminology]

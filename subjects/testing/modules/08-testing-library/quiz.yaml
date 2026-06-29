@@ -1,0 +1,95 @@
+- id: "8.1"
+  question: "What is the highest priority testing-library query?"
+  options:
+    A: "getByTestId"
+    B: "getByText"
+    C: "getByRole"
+    D: "getByAltText"
+  answer: C
+  explanation: "getByRole is the gold standard — it queries by ARIA role and accessible name, matching what users perceive. It survives style refactors and markup changes."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "8.2"
+  question: "When should you use getByTestId?"
+  options:
+    A: "As the first choice for all elements"
+    B: "When the element has no accessible role and no visible text"
+    C: "When you want faster queries"
+    D: "When testing CSS classes"
+  answer: B
+  explanation: "getByTestId is the last resort. Use it when no other query works — element has no semantic role, no text content, and no label association."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "8.3"
+  question: "What's the difference between getByText and getByRole('button', { name: /text/i })?"
+  options:
+    A: "They are identical"
+    B: "getByText matches visible text anywhere; getByRole matches accessible name of a button"
+    C: "getByRole is faster"
+    D: "getByText only works on headings"
+  answer: B
+  explanation: "getByText finds any element with matching text. getByRole('button', { name }) finds a button whose accessible name matches. getByRole is more specific and tests the interaction target."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "8.4"
+  question: "Which query returns null instead of throwing when the element is not found?"
+  options:
+    A: "getByText"
+    B: "queryByText"
+    C: "findByText"
+    D: "All of the above"
+  answer: B
+  explanation: "queryBy* returns null if the element is not found. Use it only with .not.toBeInTheDocument() to assert absence. getBy* throws, findBy* returns a rejected promise."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "8.5"
+  question: "What does findByText do internally?"
+  options:
+    A: "Synchronously searches the DOM"
+    B: "Calls getByText inside waitFor"
+    C: "Calls queryByText inside a setTimeout"
+    D: "Uses document.querySelector directly"
+  answer: B
+  explanation: "findBy* is async and polls the DOM until the element appears (via waitFor). It's equivalent to await waitFor(() => getByText('x'))."
+  difficulty: 2
+  tags: [terminology]
+
+- id: "8.6"
+  question: "Why does the reader project SKILL.md recommend adding data-testid to source components?"
+  options:
+    A: "As the primary query for all elements"
+    B: "As a stable contract between test and implementation when no accessible role or text exists"
+    C: "To speed up test execution"
+    D: "To avoid using screen.getBy* functions"
+  answer: B
+  explanation: "data-testid creates a contract: 'this element's test ID will not change unless behavior changes.' It's stable across style refactors where CSS-class queries would break."
+  difficulty: 2
+  tags: [concept]
+
+- id: "8.7"
+  question: "What's the correct pattern to assert an element does NOT exist?"
+  options:
+    A: "expect(screen.getByText('Loading')).not.toBeInTheDocument()"
+    B: "expect(screen.queryByText('Loading')).not.toBeInTheDocument()"
+    C: "expect(screen.queryByText('Loading')).toBeNull()"
+    D: "expect(screen.findByText('Loading')).not.toBeInTheDocument()"
+  answer: B
+  explanation: "queryByText returns null if not found. expect(null).not.toBeInTheDocument() passes. getByText would throw before the assertion runs. findByText would wait and throw."
+  difficulty: 1
+  tags: [application]
+
+- id: "8.8"
+  question: "What does an accessible name NOT include?"
+  options:
+    A: "aria-label attribute value"
+    B: "aria-labelledby referenced element text"
+    C: "CSS class names on the element"
+    D: "Inner text of a button element"
+  answer: C
+  explanation: "Accessible name is computed from ARIA attributes, associated labels, and element text content. CSS classes are visual only and don't contribute to the accessibility tree."
+  difficulty: 3
+  tags: [terminology]

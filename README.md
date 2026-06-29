@@ -59,19 +59,34 @@ bun run knip           # find unused code/exports/dependencies
 
 ```bash
 src/
-├── mainview/           # React frontend (Vite)
-│   ├── layouts/        # PageLayout, PageHeader, PageContent
-│   ├── pages/          # One *Page per View union variant
-│   ├── sections/       # Lesson, Quiz, Review, UserCardReview
-│   ├── components/     # Leaf-level UI (lesson/, study-tools/, ui/)
-│   ├── hooks/          # Domain hooks (useLesson, useBookmarks, etc.)
-│   └── stores/         # Zustand stores (view, settings, course, etc.)
-└── bun/                # Backend (Electrobun RPC handlers)
-    ├── index.ts        # RPC router + all handlers
-    ├── course-loader.ts
-    ├── lesson-markdown.ts
-    ├── gemini.ts
-    └── storage.ts
+├── mainview/            # React frontend (Vite, root=src/mainview)
+│   ├── pages/           # 8 page components (CourseList, Lesson, Quiz, etc.)
+│   ├── sections/        # Complex content: Lesson, Quiz, Review, UserCardReview
+│   ├── layouts/         # PageLayout, PageHeader, PageContent
+│   ├── components/      # Leaf-level UI
+│   │   ├── lesson/      # LessonToolbar, SectionsPanel, NoteEditor, etc.
+│   │   ├── study-tools/ # NotesHighlightsTab, BookmarksTab, CardsTab, AITab
+│   │   └── ui/          # Button, StatCard
+│   ├── hooks/           # Domain hooks (useLesson, useBookmarks, etc.)
+│   ├── stores/          # 9 Zustand stores (view, settings, course, etc.)
+│   ├── locales/         # 5 locale files (en-US, en-GB, en-AU, en-CA, zh-TW)
+│   ├── App.tsx          # View stack router
+│   ├── api.ts / rpc.ts  # RPC client → backend
+│   ├── i18n.ts          # Internationalization (i18next)
+│   ├── shortcuts.ts     # Keyboard shortcuts (single source of truth)
+│   └── index.css        # Tailwind + book content styles
+└── bun/                 # Backend (Electrobun RPC handlers)
+    ├── index.ts         # RPC router
+    ├── rpc-schema.ts    # RPC type definitions
+    ├── course-loader.ts # File I/O: subjects, lessons, quizzes; YAML parse
+    ├── lesson-markdown.ts # Markdown processing
+    ├── storage.ts       # JSON persistence (~/.coursereader/data.json)
+    ├── gemini.ts        # Gemini AI client
+    ├── search.ts        # Full-text search
+    ├── stats.ts         # Statistics
+    ├── srs.ts           # SM-2 algorithm
+    ├── sync.ts          # Remote content sync
+    └── yaml.ts          # YAML parsing
 ```
 
 ## Subjects

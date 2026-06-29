@@ -110,6 +110,7 @@ body {
   font-weight: 400;
   color: var(--book-bq-text);
   font-style: italic;
+  white-space: pre-line;
 }
 .lesson-meta .meta-item {
   display: inline-flex;
@@ -146,6 +147,7 @@ body {
 .lesson-meta .meta-description .meta-value {
   font-style: italic;
   line-height: 1.5;
+  white-space: pre-line;
 }
 
 /* Book-content: lesson prose styles (CSS vars defined here — override via inline style for each theme) */

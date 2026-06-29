@@ -56,8 +56,7 @@ for (const [key, entries] of KEY_SCOPE) {
     dupes.push(`  ${key}: ${entries.join(', ')}`);
   }
 }
-// Use function to avoid ESLint no-console
+
 if (dupes.length > 0) {
-  // eslint-disable-next-line no-console
   console.warn(`[shortcuts] Duplicate key bindings:\n${dupes.join('\n')}`);
 }

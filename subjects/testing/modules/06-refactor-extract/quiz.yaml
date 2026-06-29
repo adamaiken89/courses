@@ -1,0 +1,95 @@
+- id: "6.1"
+  question: "What is the primary characteristic of code that should be extracted for testability?"
+  options:
+    A: "Uses useState"
+    B: "Pure data transformation — input in, output out, no side effects"
+    C: "Imports from React"
+    D: "Has JSX syntax"
+  answer: B
+  explanation: "Pure functions with no side effects are the ideal Tier 1 test target. They're deterministic, have zero mock cost, and are easy to cover fully."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "6.2"
+  question: "What pattern makes a function that uses Date.now() testable?"
+  options:
+    A: "Mock module 'date'"
+    B: "Inject the current time as a parameter with a default value"
+    C: "Use vi.useFakeTimers in every test"
+    D: "Skip testing date-dependent functions"
+  answer: B
+  explanation: "Parameter injection with a default (now = new Date()) keeps production code clean while letting tests inject deterministic values. Mocking modules for time comparisons is overkill."
+  difficulty: 2
+  tags: [concept]
+
+- id: "6.3"
+  question: "Which of these should be extracted into a pure function?"
+  options:
+    A: "const fullName = `${user.first} ${user.last}`"
+    B: "A 15-line SM-2 interval calculation used in multiple places"
+    C: "A JSX conditional: {isLoading ? <Spinner /> : <Content />}"
+    D: "A CSS class name concatenation"
+  answer: B
+  explanation: "Complex business logic (algorithm, multi-line, used in multiple places) benefits from extraction. One-liners and JSX belong in the component."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "6.4"
+  question: "What Tier does an extracted pure function belong to?"
+  options:
+    A: "Tier 3 — needs store mocking"
+    B: "Tier 2 — needs API mocking"
+    C: "Tier 1 — zero mocks, direct test"
+    D: "Not testable — needs E2E"
+  answer: C
+  explanation: "Pure functions with no side effects are Tier 1. Import directly, call with inputs, assert outputs. No setup, no mocks."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "6.5"
+  question: "What is the Tier 3 signal that indicates code needs extraction?"
+  options:
+    A: "Component has multiple JSX elements"
+    B: "Component mixes business logic with state subscription and side effects"
+    C: "Component uses TypeScript"
+    D: "Component is more than 50 lines"
+  answer: B
+  explanation: "When business logic (filtering, sorting, validation) is mixed with store subscriptions, API calls, and effects, the component becomes Tier 3. Extract the logic to make it Tier 1."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "6.6"
+  question: "What global values should be injected as parameters instead of imported directly?"
+  options:
+    A: "React, useState, useEffect"
+    B: "Date.now, Math.random, crypto.randomUUID, fetch"
+    C: "Array.prototype.map, String.prototype.trim"
+    D: "TypeScript interfaces"
+  answer: B
+  explanation: "Non-deterministic values (Date.now, random) and I/O (fetch, localStorage) should be injectable for testing. Pure language features (Array methods) don't need injection."
+  difficulty: 2
+  tags: [concept]
+
+- id: "6.7"
+  question: "When is extraction NOT worth it?"
+  options:
+    A: "Logic is 3+ lines and used twice"
+    B: "Logic is a single line, trivial, and stable"
+    C: "Logic has edge cases needing test coverage"
+    D: "Logic depends on multiple input parameters"
+  answer: B
+  explanation: "Extraction has overhead (new file, import). Trivial one-liners that never change don't benefit from extraction. Focus on complex, duplicated, or critical logic."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "6.8"
+  question: "After extracting filterAndSortCourses from a component, how many mocks does the component test need?"
+  options:
+    A: "Same as before — still need to mock everything for component"
+    B: "Fewer — the extracted function is tested separately, component test only needs store state setup"
+    C: "More — now need to mock the extracted function too"
+    D: "Zero — no mocks needed for anything"
+  answer: B
+  explanation: "The component test no longer needs to exercise every edge case of filtering/sorting. It can set store state and assert render output. The extracted function's tests cover the logic exhaustively."
+  difficulty: 3
+  tags: [scenario]

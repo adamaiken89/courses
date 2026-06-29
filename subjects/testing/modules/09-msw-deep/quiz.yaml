@@ -1,0 +1,95 @@
+- id: "9.1"
+  question: "How does MSW match GraphQL operations?"
+  options:
+    A: "By matching the full query string"
+    B: "By operation name (e.g., GetCourses)"
+    C: "By the URL path"
+    D: "By the Content-Type header"
+  answer: B
+  explanation: "MSW parses the request body to extract the operationName field from GraphQL queries/mutations. Handlers match by this name, not the query string."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "9.2"
+  question: "What organization pattern is recommended for 50+ MSW handlers?"
+  options:
+    A: "All handlers in one file"
+    B: "Split by domain (courses.ts, auth.ts, quiz.ts) with a central aggregator"
+    C: "Each handler in its own file"
+    D: "Handlers inline in test files only"
+  answer: B
+  explanation: "Split by domain for maintainability. Each domain file exports its handlers array. A central handlers.ts aggregates with spread operators. Tests use server.use for per-test overrides."
+  difficulty: 1
+  tags: [concept]
+
+- id: "9.3"
+  question: "How do you ensure a handler only responds to authenticated requests?"
+  options:
+    A: "MSW can't inspect request headers"
+    B: "Check the Authorization header inside the handler resolver"
+    C: "Use a separate MSW server for authenticated routes"
+    D: "Mock the auth hook, not the network"
+  answer: B
+  explanation: "Handlers have access to the full Request object including headers. Check request.headers.get('Authorization') and return 401 if missing/invalid."
+  difficulty: 2
+  tags: [application]
+
+- id: "9.4"
+  question: "How would you verify a test made exactly 1 API call?"
+  options:
+    A: "Count test assertions"
+    B: "Track call count in a closure variable inside the handler"
+    C: "Use vitest's vi.fn().mock.calls"
+    D: "MSW tracks call count automatically"
+  answer: B
+  explanation: "Declare a let callCount = 0 outside the handler, increment inside. Assert callCount after the interaction. This pattern catches duplicate fetches and missing deduplication."
+  difficulty: 2
+  tags: [application]
+
+- id: "9.5"
+  question: "What does HttpResponse.error() simulate?"
+  options:
+    A: "HTTP 500"
+    B: "Network-level failure (connection dropped)"
+    C: "HTTP 404"
+    D: "Request timeout"
+  answer: B
+  explanation: "HttpResponse.error() creates a TypeError indistinguishable from network failure. This tests the catch branch of fetch, not the HTTP error handling."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "9.6"
+  question: "How do you simulate a server that never responds (timeout)?"
+  options:
+    A: "Call HttpResponse.error()"
+    B: "Use await delay('infinite') in the handler"
+    C: "Return null from the handler"
+    D: "Remove the handler for that endpoint"
+  answer: B
+  explanation: "await delay('infinite') hangs the handler forever. The request never completes, simulating a timeout. Test that your code's timeout mechanism fires correctly."
+  difficulty: 2
+  tags: [application]
+
+- id: "9.7"
+  question: "What error format does MSW return for GraphQL operations?"
+  options:
+    A: "Standard HTTP error with text body"
+    B: "JSON with 'errors' array (standard GraphQL spec)"
+    C: "Plain string 'GraphQL Error'"
+    D: "XML with error details"
+  answer: B
+  explanation: "MSW's graphql handler returns errors in GraphQL spec format: { data: null, errors: [{ message, locations, path }] }. This matches what Apollo, urql, and relay expect."
+  difficulty: 2
+  tags: [terminology]
+
+- id: "9.8"
+  question: "What's the benefit of using MSW with React Query over mocking the query function?"
+  options:
+    A: "Tests run faster"
+    B: "Tests real HTTP flow through MSW — catches network errors, headers, caching"
+    C: "No setup needed"
+    D: "MSW provides React Query wrappers"
+  answer: B
+  explanation: "MSW intercepts the actual fetch call made by the queryFn. This tests the full HTTP flow including headers, error handling, and serialization. Mocking the queryFn bypasses the network entirely."
+  difficulty: 3
+  tags: [comparison]

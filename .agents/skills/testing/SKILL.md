@@ -21,8 +21,6 @@ description: Use when writing tests for CourseReader code. Nature-based: unit, p
 
 **Source files:** `src/bun/*.ts`, `src/mainview/**/*.ts` (pure logic, utils, parsers, constants, algorithms)
 
-**Files to test:** `src/bun/srs.ts`, `src/bun/course-loader.ts` (parse functions), `src/bun/storage.ts`, `src/mainview/stores/storage-utils.ts`, `src/mainview/hooks/useLesson.ts` (findVisibleHeading), `src/mainview/components/rehype-highlight-text.ts`, `src/mainview/shortcuts.ts`.
-
 **Rules:**
 - No mocks. Direct import of functions under test.
 - Cover full input space: happy path, empty inputs, edge cases, error cases.
@@ -38,46 +36,22 @@ description: Use when writing tests for CourseReader code. Nature-based: unit, p
 
 ```typescript
 import { describe, expect, test } from 'bun:test';
-import { functionUnderTest } from './sourceFile';
-import type { SomeType } from './types';
+import { fn } from './source';
 
-function makeItem(overrides: Partial<SomeType> & { id: string }): SomeType {
-  return {
-    // defaults
-    ...overrides,
-  };
+function makeItem(overrides: Partial<Type> & { name: string }): Type {
+  return { field: 'default', ...overrides };
 }
 
-describe('functionUnderTest', () => {
-  describe('given valid input', () => {
-    it('returns transformed result', () => {
-      const input = makeItem({ id: 'a' });
-      expect(functionUnderTest(input)).toEqual(expected);
-    });
+describe('fn', () => {
+  it('transforms valid input', () => {
+    expect(fn(makeItem({ name: 'a' }))).toEqual(expected);
   });
 
-  describe('given empty input', () => {
-    it('returns empty/default', () => {
-      expect(functionUnderTest(emptyInput)).toEqual([]);
-    });
-  });
-
-  describe('given edge case input', () => {
-    it.each([
-      { input: null, expected: null },
-      { input: '', expected: '' },
-      { input: 'valid', expected: 'valid' },
-    ])('handles %o', ({ input, expected }) => {
-      expect(functionUnderTest(input)).toEqual(expected);
-    });
-  });
-
-  describe('given input', () => {
-    it('does not mutate original', () => {
-      const input = makeItem({ id: 'a' });
-      functionUnderTest(input);
-      expect(input).toEqual(makeItem({ id: 'a' }));
-    });
+  it.each([
+    { input: null, expected: null },
+    { input: '', expected: [] },
+  ])('handles %o', ({ input, expected }) => {
+    expect(fn(input)).toEqual(expected);
   });
 });
 ```
@@ -106,53 +80,28 @@ import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import { setupRPC, mockResponse, clearMocks } from '../test-utils';
 
 setupRPC();
-
+// mock.module for leaf layouts only (see Anti-pollution Rules)
 void mock.module('../layouts/PageLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="page-layout">{children}</div>
   ),
 }));
 
-void mock.module('../layouts/PageHeader', () => ({
-  default: ({ title }: { title?: string }) => (
-    <header data-testid="page-header">{title && <h1>{title}</h1>}</header>
-  ),
-}));
+import Page from './Page';
 
-void mock.module('../layouts/PageContent', () => ({
-  default: ({ children }: { children: React.ReactNode }) => (
-    <main data-testid="page-content">{children}</main>
-  ),
-}));
+describe('Page', () => {
+  beforeEach(clearMocks);
 
-import PageComponent from './PageComponent';
-
-describe('PageComponent', () => {
-  beforeEach(() => {
-    clearMocks();
-  });
-
-  test('matches snapshot — loading state', () => {
+  test('snapshot — loading', () => {
     mockResponse('someMethod', new Promise(() => {}));
-    const { container } = render(<PageComponent onBack={() => {}} />);
+    const { container } = render(<Page onBack={() => {}} />);
     expect(container).toMatchSnapshot();
   });
 
-  test('matches snapshot — data loaded', async () => {
+  test('snapshot — loaded', async () => {
     mockResponse('someMethod', { title: 'Loaded' });
-    const { container } = render(<PageComponent onBack={() => {}} />);
-    await waitFor(() => {
-      expect(screen.getByText('Loaded')).toBeInTheDocument();
-    });
-    expect(container).toMatchSnapshot();
-  });
-
-  test('matches snapshot — empty/error state', async () => {
-    mockResponse('someMethod', null);
-    const { container } = render(<PageComponent onBack={() => {}} />);
-    await waitFor(() => {
-      expect(container.querySelector('[data-testid="page-content"]')).toBeTruthy();
-    });
+    const { container } = render(<Page onBack={() => {}} />);
+    await waitFor(() => expect(screen.getByText('Loaded')).toBeInTheDocument());
     expect(container).toMatchSnapshot();
   });
 });
@@ -184,39 +133,21 @@ import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import { setupRPC, mockResponse, clearMocks } from '../test-utils';
 
 setupRPC();
+import Cmp from './Cmp';
 
-import ComponentUnderTest from './ComponentUnderTest';
+describe('Cmp', () => {
+  beforeEach(clearMocks);
 
-describe('ComponentUnderTest', () => {
-  beforeEach(() => {
-    clearMocks();
+  test('renders initial state', () => {
+    render(<Cmp prop="value" />);
+    expect(screen.getByText('Label')).toBeInTheDocument();
   });
 
-  test('renders initial state correctly', () => {
-    render(<ComponentUnderTest prop="value" />);
-    expect(screen.getByText('Expected Label')).toBeInTheDocument();
-  });
-
-  test('updates on user click', async () => {
+  test('responds to click', async () => {
     const user = userEvent.setup();
-    render(<ComponentUnderTest prop="value" />);
-    await user.click(screen.getByText('Button Label'));
-    expect(screen.getByText('Updated Content')).toBeInTheDocument();
-    expect(screen.queryByText('Old Content')).not.toBeInTheDocument();
-  });
-
-  test('handles empty state', () => {
-    render(<ComponentUnderTest items={[]} />);
-    expect(screen.getByText('No items')).toBeInTheDocument();
-  });
-
-  test('calls callback with correct args', async () => {
-    const user = userEvent.setup();
-    const onSelect = mock(() => {});
-    render(<ComponentUnderTest onSelect={onSelect} />);
-    await user.click(screen.getByText('Option A'));
-    expect(onSelect).toHaveBeenCalledTimes(1);
-    expect(onSelect).toHaveBeenCalledWith('option-a');
+    render(<Cmp />);
+    await user.click(screen.getByText('Action'));
+    expect(screen.getByText('Result')).toBeInTheDocument();
   });
 });
 ```
@@ -236,7 +167,7 @@ describe('ComponentUnderTest', () => {
 - Test side effects: API called with correct params.
 - Can lead to state/function reorganization when behavior is tangled.
 
-**Template (render in test):**
+**Template:**
 
 ```typescript
 import { renderHook, act } from '@testing-library/react';
@@ -244,27 +175,22 @@ import { beforeEach, describe, expect, test } from 'bun:test';
 import { setupRPC, mockResponse, clearMocks } from '../test-utils';
 
 setupRPC();
+import { useTarget } from './useTarget';
 
-import { useTargetHook } from './useTargetHook';
+describe('useTarget', () => {
+  beforeEach(clearMocks);
 
-describe('useTargetHook', () => {
-  beforeEach(() => {
-    clearMocks();
-  });
-
-  test('returns initial state', () => {
-    const { result } = renderHook(() => useTargetHook('arg'));
+  test('initial state', () => {
+    const { result } = renderHook(() => useTarget('arg'));
     expect(result.current).toEqual(
-      expect.objectContaining({ loading: false, data: null, error: null }),
+      expect.objectContaining({ loading: false, data: null }),
     );
   });
 
-  test('updates state on action', async () => {
+  test('updates on action', async () => {
     mockResponse('someMethod', { result: true });
-    const { result } = renderHook(() => useTargetHook('arg'));
-    await act(async () => {
-      await result.current.doSomething();
-    });
+    const { result } = renderHook(() => useTarget('arg'));
+    await act(async () => { await result.current.doSomething(); });
     expect(result.current.data).toBeDefined();
   });
 });
@@ -290,34 +216,29 @@ describe('useTargetHook', () => {
 ```typescript
 import { beforeEach, describe, expect, test } from 'bun:test';
 import { setupRPC, mockResponse, clearMocks } from '../test-utils';
-import { useTargetStore } from './targetStore';
+import { useStore } from './store';
 
 setupRPC();
 
 beforeEach(() => {
-  useTargetStore.setState({ /* defaults */ });
+  useStore.setState({ field: null, loading: false });
   clearMocks();
 });
 
-describe('targetStore', () => {
-  test('action sets expected state', async () => {
+describe('useStore', () => {
+  test('action sets state', async () => {
     mockResponse('someMethod', { result: true });
-    useTargetStore.getState().someAction();
+    useStore.getState().load();
     await new Promise((r) => setTimeout(r, 0));
-    expect(useTargetStore.getState().field).toEqual({ result: true });
+    expect(useStore.getState().field).toEqual({ result: true });
   });
 
-  test('reset clears state', () => {
-    useTargetStore.setState({ field: 'dirty', loading: true });
-    useTargetStore.getState().reset();
-    expect(useTargetStore.getState()).toEqual(
+  test('reset returns to defaults', () => {
+    useStore.setState({ field: 'dirty' });
+    useStore.getState().reset();
+    expect(useStore.getState()).toEqual(
       expect.objectContaining({ field: null, loading: false }),
     );
-  });
-
-  test('skips fetch when already loaded', () => {
-    useTargetStore.setState({ loaded: true });
-    useTargetStore.getState().load();
   });
 });
 ```
@@ -383,29 +304,41 @@ test('handles specific error message', async () => {
 });
 ```
 
+### i18n Snapshot Updates
+
+When tests render translated text (via `t('key')`), adding or changing locale keys requires:
+
+```sh
+bun test -u    # update snapshots
+```
+
+Without this, snapshot tests fail because rendered text changed. Add this step after modifying locale files.
+
+### Scroll Layout Invariant
+
+If writing or debugging tests for components that depend on scroll behavior (`LessonSection`, `PageContent`), refer to `.agents/skills/scroll-invariant/SKILL.md`. The `PageContent` `flex flex-col` invariant is a common source of silent scroll failures.
+
+## Verification
+
+After writing tests, run:
+
+```sh
+bun test               # confirm tests pass
+bun run check           # tsc + eslint + prettier
+```
+
+Both must pass before commit. If snapshots changed, run `bun test -u` and re-run check.
+
 ### Non-deterministic Code
 Don't test `Date.now()`, `Math.random()`, or `crypto.randomUUID()` directly — tests will be flaky.
 Refactor to inject the non-deterministic value as a parameter.
 
 ```typescript
-// Don't — flaky:
-function isHappyHour() {
-  const now = new Date().getHours();
-  return now >= 18 && now < 21;
-}
-
-// Do — inject the time:
-function isHappyHour(now: number) {
-  return now >= 18 && now < 21;
-}
-
-test('returns true at 8 PM', () => {
-  expect(isHappyHour(20)).toBe(true);
-});
-
-test('returns false at 10 AM', () => {
-  expect(isHappyHour(10)).toBe(false);
-});
+// Bad: depends on wall clock
+function isHappyHour() { const now = new Date().getHours(); return now >= 18 && now < 21; }
+// Good: inject time
+function isHappyHour(now: number) { return now >= 18 && now < 21; }
+test('8 PM', () => { expect(isHappyHour(20)).toBe(true); });
 ```
 
 ### Factory Helpers
@@ -449,230 +382,91 @@ function makeDeck(cards: SRSCard[]): SRSDeck {
 
 ## Anti-pollution Rules
 
-Bun's `mock.module()` is process-global and irrevocable. Once applied, every
-subsequent test file in the same process sees the mock. There is no cleanup.
+Bun's `mock.module()` is process-global and irrevocable. No cleanup.
 
-**Rule 1: Never `mock.module` shared modules.**
-Modules imported by multiple test files (e.g., `../api`, stores, hooks) must
-NOT be mocked via `mock.module`. This causes cascading failures when test
-execution order changes.
+**Rules:**
+1. **Never `mock.module` shared modules** — cascading failures on import order change
+2. **Use `__setRPC` for API mocking** — runtime DI, no module pollution
+3. **Use `store.setState()` for store reset** — direct Zustand, never mock store module
+4. **`mock.module` safe only for leaf modules** — imported by exactly one test file (layouts, StatCard, MermaidDiagram)
+5. **Reset global singletons in `afterEach`** — i18n, console, timers. Not restored by Zustand.
 
-**Rule 2: Use `__setRPC` for API mocking.**
-`api.ts` exports `__setRPC(mock)` which swaps the internal RPC handler at
-runtime. Each test file calls `beforeAll(() => __setRPC(...))` independently.
-No module-level pollution.
+**Safe targets** (single-consumer): `PageLayout/Header/Content`, `StudyTools`, `MermaidDiagram`, `NoteEditor`, `react-markdown`
 
-**Rule 3: Use `store.setState()` for store state.**
-Zustand stores expose `setState()` — call it directly in `beforeEach` to
-reset state. Never mock the store import.
-
-**Rule 4: `mock.module` is safe ONLY for isolated leaf modules.**
-Modules that are imported by exactly one test file and have no downstream
-test dependencies. Examples: layout stubs (PageLayout, PageHeader,
-PageContent), leaf component stubs (StatCard, MermaidDiagram).
-
-**Rule 5: Reset global singletons in `afterEach`.**
-If your code modifies global state (i18n, console, timers), restore it in
-`afterEach` (not `beforeEach` — the mutation may happen as the last test).
-Zustand `setState()` does not restore external singletons.
-
-**Safe mock targets (only used by one test file):**
-- `../layouts/PageLayout`, `PageHeader`, `PageContent` (page snapshot tests)
-- `../components/StudyTools`, `MermaidDiagram`, `NoteEditor` (section tests)
-- `react-markdown` (LessonSection tests only)
-
-**Dangerous mock targets (shared across test files):**
-- `../api` → affects ALL stores, hooks, sections, pages
-- `../hooks/useFoo` → affects hook tests and component tests
-- `../components/ui` → affects any component importing Button
-- Any Zustand store module → affects all tests that import that store
+**Dangerous targets** (shared): `../api`, `../hooks/*`, `../components/ui`, any Zustand store
 
 ## act() Wrapping Rule
 
-`render()` and `renderHook()` already call `act()` internally — do NOT wrap
-them in `act()`. Only wrap state mutations (user clicks, store.setState, etc.)
-in `act()` when they trigger async updates outside `waitFor()`.
+`render()` and `renderHook()` already call `act()` — do NOT wrap them. Only wrap state mutations outside `waitFor()`.
 
 ```typescript
-import { act, render, waitFor } from '@testing-library/react';
-
-// ✅ Correct — render is NOT wrapped in act
-test('shows loading', () => {
-  render(<Component />);
-  expect(screen.getByText('Loading')).toBeInTheDocument();
-});
-
-// ✅ Correct — waitFor handles async updates
+// ✅ waitFor handles async
 test('loads data', async () => {
-  const { container } = render(<Component />);
-  await waitFor(() => {
-    expect(container.textContent).toContain('Loaded');
-  });
-});
-
-// ✅ Correct — userEvent handles act() internally
-test('toggles on click', async () => {
-  render(<Toggle />);
-  const user = userEvent.setup();
-  await user.click(screen.getByRole('button'));
-  expect(screen.getByText('On')).toBeInTheDocument();
+  render(<Component />);
+  await waitFor(() => expect(screen.getByText('Loaded')).toBeInTheDocument());
 });
 ```
 
-**Never use `Bun.sleep(N)` or `setTimeout(r, N)` as a wait mechanism.** They
-bypass React's microtask queue, causing updates to land outside `act()`. Use
-`waitFor()` instead — it polls the assertion deterministically.
+**Never use `Bun.sleep(N)` or `setTimeout(r, N)`** — bypasses React microtask queue. Use `waitFor()`.
 
-**For non-React store tests** (pure `useXStore.getState()` without renderHook),
-you can await a microtask flush:
+**For non-React store tests**, flush microtasks:
 ```typescript
 await new Promise(r => setTimeout(r, 0));
 expect(useStore.getState().field).toEqual(expected);
 ```
 
-## Noise Reduction Rules
-
-### Rule: Use shared test-utils for RPC mocking
-Import from `../test-utils` instead of copy-pasting the mockRPC proxy in every
-file. This cuts ~15 lines per test file and ensures consistent mock behavior.
-
-```typescript
-import { setupRPC, mockResponse, clearMocks } from '../test-utils';
-```
-
-### Rule: Mock ALL RPC methods the code under test calls
-Every test must mock every RPC method the code will invoke — including methods
-called during initialization (useEffect, store.load(), etc.). Missing mocks
-cause error-path-by-accident: the test passes because the catch block handles
-the error, not because the happy path works.
-
-Bad:  mockResponse('coursesList', data) only
-Good: mockResponse('coursesList', data); mockResponse('getCompletedModuleIDs', [])
-
-How to find required mocks: read the hook/store source, list every api.* call,
-map each to its RPC method name.
-
-### Rule: Never use setTimeout as async wait
-`await new Promise(r => setTimeout(r, 10))` is flaky and bypasses React's
-microtask queue. Use `waitFor()` from @testing-library/react instead.
-
-Bad:  await new Promise(r => setTimeout(r, 10));
-      expect(store.getState().courses).toEqual(data);
-
-Good: await waitFor(() => {
-        expect(store.getState().courses).toEqual(data);
-      });
-
-For non-React code (pure store tests without renderHook), use:
-      await new Promise(r => setTimeout(r, 0));
-      // then assert — one tick is enough for Promise resolution.
-
-### Rule: No smoke tests
-"Renders without crashing" / "returns initial state" tests that only check
-`toBeDefined()` or `toBeTruthy()` add zero value. Every test must assert
-a specific behavior or state transition.
-
-Bad:  test('renders', () => { render(<C />); expect(screen.getByTestId('x')).toBeTruthy(); });
-Good: test('shows loading spinner while fetching', () => { ... expect(screen.getByText('Loading')).toBeInTheDocument(); });
-
-### Rule: Prefer getByRole/getByText/getByTestId over CSS selectors
-Never query DOM by Tailwind class names (e.g. `container.querySelector('.bg-gray-800 button')`).
-These break on any style refactor. Use:
-- `getByRole('button', { name: /show answer/i })` — best, tests accessible name
-- `getByText('Show Answer')` — tests visible text
-- `getByTestId('show-answer')` — fallback when no accessible name or text
-
-If using `querySelector`, never use `!` (non-null assertion) — use `getBy*` which throws a clear error on missing elements.
-
-Bad:  container.querySelector('button.bg-emerald-700')!
-Good: container.querySelector('[data-testid="btn-remembered"]')!
-Better: screen.getByRole('button', { name: /remembered/i })
-
-### Rule: Add data-testid to source components for test stability
-When a component has no accessible role or text to query by, add a `data-testid`
-attribute in the source component. This is the stable contract between test and
-implementation — Tailwind class changes don't break it.
-
 ## Dependency Tiers
 
-When writing tests, know the mock cost of what you're testing:
+Mock cost by test target:
 
-| Tier | Description | Mock Cost | Examples |
-|------|-------------|-----------|----------|
-| 1 | Pure state, no API | Zero mocks | `viewStore`, `lessonUIStore`, `useSelection`, `useLessonSearch`, `useShortcuts` |
-| 2 | API only, no cross-store | Mock RPC methods | `bookmarksStore`, `highlightsStore`, `notesStore`, `syncStore`, `useBookmarks`, `useHighlights`, `useNotes`, `useQuizEngine` |
-| 3 | API + cross-store | Mock RPC + cross-store state | `courseStore` (completionStore cascade), `useLesson` (5+ deps) |
+| Tier | Mock Cost | Examples |
+|------|-----------|----------|
+| 1 | Zero | `viewStore`, `lessonUIStore`, `useSelection`, `useLessonSearch`, `useShortcuts` |
+| 2 | Mock RPC | `bookmarksStore`, `highlightsStore`, `notesStore`, `syncStore`, `useBookmarks`, `useQuizEngine` |
+| 3 | RPC + cross-store | `courseStore` (completionStore), `useLesson` (5+ deps) |
 
-**Tip:** Prefer testing Tier 1-2 code. Tier 3 code should be split into
-smaller, independently testable units where possible.
+Prefer Tier 1-2. Split Tier 3 code.
 
 ## Backend Unit Tests
 
-**Target:** `src/bun/*.ts` — pure business logic, parsers, storage.
+**Target:** `src/bun/*.ts`
 
 **Rules:**
-- Use `await import('./module')` + `mock.module()` for fs/dependency mocking.
-- Mutable stubs: create `mock(() => ...)` then `mockImplementation` in `beforeEach` for per-test control.
-- For fs operations: use `test-fs-shared.ts` helpers (`createTestFs`, `createFsFromMap`).
-- For `globalThis.fetch`: save/restore in `beforeEach`/`afterEach`.
-- Test error paths: use `mockErrorResponse()` from test-utils or delete the mock.
-- `test.each` for input matrices. `toEqual` for exact output comparison.
+- Use `await import('./module')` + `mock.module()` for fs mocking.
+- Mutable stubs: `mock(() => ...)` + `mockImplementation` in `beforeEach`.
+- For fs: use `test-fs-shared.ts` (`createTestFs`, `createFsFromMap`).
+- For `globalThis.fetch`: save/restore `beforeEach/afterEach`.
+- Error paths: `mockErrorResponse()` or `deleteMock()`.
 
 **Example:**
 
 ```typescript
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
-
 const mockReadFile = mock(() => Promise.resolve(''));
-
 void mock.module('node:fs/promises', () => ({
   readFile: mockReadFile,
   writeFile: mock(() => Promise.resolve(undefined)),
 }));
-
 const { parseCourse } = await import('./course-loader');
 
 describe('parseCourse', () => {
-  beforeEach(() => {
-    mockReadFile.mockImplementation(() => Promise.resolve(''));
-  });
-
-  test('parses valid YAML', async () => {
+  beforeEach(() => { mockReadFile.mockImplementation(() => Promise.resolve('')); });
+  test('valid YAML', async () => {
     mockReadFile.mockImplementation(() => Promise.resolve('title: Test'));
-    const result = await parseCourse('test-dir');
-    expect(result.title).toBe('Test');
+    expect((await parseCourse('test-dir')).title).toBe('Test');
   });
 });
 ```
 
 - **Framework:** `bun:test` (zero config, `bun test` to run)
-- **DOM:** `happy-dom` via `src/setup.ts` (auto-loaded)
-- **jest-dom matchers:** `toBeInTheDocument()`, `toBeVisible()`, `not.toBeInTheDocument()` available via `src/setup.ts` `expect.extend()`
-- **Component rendering:** `@testing-library/react`
-- **User interactions:** `@testing-library/user-event` (prefer over `fireEvent`)
+- **DOM:** `happy-dom` via `src/setup.ts`
+- **jest-dom matchers:** `toBeInTheDocument()`, `toBeVisible()`, `not.toBeInTheDocument()` via `src/setup.ts`
+- **Component rendering:** `@testing-library/react`; interactions: `@testing-library/user-event` (prefer over `fireEvent`)
 - **Imports:** `import { describe, expect, test } from 'bun:test'`
-- **Queries (priority order):** `getByRole` > `getByLabelText` > `getByPlaceholderText` > `getByText` > `getByTestId`. Prefer `screen.getBy*` over destructuring from `render()`.
-- **Arbitrary matchers:** Use `expect.any(Date)`, `expect.stringMatching(...)`, `expect.arrayContaining(...)`, `expect.objectContaining(...)` to handle non-deterministic or partial fields inside `toEqual`.
+- **Queries (priority):** `getByRole` > `getByLabelText` > `getByPlaceholderText` > `getByText` > `getByTestId`. Prefer `screen.getBy*` over destructuring.
+- **data-testid:** add in source component when no accessible role/text. Stable contract — Tailwind changes don't break.
+- **Arbitrary matchers:** `expect.any(Date)`, `expect.stringMatching()`, `expect.arrayContaining()`, `expect.objectContaining()` for non-deterministic/partial fields.
 - **Setup:** `src/setup.ts` handles happy-dom globals, electrobun mock, cleanup, jest-dom matchers
-- **Types:** No `Record<string, any>` — define concrete recursive types. Export shared types from source for test reuse.
-- **Co-location:** test files sit next to source files
-- **Naming:** depends on test nature — `<Name>.test.ts` (unit), `<Name>.page.test.tsx` (page snapshot), `<Name>.component.test.tsx` (component), `<Name>.hook.test.ts` (hook), `<Name>.store.test.ts` (store), `<Name>.regr.test.ts` (regression)
-
-## Decision Tree
-
-```
-New code to test?
-├── Pure function / utility / parser / algorithm
-│   └── src/bun/*.ts, mainview/**/*.ts (pure logic) → <Name>.test.ts — no mocks, toEqual, test.each
-├── Page component (pages/*.tsx)
-│   ├── Structural check → <Name>.page.test.tsx — mock API+layouts, toMatchSnapshot
-│   └── Interaction → <Name>.component.test.tsx — userEvent, toBeInTheDocument, optional snapshot
-├── Section or UI component (sections/*.tsx, components/**/*.tsx)
-│   └── <Name>.component.test.tsx — minimal mocks, userEvent, toBeInTheDocument, optional snapshot
-├── Custom hook (hooks/use<Name>.ts)
-│   └── <Name>.hook.test.ts — mock API, renderHook, act, state transitions
-├── Zustand store (stores/<Name>.ts)
-│   └── <Name>.store.test.ts — mock API, setState, expect.soft, state transitions
-└── Bug fix
-    └── <Name>.regr.test.ts — DISPOSABLE, prove fix, prevent recurrence
-```
+- **Types:** No `Record<string, any>` — concrete recursive types. Export shared types for test reuse.
+- **Co-location:** test files next to source files
+- **Naming:** `<Name>.test.ts` (unit), `.page.test.tsx` (page snapshot), `.component.test.tsx` (component), `.hook.test.ts` (hook), `.store.test.ts` (store), `.regr.test.ts` (regression)

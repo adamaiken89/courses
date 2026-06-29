@@ -1,0 +1,95 @@
+- id: "2.1"
+  question: "MSW intercepts network at which level in Node tests?"
+  options:
+    A: "DNS resolution layer"
+    B: "fetch/http.request via @mswjs/interceptors"
+    C: "TCP socket layer"
+    D: "OS signal handler"
+  answer: B
+  explanation: "MSW uses @mswjs/interceptors to patch globalThis.fetch and http.request at the JavaScript runtime level. The interceptor checks the handler registry before deciding whether to respond or pass through."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "2.2"
+  question: "What does onUnhandledRequest: 'error' do in MSW test server setup?"
+  options:
+    A: "Logs warnings for unmocked requests without failing tests"
+    B: "Throws immediately for any request that has no matching handler"
+    C: "Prevents all network requests from being made"
+    D: "Silently ignores unmocked requests"
+  answer: B
+  explanation: "In test mode, MSW should never pass requests to real network. 'error' makes unmocked requests throw immediately, failing the test at the line that made the unmocked call. This prevents silent fake-success scenarios."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "2.3"
+  question: "How do you customize a handler for a single test without affecting others?"
+  options:
+    A: "Modify the shared handlers array"
+    B: "server.use(handler) — add override, resetHandlers in afterEach restores defaults"
+    C: "vi.mock('../handlers')"
+    D: "Use a different server instance per test"
+  answer: B
+  explanation: "server.use() adds a handler to the top of the handler stack, taking priority over shared defaults. server.resetHandlers() in afterEach removes all runtime-added handlers, restoring only the shared ones."
+  difficulty: 2
+  tags: [application]
+
+- id: "2.4"
+  question: "What does HttpResponse.error() simulate?"
+  options:
+    A: "HTTP 500 Internal Server Error"
+    B: "HTTP 404 Not Found"
+    C: "Network-level failure (TypeError: Failed to fetch)"
+    D: "HTTP 429 Too Many Requests"
+  answer: C
+  explanation: "HttpResponse.error() creates a TypeError indistinguishable from real network failure (offline, DNS failure, connection refused). This exercises the error handling code path, not the HTTP error path."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "2.5"
+  question: "Why use MSW over custom __setRPC proxy (as in reader project)?"
+  options:
+    A: "MSW has smaller bundle size"
+    B: "Same mocks work in dev browser and tests — handlers reusable"
+    C: "MSW needs zero setup files"
+    D: "MSW doesn't require handlers for each endpoint"
+  answer: B
+  explanation: "The primary advantage is cross-environment reuse. Define handlers once in handlers.ts, use them in dev (browser Service Worker) and test (Node interceptor). Custom proxies only work in test."
+  difficulty: 2
+  tags: [comparison]
+
+- id: "2.6"
+  question: "Where should shared request handlers live in a well-structured MSW setup?"
+  options:
+    A: "In each test file that needs them"
+    B: "In a shared handlers.ts file, imported by both browser.ts and server.ts"
+    C: "In the store definition file"
+    D: "In vitest.config.ts"
+  answer: B
+  explanation: "Shared handlers in a single file are imported by both browser.ts (dev) and server.ts (test). This ensures consistent mock behavior across environments and reduces duplication."
+  difficulty: 2
+  tags: [concept]
+
+- id: "2.7"
+  question: "What happens when MSW has no matching handler in test mode with default configuration?"
+  options:
+    A: "Request passes through to real network"
+    B: "MSW throws a NetworkError — test fails"
+    C: "Returns an empty HTTP 200 response"
+    D: "MSW hangs until timeout"
+  answer: B
+  explanation: "MSW defaults to throwing for unhandled requests in test mode. This is intentional: tests must never accidentally hit real APIs. The error message includes the request method and URL, making it easy to identify missing handlers."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "2.8"
+  question: "What's the benefit of seeing MSW-mocked requests in browser dev tools Network tab?"
+  options:
+    A: "No benefit — same as real network requests"
+    B: "Debugging: inspect request/response body, headers, timing just like real API calls"
+    C: "Only works in Chrome incognito mode"
+    D: "Shows the MSW handler source code in the response preview"
+  answer: B
+  explanation: "MSW-mocked requests appear in the Network tab with full request/response details including headers, timing, and response body. They're marked with an (MSW) badge. Ad-hoc proxies are invisible to dev tools, making debugging harder."
+  difficulty: 3
+  tags: [comparison]

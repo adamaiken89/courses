@@ -1,0 +1,95 @@
+- id: "1.1"
+  question: "Why should you NOT use mock.module() for zustand stores?"
+  options:
+    A: "It's deprecated in vitest"
+    B: "It's process-global and irrevocable — causes cascading failures in unrelated tests"
+    C: "It doesn't work with async stores"
+    D: "It requires TypeScript 5+"
+  answer: B
+  explanation: "mock.module() is process-global with no cleanup mechanism. Unlike jest.mock(), it can't be auto-unmocked between files. Once applied to a shared module like a store, every subsequent test file in the same process sees the mock."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "1.2"
+  question: "What is the recommended mechanism to reset zustand store state between tests?"
+  options:
+    A: "vi.resetModules()"
+    B: "useStore.setState(defaults) in beforeEach"
+    C: "Create a new store instance in each test"
+    D: "useStore.destroy()"
+  answer: B
+  explanation: "store.setState() merges provided defaults into current state. Called in beforeEach, it gives each test a clean slate without touching module resolution or creating new store instances."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "1.3"
+  question: "Factory functions for store state help with:"
+  options:
+    A: "Making tests run faster"
+    B: "Centralizing defaults so new store fields auto-propagate to all tests"
+    C: "Reducing TypeScript errors by skipping type checks"
+    D: "Eliminating the need for beforeEach"
+  answer: B
+  explanation: "When a new field is added to the store, the factory function's default value automatically applies to every test. Without a factory, each test's spread object must be updated individually — some get missed, causing inconsistent failures."
+  difficulty: 2
+  tags: [concept]
+
+- id: "1.4"
+  question: "In a pure store test (without React rendering), how do you wait for async thunks to resolve?"
+  options:
+    A: "await waitFor(() => ...)"
+    B: "await new Promise(r => setTimeout(r, 0)) — flushMicrotasks"
+    C: "await act(async () => ...)"
+    D: "vitest.sleep(100)"
+  answer: B
+  explanation: "waitFor is from testing-library and depends on React's async context. Pure store tests don't have that. A single microtask tick (setTimeout 0) resolves zustand's async thunks deterministically."
+  difficulty: 2
+  tags: [application]
+
+- id: "1.5"
+  question: "What's the correct way to set zustand store to a specific state before testing a component's loading UI?"
+  options:
+    A: "useStore.getState().loading = true"
+    B: "useStore.setState({ loading: true })"
+    C: "Directly assign to store property"
+    D: "Pass loading prop to component"
+  answer: B
+  explanation: "store.setState() triggers React re-renders for subscribed components. Direct property assignment bypasses zustand's subscription mechanism. Components won't re-render."
+  difficulty: 2
+  tags: [application]
+
+- id: "1.6"
+  question: "When testing a store that uses Zustand's persist middleware, what's the simplest approach?"
+  options:
+    A: "Mock localStorage entirely with vi.mock"
+    B: "Use store.setState() to simulate loaded state after creation"
+    C: "Import the store twice in each test"
+    D: "Use jest.spyOn(Storage.prototype, 'getItem')"
+  answer: B
+  explanation: "store.setState() avoids test order dependency on localStorage state and doesn't require setting up localStorage contents before store creation. It's simpler and more reliable."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "1.7"
+  question: "What happens if two test files both use mock.module('../stores/courseStore')?"
+  options:
+    A: "Works fine — each test file has its own scope"
+    B: "The second file's mock silently overrides the first, breaking the first file's tests if they run in the same process"
+    C: "vitest throws a warning but continues normally"
+    D: "Tests become slower but still correct"
+  answer: B
+  explanation: "mock.module() is process-global with no cleanup. Once applied, every subsequent test file sees the mock. The second file's mock replaces the first's, and the first file's tests will fail when run after the second file."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "1.8"
+  question: "What pattern does the reader project use instead of mock.module for API mocking in store tests?"
+  options:
+    A: "jest.mock() with automock"
+    B: "Proxy-based DI via __setRPC or MSW"
+    C: "axios interceptors only"
+    D: "Conditional exports in package.json"
+  answer: B
+  explanation: "The reader project uses __setRPC Proxy pattern (custom) or MSW (recommended) for API mocking. Both inject mock responses at runtime without modifying module resolution, avoiding pollution."
+  difficulty: 3
+  tags: [comparison]

@@ -1,0 +1,95 @@
+- id: "4.1"
+  question: "What does userEvent provide that fireEvent does NOT?"
+  options:
+    A: "Synchronous execution"
+    B: "Full event interaction chain (hover → focus → click)"
+    C: "Faster test execution"
+    D: "Built-in assertion matchers"
+  answer: B
+  explanation: "userEvent simulates the complete user interaction chain (mousedown, mouseup, click, focus, blur) with realistic async timing. fireEvent dispatches a single event type."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "4.2"
+  question: "Why create a new userEvent instance per test?"
+  options:
+    A: "Better performance"
+    B: "Prevents shared state leakage (keyboard, clipboard, pointer position)"
+    C: "Required by TypeScript"
+    D: "No reason — can use one global instance"
+  answer: B
+  explanation: "userEvent instances hold state (keyboard modifiers, clipboard, pointer position). A shared instance leaks state between tests, causing non-deterministic failures."
+  difficulty: 1
+  tags: [concept]
+
+- id: "4.3"
+  question: "What should you use instead of Bun.sleep(N) as an async wait mechanism?"
+  options:
+    A: "setTimeout in a Promise"
+    B: "waitFor with an assertion callback"
+    C: "act with no arguments"
+    D: "console.log as a debug breakpoint"
+  answer: B
+  explanation: "waitFor polls the assertion callback every ~50ms, passing when the assertion succeeds. It's deterministic — faster on fast machines, still correct on slow CI. Bun.sleep is a fixed delay that's either too slow or flaky."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "4.4"
+  question: "What does screen.findByText('Submit') do internally?"
+  options:
+    A: "Adds 'Submit' text to the DOM"
+    B: "Calls waitFor(() => screen.getByText('Submit'))"
+    C: "Calls screen.getByText('Submit') synchronously"
+    D: "Uses document.querySelector to find the element"
+  answer: B
+  explanation: "findBy* queries are shorthand for waitFor(getBy*). They poll until the element appears or the default timeout (1000ms) expires."
+  difficulty: 2
+  tags: [terminology]
+
+- id: "4.5"
+  question: "When do you need to manually wrap code in act()?"
+  options:
+    A: "Inside waitFor callbacks"
+    B: "Direct store mutations that trigger React re-renders outside testing-library's scope"
+    C: "Inside render() calls"
+    D: "Never — act is always automatic"
+  answer: B
+  explanation: "render, userEvent, and waitFor all call act internally. Manual act() is needed for direct state mutations (e.g., store.setState) that trigger React re-renders outside those scopes."
+  difficulty: 2
+  tags: [application]
+
+- id: "4.6"
+  question: "Which assertion pattern is correct for waiting for text to appear after an async update?"
+  options:
+    A: "await Bun.sleep(500); expect(screen.getByText('Done')).toBeInTheDocument()"
+    B: "await waitFor(() => expect(screen.getByText('Done')).toBeInTheDocument())"
+    C: "await new Promise(r => setTimeout(r, 500)); expect(screen.getByText('Done')).toBeInTheDocument()"
+    D: "act(() => { expect(screen.getByText('Done')).toBeInTheDocument() })"
+  answer: B
+  explanation: "waitFor polls the assertion until it passes or times out. Fixed delays (Bun.sleep, setTimeout) are flaky — they might pass locally but fail in CI when the system is slower."
+  difficulty: 1
+  tags: [application]
+
+- id: "4.7"
+  question: "What happens when waitFor times out?"
+  options:
+    A: "Returns null silently"
+    B: "Throws an error with the callback's last error message"
+    C: "Logs a warning and continues"
+    D: "Reruns the test from the beginning"
+  answer: B
+  explanation: "WaitFor throws the last error the callback produced, with a message like 'Timed out in waitFor after 1000ms'. This includes the assertion error that last failed."
+  difficulty: 2
+  tags: [terminology]
+
+- id: "4.8"
+  question: "When should you use fireEvent instead of userEvent?"
+  options:
+    A: "Never — userEvent is always correct"
+    B: "When testing non-interactive elements or dispatching events in loops (performance tests)"
+    C: "When testing keyboard input"
+    D: "When testing form submissions"
+  answer: B
+  explanation: "fireEvent is useful for performance testing (dispatching thousands of events), testing event handler internals in isolation, or dispatching events on non-interactive elements. For any user behavior simulation, userEvent is correct."
+  difficulty: 3
+  tags: [scenario]

@@ -1,9 +1,22 @@
-import { render } from '@testing-library/react';
+import { act, render, type RenderResult } from '@testing-library/react';
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import type { ReactElement } from 'react';
 
 import type { Course, ModuleMeta } from '../../bun/types';
 import i18n from '../i18n';
 import { useCompletionStore } from '../stores/completionStore';
+import { clearMocks, mockResponse, setupRPC } from '../test-utils';
+
+setupRPC();
+
+async function renderAndSettle(ui: ReactElement): Promise<RenderResult> {
+  let result!: RenderResult;
+  await act(async () => {
+    result = render(ui);
+    await new Promise((r) => setTimeout(r, 0));
+  });
+  return result;
+}
 
 void mock.module('../components/CourseSwitcher', () => ({
   default: ({ currentCourseId, onSelect }: { currentCourseId?: string; onSelect: () => void }) => (
@@ -55,6 +68,8 @@ const mockCourse: Course = {
 
 describe('ModuleListPage', () => {
   beforeEach(() => {
+    clearMocks();
+    mockResponse('getCompletedModuleIDs', []);
     void i18n.changeLanguage('en-US');
     useCompletionStore.setState({
       completed: {},
@@ -64,8 +79,8 @@ describe('ModuleListPage', () => {
     });
   });
 
-  test('renders all modules', () => {
-    const { container } = render(
+  test('renders all modules', async () => {
+    const { container } = await renderAndSettle(
       <ModuleListPage
         course={mockCourse}
         onSelectModule={() => {}}
@@ -79,9 +94,9 @@ describe('ModuleListPage', () => {
     expect(container.textContent).toContain('Module 2');
   });
 
-  test('calls onSelectModule when module clicked', () => {
+  test('calls onSelectModule when module clicked', async () => {
     let selected: ModuleMeta | null = null;
-    const { container } = render(
+    const { container } = await renderAndSettle(
       <ModuleListPage
         course={mockCourse}
         onSelectModule={(m) => {
@@ -99,11 +114,11 @@ describe('ModuleListPage', () => {
     expect(selected!.id).toBe('mod-01');
   });
 
-  test('shows completed badge for completed modules', () => {
+  test('shows completed badge for completed modules', async () => {
     useCompletionStore.setState({
       completed: { 'cs101:mod-01': true },
     });
-    const { container } = render(
+    const { container } = await renderAndSettle(
       <ModuleListPage
         course={mockCourse}
         onSelectModule={() => {}}
@@ -117,8 +132,8 @@ describe('ModuleListPage', () => {
     expect(completedBadge).toBeTruthy();
   });
 
-  test('renders CourseSwitcher with courseId', () => {
-    const { container } = render(
+  test('renders CourseSwitcher with courseId', async () => {
+    const { container } = await renderAndSettle(
       <ModuleListPage
         course={mockCourse}
         onSelectModule={() => {}}
@@ -133,9 +148,9 @@ describe('ModuleListPage', () => {
     expect(switcher!.getAttribute('data-current')).toBe('cs101');
   });
 
-  test('calls onOpenSettings when settings clicked', () => {
+  test('calls onOpenSettings when settings clicked', async () => {
     let called = false;
-    const { getByText } = render(
+    const { getByText } = await renderAndSettle(
       <ModuleListPage
         course={mockCourse}
         onSelectModule={() => {}}
@@ -151,9 +166,9 @@ describe('ModuleListPage', () => {
     expect(called).toBe(true);
   });
 
-  test('calls onOpenBookmarks when bookmarks clicked', () => {
+  test('calls onOpenBookmarks when bookmarks clicked', async () => {
     let called = false;
-    const { getByText } = render(
+    const { getByText } = await renderAndSettle(
       <ModuleListPage
         course={mockCourse}
         onSelectModule={() => {}}
@@ -169,8 +184,8 @@ describe('ModuleListPage', () => {
     expect(called).toBe(true);
   });
 
-  test('displays module topics', () => {
-    const { container } = render(
+  test('displays module topics', async () => {
+    const { container } = await renderAndSettle(
       <ModuleListPage
         course={mockCourse}
         onSelectModule={() => {}}

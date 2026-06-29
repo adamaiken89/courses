@@ -1,0 +1,95 @@
+- id: "10.1"
+  question: "What does expect.soft do?"
+  options:
+    A: "Marks assertion as optional"
+    B: "Continues to next assertion after failure, reporting all failures"
+    C: "Softly passes regardless of condition"
+    D: "Wraps assertion in try-catch"
+  answer: B
+  explanation: "expect.soft marks the failure but doesn't stop test execution. All failures are reported at the end. Useful for multi-field state validation."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "10.2"
+  question: "What's the difference between HTTP 500 error and network error in testing?"
+  options:
+    A: "No difference — both cause catch block execution"
+    B: "HTTP 500 — fetch succeeds (response.ok is false). Network error — fetch throws (rejected promise)"
+    C: "Both throw exceptions in different parts of the code"
+    D: "HTTP 500 is tested with MSW, network errors can't be tested"
+  answer: B
+  explanation: "HTTP 500 triggers the response.ok check (code path: if (!res.ok) throw...). Network error triggers the catch block directly (fetch rejects). Different code paths, both need testing."
+  difficulty: 2
+  tags: [concept]
+
+- id: "10.3"
+  question: "What's the minimum edge case set for a function that processes arrays?"
+  options:
+    A: "Only non-empty arrays"
+    B: "Empty array, single element, undefined/null input, large array"
+    C: "Empty array only"
+    D: "Arrays with numbers only"
+  answer: B
+  explanation: "Empty (no items), single (boundary), null/undefined (type check), large (performance/bounds). These four cases cover the most common failure modes."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "10.4"
+  question: "What does test.each help with?"
+  options:
+    A: "Running tests in parallel"
+    B: "Testing the same logic with different inputs systematically"
+    C: "Skipping slow tests"
+    D: "Generating test names automatically"
+  answer: B
+  explanation: "test.each runs the same test body with multiple parameter sets. Essential for edge case matrix coverage without code duplication."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "10.5"
+  question: "What common bug does error path testing catch that happy path testing misses?"
+  options:
+    A: "Missing CSS classes"
+    B: "Loading state never set to false after error"
+    C: "Incorrect text formatting"
+    D: "Wrong component layout"
+  answer: B
+  explanation: "Error handlers often forget to reset loading state. Happy path tests always see loading=false (the action completes). Error path tests catch the loading=true-stuck bug."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "10.6"
+  question: "How do you test that retry functionality works after an error?"
+  options:
+    A: "Mock the retry button as always visible"
+    B: "Use conditional handler: first call returns error, second returns success"
+    C: "Test only the error UI, not the retry"
+    D: "Retry cannot be tested with MSW"
+  answer: B
+  explanation: "Track call count in a closure. First call → error response. Second call (after retry click) → success response. Assert the UI transitions from error to success."
+  difficulty: 2
+  tags: [application]
+
+- id: "10.7"
+  question: "What does error recovery testing verify beyond basic error handling?"
+  options:
+    A: "The app shows an error message"
+    B: "The app returns to正常 operation after a temporary failure"
+    C: "The error is logged to console"
+    D: "The error handler doesn't crash"
+  answer: B
+  explanation: "Recovery tests verify the app isn't stuck in an error state. After a transient failure, subsequent operations should succeed. This catches bugs where error state prevents future actions."
+  difficulty: 3
+  tags: [concept]
+
+- id: "10.8"
+  question: "How do you simulate a malformed JSON response from the server?"
+  options:
+    A: "Return HttpResponse.error()"
+    B: "Return new HttpResponse('not-json', { headers: { 'Content-Type': 'application/json' } })"
+    C: "Return HttpResponse.json(null)"
+    D: "Remove the Content-Type header"
+  answer: B
+  explanation: "The server returns non-JSON body with JSON content-type header. This exercises the app's JSON.parse error handling. HttpResponse.error() simulates network failure, not malformed response."
+  difficulty: 2
+  tags: [application]

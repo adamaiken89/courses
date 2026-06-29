@@ -1,18 +1,5 @@
 # CourseReader — desktop study app (Electrobun + React)
 
-## Build & run
-
-```sh
-bun install              # install dependencies
-bun run start            # build + launch desktop app
-bun run dev              # launch dev mode (HMR via Vite)
-bun run dev:hmr          # Vite HMR + electobun concurrently
-bun run build            # production build
-bun test                 # run all tests (bun:test + happy-dom)
-bun run check            # tsc + eslint + prettier (run after every change)
-bun run knip             # find unused code/exports/dependencies
-```
-
 ## Architecture
 
 React 19 + TypeScript frontend, Bun backend, packaged as desktop app via Electrobun.

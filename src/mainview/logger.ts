@@ -2,7 +2,7 @@ const isDev = import.meta.env.DEV;
 
 function log(level: string, ...args: unknown[]) {
   const prefix = isDev ? `[${level.toUpperCase()}]` : '';
-  const fn = level === 'error' ? console.error : level === 'warn' ? console.warn : console.log; // eslint-disable-line no-console
+  const fn = level === 'error' ? console.error : level === 'warn' ? console.warn : console.log;
   fn(prefix, ...args);
 }
 

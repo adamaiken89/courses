@@ -1,0 +1,95 @@
+- id: "11.1"
+  question: "What do page snapshots catch best?"
+  options:
+    A: "Individual component styles"
+    B: "Unexpected structural changes in stable page layouts"
+    C: "JavaScript runtime errors"
+    D: "API response format changes"
+  answer: B
+  explanation: "Snapshots excel at detecting layout shifts, missing sections, and accidental component removal during refactors. They verify structure, not behavior."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "11.2"
+  question: "What's the problem with snapshot-only tests?"
+  options:
+    A: "They're slower than behavior tests"
+    B: "They don't verify any specific behavior — a changed snapshot might be a regression or an intentional change"
+    C: "They require more setup code"
+    D: "They don't work with TypeScript"
+  answer: B
+  explanation: "Without behavior assertions (like find by text), a snapshot-only test doesn't verify data loaded or interactions work. A refactor could change output and developer auto-updates without understanding."
+  difficulty: 1
+  tags: [concept]
+
+- id: "11.3"
+  question: "What's the correct order of operations in a snapshot test?"
+  options:
+    A: "Snapshot first, then behavior assertion"
+    B: "Behavior assertion first (data appeared), then snapshot"
+    C: "Snapshot only — no assertions needed"
+    D: "Either order — no difference"
+  answer: B
+  explanation: "Assert data appeared or state is correct first (behavior check). Then snapshot (structural check). This prevents empty loading-state snapshots and ensures the snapshot captures meaningful UI."
+  difficulty: 2
+  tags: [application]
+
+- id: "11.4"
+  question: "What makes a snapshot harmful?"
+  options:
+    A: "Catching real regressions"
+    B: "500+ lines of dynamic content that changes every test run"
+    C: "Testing stable page layouts"
+    D: "Snapshots that rarely change"
+  answer: B
+  explanation: "Large snapshots with dynamic content (dates, random IDs) generate noise every run. Developers auto-accept updates. The snapshot stops protecting against real regressions."
+  difficulty: 1
+  tags: [concept]
+
+- id: "11.5"
+  question: "When should you NOT update snapshots?"
+  options:
+    A: "After an intentional UI change"
+    B: "Before reviewing the snapshot diff — always inspect what changed first"
+    C: "After a component refactor that preserves behavior"
+    D: "When the snapshot is > 3 months old"
+  answer: B
+  explanation: "Always review the snapshot diff before updating. An unexpected change could be a real regression. Auto-update without review makes snapshots useless."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "11.6"
+  question: "What mock target is safe for page snapshot tests?"
+  options:
+    A: "The API layer (via __setRPC or MSW)"
+    B: "Leaf layout components used only by this test file"
+    C: "Shared component library components"
+    D: "Zustand stores"
+  answer: B
+  explanation: "Leaf layouts (PageLayout, PageHeader) imported by exactly one test file are safe mock targets. Never mock shared modules — use MSW for API and store.setState for stores."
+  difficulty: 2
+  tags: [application]
+
+- id: "11.7"
+  question: "What's the difference between inline and external snapshots?"
+  options:
+    A: "No difference — same output"
+    B: "Inline: visible in test file (small snapshots). External: __snapshots__/ directory (page layouts)"
+    C: "Inline: not compatible with vitest"
+    D: "External: deprecated in vitest"
+  answer: B
+  explanation: "Inline snapshots embed the expected output in the test file. Good for small focused outputs. External snapshots go in a __snapshots__/ directory. Better for larger page layouts."
+  difficulty: 2
+  tags: [terminology]
+
+- id: "11.8"
+  question: "How do you update snapshots when only one file's snapshot changes?"
+  options:
+    A: "Update all snapshots with --update"
+    B: "Run vitest with --update on the specific file only"
+    C: "Manually edit the snapshot file"
+    D: "Delete the snapshot file and re-run"
+  answer: B
+  explanation: "Run vitest with file filter + --update flag. Updating all snapshots risks accidentally accepting unexpected changes from other files."
+  difficulty: 2
+  tags: [application]

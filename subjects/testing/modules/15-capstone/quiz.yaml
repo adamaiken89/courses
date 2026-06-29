@@ -1,0 +1,95 @@
+- id: "15.1"
+  question: "What's the first step when refactoring a Tier 3 component?"
+  options:
+    A: "Mock all dependencies"
+    B: "Extract pure business logic (filtering, sorting, validation) into Tier 1 functions"
+    C: "Create a new component from scratch"
+    D: "Delete the component and write E2E tests"
+  answer: B
+  explanation: "Extract pure logic first — it's the easiest to test (zero mocks) and removes the most code from the Tier 3 component. Then apply DI to remaining dependencies."
+  difficulty: 1
+  tags: [scenario]
+
+- id: "15.2"
+  question: "After extracting pure logic and creating a hook boundary, what tier is the component?"
+  options:
+    A: "Still Tier 3"
+    B: "Tier 2 — mock the hook at import boundary"
+    C: "Tier 1 — zero mocks"
+    D: "Not testable"
+  answer: B
+  explanation: "With a hook boundary, the component only depends on one hook import. Mock the hook (safe because it's per-test-file), test the component's layout and conditional rendering."
+  difficulty: 2
+  tags: [concept]
+
+- id: "15.3"
+  question: "What's the key benefit of testing sub-components (ProgressSection, CompletedSection) separately?"
+  options:
+    A: "They're harder to test"
+    B: "They accept plain props — zero mocks, fast tests"
+    C: "They're not tested in the final suite"
+    D: "They need store mocking"
+  answer: B
+  explanation: "Sub-components that receive data via props are Tier 2 at most. They're fast to test, need no API or store mocking, and verify rendering logic in isolation."
+  difficulty: 2
+  tags: [concept]
+
+- id: "15.4"
+  question: "After the capstone refactoring, how many test files cover what was one Tier 3 component?"
+  options:
+    A: "1 test file"
+    B: "6-8 test files covering Tier 1 functions, Tier 2 hook, sub-components, and integration"
+    C: "No tests needed — refactoring made code self-documenting"
+    D: "3 test files"
+  answer: B
+  explanation: "Pure logic (3+ tests), hook (1-2 tests), sub-components (1 per component), integration (1-2 tests). 6-8 files total, but each is focused and fast."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "15.5"
+  question: "What does the hook boundary (useDashboardData) contain?"
+  options:
+    A: "Only store read calls"
+    B: "Store reads + memoized computed data using extracted pure functions"
+    C: "JSX rendering"
+    D: "API definition"
+  answer: B
+  explanation: "The hook reads stores, calls extracted pure functions with useMemo, and returns computed data. Components receive this data as props — they never call stores directly."
+  difficulty: 2
+  tags: [terminology]
+
+- id: "15.6"
+  question: "What's the integration test strategy for the refactored dashboard?"
+  options:
+    A: "Test with all real stores and MSW"
+    B: "Mock the hook (useDashboardData), test component layout and conditional rendering"
+    C: "No integration test — unit tests are enough"
+    D: "E2E test only"
+  answer: B
+  explanation: "Mock the hook at import boundary (safe since it's per-test-file). Test that the component renders correct sections based on hook return values. Sub-components tested separately."
+  difficulty: 2
+  tags: [application]
+
+- id: "15.7"
+  question: "What signals that a component is ready for the capstone refactoring process?"
+  options:
+    A: "Component is less than 20 lines"
+    B: "Component has 3+ store dependencies and inline data transformation"
+    C: "Component uses TypeScript"
+    D: "Component has Tailwind classes"
+  answer: B
+  explanation: "Tier 3 signal: multiple store reads, inline data processing, and setup code in tests exceeding assertion code. These are the candidates for the full refactoring process."
+  difficulty: 1
+  tags: [scenario]
+
+- id: "15.8"
+  question: "What's the final test coverage structure after the capstone refactoring?"
+  options:
+    A: "One large test file with many mocks"
+    B: "Many small test files — most Tier 1 (zero mocks), some Tier 2 (minimal mocks), one integration"
+    C: "Only E2E tests"
+    D: "No tests — refactoring eliminated the need"
+  answer: B
+  explanation: "The refactoring creates many small, focused testable units. Each has minimal mock cost. The total test code is comparable but tests are faster, more reliable, and catch specific failures."
+  difficulty: 3
+  tags: [scenario]

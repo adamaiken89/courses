@@ -1,0 +1,95 @@
+- id: "5.1"
+  question: "What causes 'not wrapped in act()' warning?"
+  options:
+    A: "Using async functions in tests"
+    B: "React state update that happens outside of any act() scope"
+    C: "Calling render() more than once per test"
+    D: "Using fireEvent instead of userEvent"
+  answer: B
+  explanation: "When a React state update (setState, store subscription, effect) fires outside of act(), React can't guarantee DOM is committed before assertions. The warning flag potential flakiness."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "5.2"
+  question: "What happens when you ignore act() warnings and the test still passes?"
+  options:
+    A: "Nothing — the test is reliable"
+    B: "The test is flaky — may fail on slower machines or CI"
+    C: "React throws a runtime error"
+    D: "The test becomes synchronous"
+  answer: B
+  explanation: "Ignored act warnings mean the assertion might run before the DOM is updated. Local machines might be fast enough, but CI (typically slower) triggers the race condition."
+  difficulty: 1
+  tags: [concept]
+
+- id: "5.3"
+  question: "Which testing-library function automatically runs inside act() scope?"
+  options:
+    A: "render()"
+    B: "userEvent.click()"
+    C: "waitFor()"
+    D: "All of the above"
+  answer: D
+  explanation: "render, userEvent, and waitFor all register act() scopes internally. Manual act() is only needed for code paths that update React state outside these functions."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "5.4"
+  question: "How do you fix act() warning caused by direct store.setState in a test?"
+  options:
+    A: "Remove the store.setState call"
+    B: "Wrap the store.setState in act()"
+    C: "Ignore the warning — it doesn't affect test results"
+    D: "Use console.error suppression"
+  answer: B
+  explanation: "When a React component is subscribed to the store, store.setState triggers a re-render. Wrapping it in act() ensures React commits the updated DOM before assertions run."
+  difficulty: 2
+  tags: [application]
+
+- id: "5.5"
+  question: "Why does waitFor fix async act() warnings?"
+  options:
+    A: "waitFor suppresses console.error"
+    B: "waitFor polls the assertion inside an act() scope"
+    C: "waitFor makes tests synchronous"
+    D: "waitFor increases the test timeout"
+  answer: B
+  explanation: "waitFor polls the assertion callback periodically. Each poll runs inside act(), so when the async update completes, React commits the DOM within the act scope and the assertion sees updated state."
+  difficulty: 2
+  tags: [application]
+
+- id: "5.6"
+  question: "In a pure store test (no React rendering), should act() warnings appear?"
+  options:
+    A: "Yes — always wrap store operations in act()"
+    B: "No — no React component is subscribed to the store, so no state updates to warn about"
+    C: "Sometimes — depends on the store's middleware"
+    D: "Only when using persist middleware"
+  answer: B
+  explanation: "act() warnings come from React state updates. If no React component is rendered, there's nothing for act() to scope. Pure store tests run fine without act()."
+  difficulty: 3
+  tags: [scenario]
+
+- id: "5.7"
+  question: "How do you fix act() warning from vi.advanceTimersByTime?"
+  options:
+    A: "Don't use fake timers"
+    B: "Wrap vi.advanceTimersByTime in act()"
+    C: "Use real timers instead"
+    D: "Increase the timeout value"
+  answer: B
+  explanation: "Fake timer callbacks often trigger React state updates (setTimeout → setState). Wrapping the timer advancement in act() scopes those updates."
+  difficulty: 2
+  tags: [application]
+
+- id: "5.8"
+  question: "What's the correct first step when you see an act() warning?"
+  options:
+    A: "Search for the fix on Stack Overflow"
+    B: "Trace the component that updated and identify the async operation causing the update outside act scope"
+    C: "Wrap the entire test body in act()"
+    D: "Add @ts-ignore to suppress the TypeScript error"
+  answer: B
+  explanation: "Identify which async operation (fetch completion, setTimeout callback, store subscription) triggers the React update outside act scope. The warning stack trace shows the component that updated."
+  difficulty: 3
+  tags: [scenario]

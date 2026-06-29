@@ -1,0 +1,95 @@
+- id: "14.1"
+  question: "What does a render count assertion detect?"
+  options:
+    A: "That the component renders correctly"
+    B: "Unnecessary re-renders — performance regression"
+    C: "Missing CSS styles"
+    D: "JavaScript runtime errors"
+  answer: B
+  explanation: "Render count detects unnecessary re-renders. After optimization (useMemo, React.memo), assert count decreased. Before optimization, assert baseline."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "14.2"
+  question: "How do you test that React.memo prevents re-render?"
+  options:
+    A: "It can't be tested"
+    B: "Render with same props twice — assert render spy called once"
+    C: "Check the component's source code for memo"
+    D: "Use console.log to verify"
+  answer: B
+  explanation: "Create a render spy in the component. Mount with props, then rerender with same props (same reference). Assert spy called only once — memo prevented second render."
+  difficulty: 2
+  tags: [application]
+
+- id: "14.3"
+  question: "What's the primary purpose of testing large list rendering?"
+  options:
+    A: "Verify CSS styling"
+    B: "Ensure the app doesn't crash with many items"
+    C: "Check individual item correctness"
+    D: "Test network performance"
+  answer: B
+  explanation: "Large list tests verify the app handles realistic data volumes without crashing, excessive memory use, or unacceptable render times."
+  difficulty: 1
+  tags: [concept]
+
+- id: "14.4"
+  question: "What must you do after using vi.useFakeTimers in a test?"
+  options:
+    A: "Nothing — vitest handles cleanup"
+    B: "Call vi.useRealTimers() in afterEach"
+    C: "Call vi.clearAllTimers()"
+    D: "Fake timers are permanent"
+  answer: B
+  explanation: "Fake timers persist beyond the test. Always restore with vi.useRealTimers() in afterEach to prevent polluting subsequent tests with non-functional timers."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "14.5"
+  question: "What does vi.advanceTimersByTime(5000) do?"
+  options:
+    A: "Moves system clock forward 5 seconds"
+    B: "Fires all pending timers that would fire within 5 seconds"
+    C: "Creates a 5-second delay in the test"
+    D: "Speeds up real timers by 5x"
+  answer: B
+  explanation: "advanceTimersByTime fires all timers (setTimeout, setInterval) that are due within the specified time. Timers fire synchronously in order."
+  difficulty: 2
+  tags: [terminology]
+
+- id: "14.6"
+  question: "How do you test that a debounced search only calls API once after typing?"
+  options:
+    A: "Use real timers and wait 500ms between keystrokes"
+    B: "Use fake timers, simulate keystrokes, advance time, assert call count"
+    C: "Debounce can't be tested"
+    D: "Count API calls in production monitoring"
+  answer: B
+  explanation: "Setup fake timers. Type characters rapidly (without advancing time). Advance time past the debounce delay. Assert API was called once, not N times."
+  difficulty: 2
+  tags: [application]
+
+- id: "14.7"
+  question: "When should you add performance tests?"
+  options:
+    A: "For every component at creation time"
+    B: "After identifying a performance bottleneck — not preemptively"
+    C: "Never — performance is QA's responsibility"
+    D: "Only for the homepage"
+  answer: B
+  explanation: "Performance tests add maintenance cost. Preemptive performance testing is wasteful. Add them after identifying a real bottleneck to prevent regression."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "14.8"
+  question: "What does React Profiler's actualDuration measure?"
+  options:
+    A: "Total time from app load"
+    B: "Time spent rendering a specific component and its children"
+    C: "Time until first paint"
+    D: "Network request duration"
+  answer: B
+  explanation: "actualDuration is the time React spent rendering the profiled component and all its children during that commit. Compare mount vs update durations."
+  difficulty: 3
+  tags: [terminology]

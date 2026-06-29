@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react';
+import { act, render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
 
@@ -121,14 +121,18 @@ describe('SettingsPage', () => {
 
   test('calls onBack when back button clicked', async () => {
     let called = false;
-    const { getByText } = render(
-      <SettingsPage
-        onBack={() => {
-          called = true;
-        }}
-      />,
-    );
-    getByText('← Back').click();
+    let renderResult!: ReturnType<typeof render>;
+    await act(async () => {
+      renderResult = render(
+        <SettingsPage
+          onBack={() => {
+            called = true;
+          }}
+        />,
+      );
+      await new Promise((r) => setTimeout(r, 0));
+    });
+    renderResult.getByText('← Back').click();
     expect(called).toBe(true);
   });
 });

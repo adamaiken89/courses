@@ -40,6 +40,8 @@ describe('courseStore', () => {
   });
 
   test('load sets error on failure', async () => {
+    const origError = console.error;
+    console.error = () => {};
     deleteMock('coursesList');
     try {
       await useCourseStore.getState().load();
@@ -48,6 +50,7 @@ describe('courseStore', () => {
     }
     expect(useCourseStore.getState().error).toBeTruthy();
     expect(useCourseStore.getState().loading).toBe(false);
+    console.error = origError;
   });
 
   test('reset clears state', () => {

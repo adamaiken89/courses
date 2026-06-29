@@ -1,0 +1,95 @@
+- id: "13.1"
+  question: "Why should CI tests have longer timeouts than local tests?"
+  options:
+    A: "CI tests are more complex"
+    B: "CI machines are typically slower and share resources with other jobs"
+    C: "CI automatically adjusts timeouts"
+    D: "Local tests don't need timeouts"
+  answer: B
+  explanation: "CI machines run on shared hardware with less CPU and more I/O contention. Same test can take 3x longer in CI. Longer timeouts prevent false-positive failures."
+  difficulty: 1
+  tags: [concept]
+
+- id: "13.2"
+  question: "What does --shard=2/4 do in vitest?"
+  options:
+    A: "Runs tests 2 at a time"
+    B: "Runs the second quarter of test files (shard 2 of 4)"
+    C: "Runs tests twice"
+    D: "Shards are not supported in vitest"
+  answer: B
+  explanation: "Sharding divides test files across N workers. Shard 2/4 runs 25% of test files. All shards combined give full coverage with 4x speed."
+  difficulty: 1
+  tags: [terminology]
+
+- id: "13.3"
+  question: "What's the danger of test retries > 2?"
+  options:
+    A: "Tests run slower"
+    B: "Retries mask flaky tests without fixing root causes, hiding real bugs"
+    C: "vitest doesn't support retries"
+    D: "Retries are only available in CI"
+  answer: B
+  explanation: "High retry counts hide intermittent failures. A test that fails 50% of the time passes via retries, but the unfixed root cause could cause production issues."
+  difficulty: 2
+  tags: [concept]
+
+- id: "13.4"
+  question: "When should you disable parallel test execution for a test file?"
+  options:
+    A: "Never — parallelism is always beneficial"
+    B: "When the test modifies global state (env, timers, localStorage) without proper cleanup"
+    C: "When the test has assertions"
+    D: "When using TypeScript"
+  answer: B
+  explanation: "Global state modifications without cleanup cause test pollution in parallel runs. Prefer fixing cleanup over disabling parallelism."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "13.5"
+  question: "What's the recommended flaky test management workflow?"
+  options:
+    A: "Ignore flaky tests — they're normal"
+    B: "Tag as test.flaky, create tracking issue, fix root cause in same sprint"
+    C: "Delete flaky tests"
+    D: "Add more retries until they always pass"
+  answer: B
+  explanation: "Tagging makes flakiness visible. Tracking issue ensures it's fixed. Same-sprint fix prevents accumulation of permanently-flaky tests."
+  difficulty: 2
+  tags: [scenario]
+
+- id: "13.6"
+  question: "What's the most common cause of flaky tests in CI?"
+  options:
+    A: "vitest bugs"
+    B: "Unmocked API calls or hardcoded async delays (Bun.sleep)"
+    C: "TypeScript errors"
+    D: "Test file too large"
+  answer: B
+  explanation: "Unmocked calls hit real network (fails in CI without network). Hardcoded delays (Bun.sleep(500)) are either too short (CI is slower) or too long (waste time). Always use waitFor for async assertions."
+  difficulty: 1
+  tags: [concept]
+
+- id: "13.7"
+  question: "How can you run only tests related to changed files in CI?"
+  options:
+    A: "Manually specify test file paths"
+    B: "Use vitest --changed HEAD~1 for PRs"
+    C: "vitest automatically detects changed files"
+    D: "This is not possible with vitest"
+  answer: B
+  explanation: "--changed HEAD~1 runs tests in files that changed since the previous commit. Useful for PR checks. Run full suite on main branch merge."
+  difficulty: 2
+  tags: [application]
+
+- id: "13.8"
+  question: "What's the optimal CI shard count for a 200-file test suite averaging 2s per file?"
+  options:
+    A: "1 shard — no parallelism needed"
+    B: "2-4 shards — ~100s → ~25-50s execution time"
+    C: "20 shards — maximum parallelism"
+    D: "Sharding doesn't improve speed"
+  answer: B
+  explanation: "200 files × 2s = 400s. 4 shards = ~100s each (plus overhead). Beyond 4-8 shards, overhead (worker startup) outweighs parallelism gains. Rule: 2-4 shards for 100 files, 6-8 for 500+."
+  difficulty: 3
+  tags: [scenario]
