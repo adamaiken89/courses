@@ -22,6 +22,7 @@ export const SHORTCUTS: Shortcut[] = [
   { key: 'c', id: 'reviewCards', scope: 'lessonToolbar' },
   { key: 'q', id: 'quiz', scope: 'lessonToolbar' },
   { key: 'r', id: 'review', scope: 'lessonToolbar' },
+  { key: 'x', id: 'cycleTransition', scope: 'lessonToolbar' },
 
   // ── Lesson content ──
   { key: 'ArrowLeft', id: 'prevModule', scope: 'lesson' },

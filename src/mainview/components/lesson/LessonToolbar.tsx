@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { Bookmark } from '../../../bun/types';
@@ -14,6 +15,7 @@ import { countCompleted, useCompletionStore } from '../../stores/completionStore
 import { useCourseStore } from '../../stores/courseStore';
 import { useLessonUIStore } from '../../stores/lessonUIStore';
 import { useSettingsStore } from '../../stores/settingsStore';
+import type { TransitionStyle } from '../../stores/settingsStore';
 import { useViewStore } from '../../stores/viewStore';
 import type { Theme } from '../../themes';
 import { Button } from '../ui';
@@ -76,6 +78,14 @@ export default function LessonToolbar() {
   const contentWidth = useSettingsStore((s) => s.contentWidth);
   const setContentWidth = useSettingsStore((s) => s.setContentWidth);
   const toggleFocusMode = useSettingsStore((s) => s.toggleFocusMode);
+  const transitionStyle = useSettingsStore((s) => s.transitionStyle);
+  const setTransitionStyle = useSettingsStore((s) => s.setTransitionStyle);
+
+  const cycleTransition = useCallback(() => {
+    const order: TransitionStyle[] = ['none', 'flip', 'slide', 'fade'];
+    const next = order[(order.indexOf(transitionStyle) + 1) % order.length];
+    setTransitionStyle(next);
+  }, [transitionStyle, setTransitionStyle]);
 
   const SHORTCUT: Record<string, string> = {
     decFontSize: shortcutKey('decFontSize') ?? '-',
@@ -89,6 +99,7 @@ export default function LessonToolbar() {
     reviewCards: shortcutKey('reviewCards') ?? 'c',
     quiz: shortcutKey('quiz') ?? 'q',
     review: shortcutKey('review') ?? 'r',
+    cycleTransition: shortcutKey('cycleTransition') ?? 'x',
   };
 
   useShortcuts('lessonToolbar', {
@@ -127,6 +138,7 @@ export default function LessonToolbar() {
       if (!course) return;
       push({ type: 'review', course });
     },
+    cycleTransition: () => cycleTransition(),
   });
 
   const s = (label: string, k: string) => `${label} (${SHORTCUT[k]})`;
@@ -171,7 +183,7 @@ export default function LessonToolbar() {
       {!focusMode && (
         <>
           <Button
-            variant={contentWidth === 'wide' ? 'toggleActive' : 'toggle'}
+            variant="secondary"
             size="sm"
             onClick={() => {
               const order: Array<'narrow' | 'standard' | 'wide'> = ['narrow', 'standard', 'wide'];
@@ -185,6 +197,21 @@ export default function LessonToolbar() {
               : contentWidth === 'standard'
                 ? t('lesson.standard')
                 : t('lesson.wide')}
+          </Button>
+          <div className="h-3 w-px bg-gray-600" />
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={cycleTransition}
+            title={s(`${t('settings.pageTransition')}: ${t(`settings.transition${transitionStyle.charAt(0).toUpperCase() + transitionStyle.slice(1)}`)}`, 'cycleTransition')}
+          >
+            {transitionStyle === 'none'
+              ? t('settings.transitionNone')
+              : transitionStyle === 'flip'
+                ? `↻ ${t('settings.transitionFlip')}`
+                : transitionStyle === 'slide'
+                  ? `→ ${t('settings.transitionSlide')}`
+                  : `◦ ${t('settings.transitionFade')}`}
           </Button>
           <div className="h-3 w-px bg-gray-600" />
           <Button
@@ -217,7 +244,6 @@ export default function LessonToolbar() {
       >
         {focusMode ? t('lesson.focusModeOn') : t('lesson.focusModeOff')}
       </Button>
-      <div className="h-3 w-px bg-gray-600" />
       <Button
         variant={showPomodoro ? 'toggleActive' : 'toggle'}
         size="sm"
@@ -272,7 +298,7 @@ export default function LessonToolbar() {
         <>
           <div className="h-3 w-px bg-gray-600" />
           <Button
-            variant="primary"
+            variant="secondary"
             size="sm"
             onClick={() => {
               if (!course || !module) return;

@@ -180,7 +180,16 @@
     "clearDataDesc": "永久刪除所有重點標示、筆記、書籤、已完成單元、學習紀錄和閃卡。此操作無法復原。",
     "clearAllData": "清除所有資料",
     "confirmClearData": "確定嗎？再點擊一次以確認。",
-    "clearDataSuccess": "所有資料已清除"
+    "clearDataSuccess": "所有資料已清除",
+    "pageTransition": "頁面過渡",
+    "transitionNone": "無",
+    "transitionNoneDesc": "立即切換，無動畫",
+    "transitionFlip": "翻頁",
+    "transitionFlipDesc": "3D 翻書效果",
+    "transitionSlide": "滑動",
+    "transitionSlideDesc": "水平滑動切換",
+    "transitionFade": "淡入淡出",
+    "transitionFadeDesc": "平滑交叉淡入淡出"
   },
   "studyTools": {
     "title": "學習工具",
@@ -228,7 +237,10 @@
     "results": "搜尋結果（{{count}}）",
     "inCourse": "在 {{course}} 中",
     "courseScope": "在 {{course}} 中",
-    "allCoursesHint": "點擊以搜尋所有課程",
+    "allCoursesHint": "無課程篩選 — 搜尋所有課程",
+    "addCourse": "新增課程",
+    "courseFilterPlaceholder": "篩選課程...",
+    "placeholderFiltered": "搜尋 {{count}} 個課程...",
     "lessonResult": "課程",
     "noteResult": "筆記",
     "highlightResult": "重點標示"

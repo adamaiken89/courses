@@ -17,6 +17,8 @@ export function useSettingsPage() {
   const setContentWidth = useSettingsStore((s) => s.setContentWidth);
   const locale = useSettingsStore((s) => s.locale);
   const setLocale = useSettingsStore((s) => s.setLocale);
+  const transitionStyle = useSettingsStore((s) => s.transitionStyle);
+  const setTransitionStyle = useSettingsStore((s) => s.setTransitionStyle);
 
   const lastSyncTime = useSyncStore((s) => s.lastSyncTime);
   const lastSyncedCommit = useSyncStore((s) => s.lastSyncedCommit);
@@ -47,6 +49,8 @@ export function useSettingsPage() {
     setContentWidth,
     locale,
     setLocale,
+    transitionStyle,
+    setTransitionStyle,
     lastSyncTime,
     lastSyncedCommit,
     isSyncing,

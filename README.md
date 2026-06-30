@@ -25,7 +25,7 @@
 - **Syntax highlighting** — code blocks rendered via highlight.js (custom dark theme)
 - **Reader navigation** — prev/next module and section buttons, font size controls (10–28px)
 - **Book-like reading** — 8 themes (Dark, OLED, Nord, Sepia, Gruvbox, Light, Solarized, Catppuccin), decorative headers, blockquotes, wide mode toggle
-- **Search** — ⌘K global search across lessons, notes, and highlights
+- **Search** — ⌘K global search across lessons, notes, and highlights, with section-level scroll-to on navigate
 - **Pomodoro timer** — focus/break timer with session tracking
 - **Dashboard** — per-course and global study stats
 - **Bookmarks page** — browse and jump to saved bookmarks

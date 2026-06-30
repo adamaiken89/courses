@@ -78,18 +78,18 @@ export default function App() {
   });
 
   const handleSearchNavigate = useCallback(
-    (courseID: string, moduleID: string) => {
+    (courseID: string, moduleID: string, _query?: string, sectionID?: string) => {
       const course = courses.find((c) => c.id === courseID);
       const mod = course?.modules.find((m) => m.id === moduleID);
       if (course && mod) {
-        startTransition(() => push({ type: 'lesson', course, module: mod }));
+        startTransition(() => push({ type: 'lesson', course, module: mod, sectionID }));
       }
     },
     [courses, push, startTransition],
   );
 
-  const handleSelectModule = (course: Course, module: ModuleMeta) => {
-    startTransition(() => push({ type: 'lesson', course, module }));
+  const handleSelectModule = (course: Course, module: ModuleMeta, sectionID?: string) => {
+    startTransition(() => push({ type: 'lesson', course, module, sectionID }));
   };
 
   const handleSwitchCourse = (course: Course) => {
@@ -139,7 +139,7 @@ export default function App() {
             module={currentView.module}
             initialSectionID={currentView.sectionID}
             onBack={() => replace({ type: 'moduleList', course: currentView.course })}
-            onSelectModule={(m) => handleSelectModule(currentView.course, m)}
+            onSelectModule={(m, sectionID) => handleSelectModule(currentView.course, m, sectionID)}
           />
         );
 

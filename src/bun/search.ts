@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import * as CourseLoader from './course-loader';
+import { processLessonMarkdown } from './lesson-markdown';
 import type { Course } from './types';
 
 export interface SearchResult {
@@ -10,6 +11,7 @@ export interface SearchResult {
   moduleID: string;
   moduleName: string;
   sectionID?: string;
+  sectionTitle?: string;
   snippet: string;
 }
 
@@ -48,13 +50,53 @@ function highlightMatches(text: string, query: string): string {
   const lower = text.toLowerCase();
   const qlower = query.toLowerCase();
   const idx = lower.indexOf(qlower);
-  if (idx === -1) return text.slice(0, 100);
-  const start = Math.max(0, idx - 40);
-  const end = Math.min(text.length, idx + query.length + 60);
+  if (idx === -1) return text.slice(0, 200);
+  const start = Math.max(0, idx - 80);
+  const end = Math.min(text.length, idx + query.length + 120);
   let snippet = text.slice(start, end);
   if (start > 0) snippet = '...' + snippet;
   if (end < text.length) snippet = snippet + '...';
   return snippet;
+}
+
+function findSectionForMatch(
+  content: string,
+  query: string,
+): { sectionID: string; sectionTitle: string; snippet: string } | null {
+  const { sections } = processLessonMarkdown(content);
+  if (!sections.length) return null;
+
+  const lines = content.split('\n');
+  const qLower = query.toLowerCase();
+
+  for (let i = 0; i < sections.length; i++) {
+    const heading = sections[i].heading;
+    const startLine = lines.findIndex((l) =>
+      l.toLowerCase().includes(`# ${heading.toLowerCase()}`),
+    );
+    if (startLine === -1) continue;
+
+    let endLine = lines.length;
+    for (let j = i + 1; j < sections.length; j++) {
+      const nextLine = lines.findIndex((l) =>
+        l.toLowerCase().includes(`# ${sections[j].heading.toLowerCase()}`),
+      );
+      if (nextLine > startLine) {
+        endLine = nextLine;
+        break;
+      }
+    }
+
+    const sectionText = lines.slice(startLine, endLine).join('\n');
+    if (sectionText.toLowerCase().includes(qLower)) {
+      return {
+        sectionID: sections[i].id,
+        sectionTitle: heading,
+        snippet: highlightMatches(sectionText, query),
+      };
+    }
+  }
+  return null;
 }
 
 function score(text: string, query: string): number {
@@ -88,13 +130,16 @@ export function searchAll(query: string, courseID?: string): SearchResult[] {
           const key = `lesson:${course.id}:${mod.id}`;
           if (!seen.has(key)) {
             seen.add(key);
+            const sectionMatch = findSectionForMatch(content, q);
             results.push({
               type: 'lesson',
               courseID: course.id,
               courseName: course.displayName,
               moduleID: mod.id,
               moduleName: mod.name,
-              snippet: highlightMatches(content, q),
+              sectionID: sectionMatch?.sectionID,
+              sectionTitle: sectionMatch?.sectionTitle,
+              snippet: sectionMatch?.snippet ?? highlightMatches(content, q),
             });
           }
         }

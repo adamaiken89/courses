@@ -561,3 +561,42 @@ body {
   text-transform: lowercase;
   pointer-events: none;
 }
+
+/* View transition animations */
+@keyframes view-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes view-slide-in-right {
+  from { opacity: 0; transform: translateX(40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes view-slide-in-left {
+  from { opacity: 0; transform: translateX(-40px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes view-flip-in {
+  from { opacity: 0; transform: perspective(1200px) rotateY(-15deg); }
+  to { opacity: 1; transform: perspective(1200px) rotateY(0deg); }
+}
+
+.anim-fade {
+  animation: view-fade-in 0.45s ease-out both;
+}
+
+.anim-slide-right {
+  animation: view-slide-in-right 0.45s ease-out both;
+}
+
+.anim-slide-left {
+  animation: view-slide-in-left 0.45s ease-out both;
+}
+
+.anim-flip {
+  animation: view-flip-in 0.35s ease-out both;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+}

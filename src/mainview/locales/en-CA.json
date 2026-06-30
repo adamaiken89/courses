@@ -180,7 +180,16 @@
     "clearDataDesc": "Permanently delete all highlights, notes, bookmarks, completed modules, study sessions, and flashcards. This cannot be undone.",
     "clearAllData": "Clear All Data",
     "confirmClearData": "Are you sure? Click again to confirm.",
-    "clearDataSuccess": "All data cleared"
+    "clearDataSuccess": "All data cleared",
+    "pageTransition": "Page Transition",
+    "transitionNone": "None",
+    "transitionNoneDesc": "Instant, no animation",
+    "transitionFlip": "Book Flip",
+    "transitionFlipDesc": "3D page flip effect",
+    "transitionSlide": "Slide",
+    "transitionSlideDesc": "Horizontal slide between views",
+    "transitionFade": "Fade",
+    "transitionFadeDesc": "Smooth cross-fade"
   },
   "studyTools": {
     "title": "Study Tools",
@@ -228,7 +237,10 @@
     "results": "Results ({{count}})",
     "inCourse": "in {{course}}",
     "courseScope": "in {{course}}",
-    "allCoursesHint": "Click to search all courses",
+    "allCoursesHint": "No course filter — searching all courses",
+    "addCourse": "Add course",
+    "courseFilterPlaceholder": "Filter courses...",
+    "placeholderFiltered": "Search in {{count}} course(s)...",
     "lessonResult": "Lesson",
     "noteResult": "Note",
     "highlightResult": "Highlight"

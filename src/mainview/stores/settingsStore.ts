@@ -6,6 +6,7 @@ import { THEMES } from '../themes';
 import { getStored, store } from './storage-utils';
 
 export type ContentWidth = 'narrow' | 'standard' | 'wide';
+export type TransitionStyle = 'none' | 'flip' | 'slide' | 'fade';
 
 interface SettingsState {
   fontSize: number;
@@ -15,6 +16,7 @@ interface SettingsState {
   hasApiKey: boolean;
   focusMode: boolean;
   locale: string;
+  transitionStyle: TransitionStyle;
   incFontSize: () => void;
   decFontSize: () => void;
   setFontSize: (v: number) => void;
@@ -25,6 +27,7 @@ interface SettingsState {
   setHasApiKey: (v: boolean) => void;
   toggleFocusMode: () => void;
   setLocale: (l: string) => void;
+  setTransitionStyle: (v: TransitionStyle) => void;
 }
 
 const migrateWidth = (): ContentWidth => {
@@ -43,6 +46,7 @@ export const useSettingsStore = create<SettingsState>((set) => ({
   showSections: getStored<boolean>('coursereader-sections', true),
   focusMode: getStored<boolean>('coursereader-focus', false),
   locale: getStored<string>('coursereader-locale', 'en-US'),
+  transitionStyle: getStored<TransitionStyle>('coursereader-transition', 'none'),
   hasApiKey: false,
 
   incFontSize: () =>
@@ -102,5 +106,10 @@ export const useSettingsStore = create<SettingsState>((set) => ({
     store('coursereader-locale', l);
     void i18n.changeLanguage(l);
     set({ locale: l });
+  },
+
+  setTransitionStyle: (v) => {
+    store('coursereader-transition', v);
+    set({ transitionStyle: v });
   },
 }));

@@ -126,6 +126,8 @@ export default function SettingsPage({ onBack }: Props) {
     setRepoURL: setRepoURLStore,
     locale,
     setLocale,
+    transitionStyle,
+    setTransitionStyle,
   } = useSettingsPage();
 
   useEffect(() => {
@@ -345,6 +347,27 @@ export default function SettingsPage({ onBack }: Props) {
               <div className="text-sm font-medium">{t('settings.wideLayout')}</div>
               <div className="text-[10px] text-gray-400 mt-0.5">{t('settings.wideDesc')}</div>
             </button>
+          </div>
+        </section>
+
+        <section className="bg-gray-800 rounded-xl p-6 mb-6">
+          <h3 className="text-lg font-semibold mb-4">{t('settings.pageTransition')}</h3>
+          <div className="grid grid-cols-2 gap-3">
+            {([
+              { id: 'none' as const, labelKey: 'settings.transitionNone', descKey: 'settings.transitionNoneDesc' },
+              { id: 'flip' as const, labelKey: 'settings.transitionFlip', descKey: 'settings.transitionFlipDesc' },
+              { id: 'slide' as const, labelKey: 'settings.transitionSlide', descKey: 'settings.transitionSlideDesc' },
+              { id: 'fade' as const, labelKey: 'settings.transitionFade', descKey: 'settings.transitionFadeDesc' },
+            ]).map((opt) => (
+              <button
+                key={opt.id}
+                onClick={() => setTransitionStyle(opt.id)}
+                className={`text-left ${selectableCardVariants({ selected: transitionStyle === opt.id })}`}
+              >
+                <div className="text-sm font-medium">{t(opt.labelKey)}</div>
+                <div className="text-[10px] text-gray-400 mt-0.5 leading-tight">{t(opt.descKey)}</div>
+              </button>
+            ))}
           </div>
         </section>
 
