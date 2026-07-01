@@ -3,11 +3,12 @@ import { cleanup } from '@testing-library/react';
 import { afterEach, expect, mock } from 'bun:test';
 import { Window } from 'happy-dom';
 
-import { fsMockState } from './testFsShared';
+import { fsMockImpl, fsMockState, mermaidMockImpl, mermaidMockState } from './testFsShared';
 
 expect.extend(jestDomMatchers);
 
 void mock.module('fs', () => fsMockState);
+void mock.module('mermaid', () => mermaidMockState);
 
 class MockElectroview {
   constructor(_config: Record<string, unknown>) {}
@@ -187,4 +188,18 @@ import './mainview/i18n';
 afterEach(() => {
   cleanup();
   document.body.innerHTML = '';
+  Object.assign(fsMockImpl, {
+    existsSync: () => false,
+    readFileSync: (_path: string) => '',
+    writeFileSync: (_path: string, _data: string) => {},
+    appendFileSync: (_path: string, _data: string) => {},
+    mkdirSync: () => {},
+    readdirSync: () => [] as Array<{ name: string; isDirectory: () => boolean }>,
+    unlinkSync: () => {},
+    rmSync: () => {},
+    cpSync: (_src: string, _dest: string) => {},
+  });
+  Object.assign(mermaidMockImpl, {
+    render: (..._args: unknown[]) => Promise.resolve({ svg: '<svg>mock</svg>' }),
+  });
 });

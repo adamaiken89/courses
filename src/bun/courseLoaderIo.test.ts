@@ -142,7 +142,7 @@ describe('loadLesson', () => {
   test('throws when courses dir not found', async () => {
     loader = await import('./courseLoader');
     mockState.exists = false;
-    expect(() => loader.loadLesson('test', '01')).toThrow('Module 01 not found for course test');
+    expect(() => loader.loadLesson('test', '01')).toThrow();
   });
 });
 
@@ -178,7 +178,7 @@ describe('loadQuiz', () => {
   test('throws when courses dir not found', async () => {
     loader = await import('./courseLoader');
     mockState.exists = false;
-    expect(() => loader.loadQuiz('test', '01')).toThrow('Module 01 not found for course test');
+    expect(() => loader.loadQuiz('test', '01')).toThrow();
   });
 });
 

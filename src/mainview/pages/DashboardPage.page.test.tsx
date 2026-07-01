@@ -24,24 +24,6 @@ void mock.module('../layouts/PageContent', () => ({
     <main data-testid="page-content">{children}</main>
   ),
 }));
-void mock.module('../components/ui/StatCard', () => ({
-  StatCard: ({
-    label,
-    value,
-    suffix,
-  }: {
-    label: string;
-    value: string | number;
-    suffix?: string;
-  }) => (
-    <div data-testid="stat-card">
-      <span>{label}</span>
-      <span>{String(value)}</span>
-      {suffix && <span>{suffix}</span>}
-    </div>
-  ),
-}));
-
 import DashboardPage from './DashboardPage';
 
 describe('DashboardPage', () => {

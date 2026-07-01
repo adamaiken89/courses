@@ -1,5 +1,5 @@
 [test]
 preload = "./src/setup.tsx"
 coverage = true
-coverageThreshold = 80
+coverageThreshold = 85
 coverageSkipTestFiles = true

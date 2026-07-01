@@ -52,7 +52,7 @@ void mock.module('../components/lesson/LessonToolbar', () => ({
 }));
 
 void mock.module('../components/SearchOverlay', () => ({
-  default: ({ onClose }: { onClose: () => void}) => (
+  default: ({ onClose }: { onClose: () => void }) => (
     <div data-testid="search-overlay">
       <button onClick={onClose}>Close Search</button>
     </div>

@@ -19,4 +19,9 @@ describe('StatCard', () => {
     const { container } = render(<StatCard label="Score" value="85%" />);
     expect(container.querySelector('.ml-1')).toBeNull();
   });
+
+  test('accepts optional color prop', () => {
+    const { getByTestId } = render(<StatCard label="Custom" value={42} color="#ff6600" />);
+    expect(getByTestId('stat-value')).toHaveStyle({ color: '#ff6600' });
+  });
 });

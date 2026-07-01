@@ -1,4 +1,4 @@
-import type { AppRequests } from '../bun/rpc-schema';
+import type { AppRequests } from '../bun/rpcSchema';
 import type { QuizQuestion, SRSDeck } from '../bun/types';
 import { logger } from './logger';
 import { rpc as defaultRpc } from './rpc';
@@ -6,7 +6,7 @@ import { showToast } from './toast';
 
 type TypedRPCRequest = {
   [K in keyof AppRequests]: (
-    params: AppRequests[K]['params'],
+    ...args: AppRequests[K]['params'] extends void ? [] : [params: AppRequests[K]['params']]
   ) => Promise<AppRequests[K]['response']>;
 };
 

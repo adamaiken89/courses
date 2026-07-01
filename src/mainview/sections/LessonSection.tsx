@@ -31,8 +31,8 @@ import { useSelection } from '../hooks/useSelection';
 import { useShortcuts } from '../hooks/useShortcuts';
 import { useHighlightsStore } from '../stores/highlightsStore';
 import { THEME_TOKENS, themeToCSSVars } from '../themes';
-import { components, getTextOffset } from './lessonHelpers';
 import LessonContext from './LessonContext';
+import { components, getTextOffset } from './lessonHelpers';
 interface Props {
   course: Course;
   module: ModuleMeta;
@@ -426,25 +426,27 @@ export default function LessonSection({
           )}
 
           {showSectionsPanel && (
-            <div
-              className={
-                showSections && !focusMode
-                  ? 'anim-panel-slide-right'
-                  : 'anim-panel-slide-right-exit'
-              }
-            >
-              <SectionsPanel
-                sections={sections}
-                visibleSection={visibleSection}
-                bookmarks={bookmarks}
-                onScrollToSection={scrollToSection}
-                onToggleSectionBookmark={handleToggleSectionBookmark}
-                onClose={toggleSections}
-                hasPrev={hasPrev}
-                hasNext={hasNext}
-                onPrevModule={goPrev}
-                onNextModule={goNext}
-              />
+            <div className="fixed right-4 top-1/2 -translate-y-1/2 z-50 overflow-visible">
+              <div
+                className={
+                  showSections && !focusMode
+                    ? 'anim-panel-slide-right'
+                    : 'anim-panel-slide-right-exit'
+                }
+              >
+                <SectionsPanel
+                  sections={sections}
+                  visibleSection={visibleSection}
+                  bookmarks={bookmarks}
+                  onScrollToSection={scrollToSection}
+                  onToggleSectionBookmark={handleToggleSectionBookmark}
+                  onClose={toggleSections}
+                  hasPrev={hasPrev}
+                  hasNext={hasNext}
+                  onPrevModule={goPrev}
+                  onNextModule={goNext}
+                />
+              </div>
             </div>
           )}
 

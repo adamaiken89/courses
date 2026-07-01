@@ -1,6 +1,6 @@
 import { Electroview } from 'electrobun/view';
 
-import type { AppSchema } from '../bun/rpc-schema';
+import type { AppSchema } from '../bun/rpcSchema';
 
 const rpcInstance = Electroview.defineRPC<AppSchema>({
   maxRequestTime: 30000,

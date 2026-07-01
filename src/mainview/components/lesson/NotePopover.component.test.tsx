@@ -12,6 +12,7 @@ const makeNote = (overrides = {}) => ({
   highlightID: null,
   sectionID: 'intro',
   createdAt: '2024-01-01',
+  updatedAt: '2024-01-01',
   ...overrides,
 });
 
@@ -48,9 +49,7 @@ describe('NotePopover', () => {
 
   test('mousedown inside does not call onClose', async () => {
     const onClose = mock(() => {});
-    const { getByTestId } = render(
-      <NotePopover {...defaultProps} onClose={onClose} />,
-    );
+    const { getByTestId } = render(<NotePopover {...defaultProps} onClose={onClose} />);
     await user.click(getByTestId('note-popover'));
     expect(onClose).not.toHaveBeenCalled();
   });

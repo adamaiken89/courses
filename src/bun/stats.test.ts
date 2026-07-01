@@ -1,36 +1,28 @@
-import { describe, expect, test, mock, beforeEach } from 'bun:test';
+import { describe, expect, test, beforeEach } from 'bun:test';
 
-import type { Course, SRSDeck } from './types';
 import { fsMockImpl } from '../testFsShared';
 
-const mockCourses: Course[] = [];
-const mockDeck: SRSDeck = { cards: {} };
+const mockSyllabi: Record<string, string> = {};
+const mockDirEntries: Array<{ name: string; isDirectory: () => boolean }> = [];
 
-let storageData: Record<string, unknown> = {
-  highlights: [],
-  notes: [],
-  bookmarks: [],
-  completedModules: [],
-  studySessions: [],
-  userCards: [],
-};
+let storageData: Record<string, unknown> = {};
 
-mock.module('./courseLoader', () => ({
-  loadCourses: () => mockCourses,
-  loadSRSDeck: () => mockDeck,
-}));
-
-mock.module('./srs', () => ({
-  getCardsForCourse: () => Object.values(mockDeck.cards),
-  getDueCardsForCourse: () => [],
-}));
+function addCourse(courseId: string, courseName: string, moduleNames: string[]) {
+  let yaml = `subject: ${courseName}\nmodules:\n`;
+  for (let i = 0; i < moduleNames.length; i++) {
+    const mid = `${String(i + 1).padStart(2, '0')}`;
+    yaml += `  - id: "${mid}"\n    name: ${moduleNames[i]}\n    time_hours: 1\n    prerequisites: []\n    topics: []\n`;
+  }
+  mockSyllabi[courseId] = yaml;
+  mockDirEntries.push({ name: courseId, isDirectory: () => true });
+}
 
 type Stats = typeof import('./stats');
 let stats: Stats;
 
 beforeEach(() => {
-  mockCourses.length = 0;
-  mockDeck.cards = {};
+  for (const k of Object.keys(mockSyllabi)) delete mockSyllabi[k];
+  mockDirEntries.length = 0;
   storageData = {
     highlights: [],
     notes: [],
@@ -39,12 +31,21 @@ beforeEach(() => {
     studySessions: [],
     userCards: [],
   };
+
   Object.assign(fsMockImpl, {
     existsSync: () => true,
-    readFileSync: () => JSON.stringify(storageData),
+    readdirSync: () => mockDirEntries,
+    readFileSync: (p: string) => {
+      if (p.includes('data.json')) return JSON.stringify(storageData);
+      if (p.includes('deck.json')) return JSON.stringify({ cards: {} });
+      const syllabusMatch = p.match(/\/([^/]+)\/syllabus\.yaml$/);
+      if (syllabusMatch && syllabusMatch[1] in mockSyllabi) {
+        return mockSyllabi[syllabusMatch[1]];
+      }
+      return '';
+    },
     writeFileSync: () => {},
     mkdirSync: () => {},
-    readdirSync: () => [],
     rmSync: () => {},
     cpSync: () => {},
   });
@@ -53,17 +54,7 @@ beforeEach(() => {
 describe('getCourseStats', () => {
   test('returns stats for valid course', async () => {
     stats = await import('./stats');
-    mockCourses.push({
-      id: 'math',
-      course: 'Math',
-      modules: [{ id: '01', name: 'Intro', timeHours: 2, prerequisites: [], topics: [] }],
-      displayName: 'Math',
-      timeBudgetHours: 20,
-      targetLevel: 'beginner',
-      domain: 'math',
-      prerequisites: [],
-      learningObjectives: [],
-    });
+    addCourse('math', 'Math', ['Intro']);
     const result = stats.getCourseStats('math');
     expect(result.courseID).toBe('math');
     expect(result.totalModules).toBe(1);
@@ -76,17 +67,7 @@ describe('getCourseStats', () => {
 
   test('computes avgQuizScore from quiz sessions', async () => {
     stats = await import('./stats');
-    mockCourses.push({
-      id: 'math',
-      course: 'Math',
-      modules: [],
-      displayName: 'Math',
-      timeBudgetHours: 20,
-      targetLevel: 'beginner',
-      domain: 'math',
-      prerequisites: [],
-      learningObjectives: [],
-    });
+    addCourse('math', 'Math', []);
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
@@ -115,17 +96,7 @@ describe('getCourseStats', () => {
 
   test('returns 0 avgQuizScore when no quiz sessions', async () => {
     stats = await import('./stats');
-    mockCourses.push({
-      id: 'math',
-      course: 'Math',
-      modules: [],
-      displayName: 'Math',
-      timeBudgetHours: 20,
-      targetLevel: 'beginner',
-      domain: 'math',
-      prerequisites: [],
-      learningObjectives: [],
-    });
+    addCourse('math', 'Math', []);
     const result = stats.getCourseStats('math');
     expect(result.avgQuizScore).toBe(0);
     expect(result.quizAttempts).toBe(0);
@@ -133,17 +104,7 @@ describe('getCourseStats', () => {
 
   test('computes totalStudyMinutes from sessions', async () => {
     stats = await import('./stats');
-    mockCourses.push({
-      id: 'math',
-      course: 'Math',
-      modules: [],
-      displayName: 'Math',
-      timeBudgetHours: 20,
-      targetLevel: 'beginner',
-      domain: 'math',
-      prerequisites: [],
-      learningObjectives: [],
-    });
+    addCourse('math', 'Math', []);
     const today = new Date();
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
@@ -159,33 +120,8 @@ describe('getCourseStats', () => {
 describe('getGlobalStats', () => {
   test('returns global stats across courses', async () => {
     stats = await import('./stats');
-    mockCourses.push(
-      {
-        id: 'math',
-        course: 'Math',
-        displayName: 'Mathematics',
-        modules: [
-          { id: '01', name: 'A', timeHours: 1, prerequisites: [], topics: [] },
-          { id: '02', name: 'B', timeHours: 1, prerequisites: [], topics: [] },
-        ],
-        timeBudgetHours: 20,
-        targetLevel: 'beginner',
-        domain: '',
-        prerequisites: [],
-        learningObjectives: [],
-      },
-      {
-        id: 'physics',
-        course: 'Physics',
-        displayName: 'Physics',
-        modules: [{ id: '01', name: 'C', timeHours: 1, prerequisites: [], topics: [] }],
-        timeBudgetHours: 20,
-        targetLevel: 'beginner',
-        domain: '',
-        prerequisites: [],
-        learningObjectives: [],
-      },
-    );
+    addCourse('math', 'Mathematics', ['A', 'B']);
+    addCourse('physics', 'Physics', ['C']);
     storageData.completedModules = [
       { courseID: 'math', moduleID: '01', completedAt: '2024-01-01' },
     ];

@@ -16,5 +16,10 @@ export function findSubjectsDir(): string | null {
   }
 
   console.log(`Subjects directory not found in ${candidate}. Checking bundle path...`);
-  return resolve(dir, '..', 'subjects');
+  const fallback = resolve(dir, '..', 'subjects');
+  if (existsSync(fallback)) {
+    return fallback;
+  }
+  console.log(`Subjects directory not found.`);
+  return null;
 }

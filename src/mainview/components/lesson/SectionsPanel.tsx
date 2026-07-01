@@ -50,7 +50,7 @@ export default function SectionsPanel({
   return (
     <div
       data-testid="sections-panel"
-      className="fixed right-4 top-1/2 -translate-y-1/2 z-50 w-64 bg-gray-800 border border-gray-700 rounded-lg shadow-xl flex flex-col max-h-[70vh]"
+      className="w-64 bg-gray-800 border border-gray-700 rounded-lg shadow-xl flex flex-col max-h-[70vh]"
     >
       {sections.length > 0 && (
         <>

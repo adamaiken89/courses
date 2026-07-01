@@ -77,6 +77,7 @@ describe('PomodoroTimer (full)', () => {
 });
 
 describe('PomodoroTimer (compact)', () => {
+  const user = userEvent.setup();
   test('idle compact shows focus button', () => {
     const { getByText } = render(<PomodoroTimer compact />);
     expect(getByText('Focus')).toBeInTheDocument();
@@ -93,5 +94,20 @@ describe('PomodoroTimer (compact)', () => {
     usePomodoroStore.setState({ status: 'paused' });
     const { getByText } = render(<PomodoroTimer compact />);
     expect(getByText('Resume')).toBeInTheDocument();
+  });
+
+  test('finished compact shows time and stop', () => {
+    usePomodoroStore.setState({ status: 'finished', remaining: 0 });
+    const { getByText } = render(<PomodoroTimer compact />);
+    expect(getByText('00:00')).toBeInTheDocument();
+    expect(getByText('Stop')).toBeInTheDocument();
+  });
+
+  test('finished full mode clicking focus calls start', async () => {
+    const start = mock(() => {});
+    usePomodoroStore.setState({ status: 'finished', remaining: 0, start });
+    const { getByRole } = render(<PomodoroTimer />);
+    await user.click(getByRole('button', { name: 'Focus' }));
+    expect(start).toHaveBeenCalledWith('focus');
   });
 });

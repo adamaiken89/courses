@@ -1,53 +1,71 @@
-import { beforeEach, describe, expect, mock, test } from 'bun:test';
+import { beforeEach, describe, expect, test } from 'bun:test';
 
 import { fsMockImpl } from '../testFsShared';
-import type { Course } from './types';
 
-const mockCourses: Course[] = [];
-const mockLessonContent: Map<string, string | null> = new Map();
+const mockSyllabi: Record<string, string> = {};
+const mockLessons: Record<string, string | null> = {};
+const mockDirEntries: Array<{ name: string; isDirectory: () => boolean }> = [];
+const mockCourseModules: Record<string, Array<{ name: string; isDirectory: () => boolean }>> = {};
+const mockStorageData: Record<string, unknown> = {};
 
-mock.module('./courseLoader', () => ({
-  loadCourses: () => mockCourses,
-  loadLesson: (courseID: string, modID: string) =>
-    mockLessonContent.get(`${courseID}:${modID}`) ?? null,
-}));
+function modDir(id: string, name: string): string {
+  return `${id}-${name.toLowerCase().replace(/\s+/g, '-')}`;
+}
+
+function addCourse(courseId: string, courseName: string, moduleNames: string[]) {
+  let yaml = `subject: ${courseName}\nmodules:\n`;
+  const modEntries: Array<{ name: string; isDirectory: () => boolean }> = [];
+  for (let i = 0; i < moduleNames.length; i++) {
+    const mid = `${String(i + 1).padStart(2, '0')}`;
+    yaml += `  - id: "${mid}"\n    name: ${moduleNames[i]}\n    time_hours: 1\n    prerequisites: []\n    topics: []\n`;
+    modEntries.push({ name: modDir(mid, moduleNames[i]), isDirectory: () => true });
+  }
+  mockCourseModules[courseId] = modEntries;
+  mockSyllabi[courseId] = yaml;
+  mockDirEntries.push({ name: courseId, isDirectory: () => true });
+}
+
+function setLesson(mod: string, content: string | null) {
+  mockLessons[mod] = content;
+}
 
 type Search = typeof import('./search');
 let search: Search;
 
-const mockStorageData: Record<string, unknown> = {};
-
 beforeEach(() => {
-  mockCourses.length = 0;
-  mockLessonContent.clear();
-  for (const key of Object.keys(mockStorageData)) delete mockStorageData[key];
-  fsMockImpl.existsSync = ((p: string) =>
-    p.includes('data.json')) as unknown as typeof fsMockImpl.existsSync;
-  fsMockImpl.readFileSync = (p: string) => {
-    if (p.includes('data.json')) return JSON.stringify(mockStorageData);
-    return '';
-  };
-});
+  for (const k of Object.keys(mockSyllabi)) delete mockSyllabi[k];
+  for (const k of Object.keys(mockLessons)) delete mockLessons[k];
+  for (const k of Object.keys(mockStorageData)) delete mockStorageData[k];
+  for (const k of Object.keys(mockCourseModules)) delete mockCourseModules[k];
+  mockDirEntries.length = 0;
 
-function makeCourse(id: string, name: string, mods: string[]): Course {
-  return {
-    id,
-    displayName: name,
-    course: name,
-    modules: mods.map((m, i) => ({
-      id: `${String(i + 1).padStart(2, '0')}`,
-      name: m,
-      timeHours: 1,
-      prerequisites: [],
-      topics: [],
-    })),
-    timeBudgetHours: 10,
-    targetLevel: 'beginner',
-    domain: 'math',
-    prerequisites: [],
-    learningObjectives: [],
-  };
-}
+  Object.assign(fsMockImpl, {
+    existsSync: () => true,
+    readdirSync: (p: string) => {
+      const modMatch = p.match(/\/([^/]+)\/modules$/);
+      if (modMatch && modMatch[1] in mockCourseModules) {
+        return mockCourseModules[modMatch[1]];
+      }
+      return mockDirEntries;
+    },
+    readFileSync: (p: string) => {
+      if (p.includes('data.json')) return JSON.stringify(mockStorageData);
+      const syllabusMatch = p.match(/\/([^/]+)\/syllabus\.yaml$/);
+      if (syllabusMatch && syllabusMatch[1] in mockSyllabi) {
+        return mockSyllabi[syllabusMatch[1]];
+      }
+      const lessonMatch = p.match(/\/([^/]+)\/lesson\.md$/);
+      if (lessonMatch && lessonMatch[1] in mockLessons) {
+        return mockLessons[lessonMatch[1]] ?? '';
+      }
+      return '';
+    },
+    writeFileSync: () => {},
+    mkdirSync: () => {},
+    rmSync: () => {},
+    cpSync: () => {},
+  });
+});
 
 describe('searchAll', () => {
   test('returns empty array for empty query', async () => {
@@ -58,8 +76,8 @@ describe('searchAll', () => {
 
   test('finds matches in lessons', async () => {
     search = await import('./search');
-    mockCourses.push(makeCourse('math', 'Math', ['Intro']));
-    mockLessonContent.set('math:01', 'This is about calculus and algebra');
+    addCourse('math', 'Math', ['Intro']);
+    setLesson(modDir('01', 'Intro'), 'This is about calculus and algebra');
 
     const results = search.searchAll('calculus');
     expect(results).toHaveLength(1);
@@ -69,10 +87,10 @@ describe('searchAll', () => {
 
   test('filters by courseID', async () => {
     search = await import('./search');
-    mockCourses.push(makeCourse('math', 'Math', ['Intro']));
-    mockCourses.push(makeCourse('physics', 'Physics', ['Intro']));
-    mockLessonContent.set('math:01', 'calculus content');
-    mockLessonContent.set('physics:01', 'physics content');
+    addCourse('math', 'Math', ['Intro']);
+    addCourse('physics', 'Physics', ['Intro']);
+    setLesson(modDir('01', 'Intro'), 'calculus content');
+    setLesson(modDir('01', 'Physics'), 'physics content');
 
     const results = search.searchAll('content', 'math');
     expect(results).toHaveLength(1);
@@ -81,8 +99,8 @@ describe('searchAll', () => {
 
   test('deduplicates results', async () => {
     search = await import('./search');
-    mockCourses.push(makeCourse('math', 'Math', ['Intro']));
-    mockLessonContent.set('math:01', 'calculus calculus calculus');
+    addCourse('math', 'Math', ['Intro']);
+    setLesson(modDir('01', 'Intro'), 'calculus calculus calculus');
 
     const results = search.searchAll('calculus');
     expect(results).toHaveLength(1);
@@ -90,8 +108,8 @@ describe('searchAll', () => {
 
   test('handles no matching results', async () => {
     search = await import('./search');
-    mockCourses.push(makeCourse('math', 'Math', ['Intro']));
-    mockLessonContent.set('math:01', 'algebra');
+    addCourse('math', 'Math', ['Intro']);
+    setLesson(modDir('01', 'Intro'), 'algebra');
 
     const results = search.searchAll('calculus');
     expect(results).toEqual([]);
@@ -99,8 +117,8 @@ describe('searchAll', () => {
 
   test('handles lesson load failure gracefully', async () => {
     search = await import('./search');
-    mockCourses.push(makeCourse('math', 'Math', ['Intro']));
-    mockLessonContent.set('math:01', null);
+    addCourse('math', 'Math', ['Intro']);
+    // No setLesson → readFileSync returns '' → falsy → skipped
 
     const results = search.searchAll('anything');
     expect(results).toEqual([]);
@@ -108,10 +126,10 @@ describe('searchAll', () => {
 
   test('sorts results by relevance', async () => {
     search = await import('./search');
-    mockCourses.push(makeCourse('math', 'Math', ['A', 'B', 'C']));
-    mockLessonContent.set('math:01', 'calculus algebra');
-    mockLessonContent.set('math:02', 'calculus');
-    mockLessonContent.set('math:03', 'other topic');
+    addCourse('math', 'Math', ['A', 'B', 'C']);
+    setLesson(modDir('01', 'A'), 'calculus algebra');
+    setLesson(modDir('02', 'B'), 'calculus');
+    setLesson(modDir('03', 'C'), 'other topic');
 
     const results = search.searchAll('calculus');
     expect(results).toHaveLength(2);
@@ -120,10 +138,10 @@ describe('searchAll', () => {
   test('caps results at 50', async () => {
     search = await import('./search');
     const mods = Array.from({ length: 60 }, (_, i) => `M${i}`);
-    mockCourses.push(makeCourse('big', 'Big', mods));
+    addCourse('big', 'Big', mods);
     for (let i = 0; i < 60; i++) {
-      const id = `${String(i + 1).padStart(2, '0')}`;
-      mockLessonContent.set(`big:${id}`, 'searchable content');
+      const mid = `${String(i + 1).padStart(2, '0')}`;
+      setLesson(modDir(mid, `M${i}`), 'searchable content');
     }
 
     const results = search.searchAll('searchable');
@@ -132,8 +150,8 @@ describe('searchAll', () => {
 
   test('case insensitive matching', async () => {
     search = await import('./search');
-    mockCourses.push(makeCourse('math', 'Math', ['Intro']));
-    mockLessonContent.set('math:01', 'CALCULUS AND ALGEBRA');
+    addCourse('math', 'Math', ['Intro']);
+    setLesson(modDir('01', 'Intro'), 'CALCULUS AND ALGEBRA');
 
     const results = search.searchAll('calculus');
     expect(results).toHaveLength(1);
@@ -141,15 +159,15 @@ describe('searchAll', () => {
 
   test('snippet contains query context', async () => {
     search = await import('./search');
-    mockCourses.push(makeCourse('math', 'Math', ['Intro']));
-    mockLessonContent.set('math:01', 'This is a long text about calculus and other things');
+    addCourse('math', 'Math', ['Intro']);
+    setLesson(modDir('01', 'Intro'), 'This is a long text about calculus and other things');
 
     const results = search.searchAll('calculus');
     expect(results[0].snippet).toContain('calculus');
   });
 
   test('searches notes from storage', async () => {
-    mockCourses.push(makeCourse('math', 'Math', ['Intro']));
+    addCourse('math', 'Math', ['Intro']);
     mockStorageData.notes = [
       { id: 'n1', courseID: 'math', moduleID: '01', content: 'my calculus note' },
     ];
@@ -162,7 +180,7 @@ describe('searchAll', () => {
   });
 
   test('searches highlights from storage', async () => {
-    mockCourses.push(makeCourse('math', 'Math', ['Intro']));
+    addCourse('math', 'Math', ['Intro']);
     mockStorageData.highlights = [
       { id: 'h1', courseID: 'math', moduleID: '01', selectedText: 'important calculus concept' },
     ];
@@ -174,8 +192,8 @@ describe('searchAll', () => {
   });
 
   test('storage note search filters by courseID', async () => {
-    mockCourses.push(makeCourse('math', 'Math', ['Intro']));
-    mockCourses.push(makeCourse('physics', 'Physics', ['Intro']));
+    addCourse('math', 'Math', ['Intro']);
+    addCourse('physics', 'Physics', ['Intro']);
     mockStorageData.notes = [
       { id: 'n1', courseID: 'math', moduleID: '01', content: 'calculus note' },
       { id: 'n2', courseID: 'physics', moduleID: '01', content: 'calculus note' },
@@ -187,8 +205,8 @@ describe('searchAll', () => {
   });
 
   test('storage highlight search filters by courseID', async () => {
-    mockCourses.push(makeCourse('math', 'Math', ['Intro']));
-    mockCourses.push(makeCourse('physics', 'Physics', ['Intro']));
+    addCourse('math', 'Math', ['Intro']);
+    addCourse('physics', 'Physics', ['Intro']);
     mockStorageData.highlights = [
       { id: 'h1', courseID: 'math', moduleID: '01', selectedText: 'calculus highlight' },
       { id: 'h2', courseID: 'physics', moduleID: '01', selectedText: 'calculus highlight' },
@@ -200,8 +218,8 @@ describe('searchAll', () => {
   });
 
   test('deduplicates results across note and highlight', async () => {
-    mockCourses.push(makeCourse('math', 'Math', ['Intro']));
-    mockLessonContent.set('math:01', 'calculus lesson');
+    addCourse('math', 'Math', ['Intro']);
+    setLesson(modDir('01', 'Intro'), 'calculus lesson');
     mockStorageData.notes = [
       { id: 'n1', courseID: 'math', moduleID: '01', content: 'calculus note' },
     ];
@@ -235,7 +253,7 @@ describe('searchAll', () => {
   });
 
   test('handles non-matching notes and highlights', async () => {
-    mockCourses.push(makeCourse('math', 'Math', ['Intro']));
+    addCourse('math', 'Math', ['Intro']);
     mockStorageData.notes = [{ id: 'n1', courseID: 'math', moduleID: '01', content: 'unrelated' }];
     mockStorageData.highlights = [
       { id: 'h1', courseID: 'math', moduleID: '01', selectedText: 'also unrelated' },
@@ -246,10 +264,10 @@ describe('searchAll', () => {
   });
 
   test('includes all results when no courseID filter given', async () => {
-    mockCourses.push(makeCourse('math', 'Math', ['Intro']));
-    mockCourses.push(makeCourse('physics', 'Physics', ['Intro']));
-    mockLessonContent.set('math:01', 'calculus in math');
-    mockLessonContent.set('physics:01', 'calculus in physics');
+    addCourse('math', 'Math', ['Intro']);
+    addCourse('physics', 'Physics', ['Intro']);
+    setLesson(modDir('01', 'Intro'), 'calculus in math');
+    setLesson(modDir('01', 'Physics'), 'calculus in physics');
     search = await import('./search');
     const results = search.searchAll('calculus');
     expect(results).toHaveLength(2);

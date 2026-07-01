@@ -1,4 +1,4 @@
-import { render, waitFor } from '@testing-library/react';
+import { render } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test } from 'bun:test';
 
@@ -45,8 +45,6 @@ describe('AITab', () => {
     const textarea = getByPlaceholderText('Ask a question about this lesson...');
     await user.type(textarea, 'What is X?');
     await user.click(getByText('Ask'));
-    expect(
-      await findByText('Error: Check Gemini API key in Settings.'),
-    ).toBeInTheDocument();
+    expect(await findByText('Error: Check Gemini API key in Settings.')).toBeInTheDocument();
   });
 });

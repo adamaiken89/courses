@@ -56,9 +56,7 @@ describe('CardEditor', () => {
 
   test('cancel calls onCancel', async () => {
     const onCancel = mock(() => {});
-    const { getByText } = render(
-      <CardEditor {...defaultProps} onCancel={onCancel} />,
-    );
+    const { getByText } = render(<CardEditor {...defaultProps} onCancel={onCancel} />);
     await user.click(getByText('Cancel'));
     expect(onCancel).toHaveBeenCalledTimes(1);
   });

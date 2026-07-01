@@ -8,12 +8,18 @@ setupRPC();
 
 import CardsTab from './CardsTab';
 
-function makeUserCard(overrides: Partial<{
-  id: string; front: string; back: string; interval: number;
-  repetitions: number; nextReviewDate: string; isStarred: boolean;
-}> & { id: string }) {
+function makeUserCard(
+  overrides: Partial<{
+    id: string;
+    front: string;
+    back: string;
+    interval: number;
+    repetitions: number;
+    nextReviewDate: string;
+    isStarred: boolean;
+  }> & { id: string },
+) {
   return {
-    id: 'card-1',
     courseId: 'test',
     moduleId: '01',
     front: 'What is X?',

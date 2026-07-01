@@ -22,7 +22,9 @@ void mock.module('../layouts/PageHeader', () => ({
 }));
 void mock.module('../layouts/PageContent', () => ({
   default: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <main data-testid="page-content" className={className}>{children}</main>
+    <main data-testid="page-content" className={className}>
+      {children}
+    </main>
   ),
 }));
 
@@ -130,5 +132,77 @@ describe('SettingsPage', () => {
     });
     renderResult.getByText('← Back').click();
     expect(called).toBe(true);
+  });
+
+  test('clear data button shows confirm on first click', async () => {
+    const { getByText } = render(<SettingsPage onBack={() => {}} />);
+    await waitFor(() => {
+      expect(getByText('Clear All Data')).toBeInTheDocument();
+    });
+    await user.click(getByText('Clear All Data'));
+    expect(getByText('Are you sure? Click again to confirm.')).toBeInTheDocument();
+  });
+
+  test('saves API key when save clicked', async () => {
+    mockResponse('geminiSetKey', {});
+    const { container, getByText } = render(<SettingsPage onBack={() => {}} />);
+    await waitFor(() => {
+      expect(container.querySelector('input[type="password"]')).toBeTruthy();
+    });
+    const input = container.querySelector('input[type="password"]')!;
+    await user.type(input, 'test-key-123');
+    await user.click(getByText('Save'));
+    await waitFor(() => {
+      expect(getByText('Saved!')).toBeInTheDocument();
+    });
+  });
+
+  test('selects language when locale button clicked', async () => {
+    const { getByText } = render(<SettingsPage onBack={() => {}} />);
+    await waitFor(() => {
+      expect(getByText('繁體中文')).toBeInTheDocument();
+    });
+    await user.click(getByText('繁體中文'));
+    expect(useSettingsStore.getState().locale).toBe('zh-TW');
+  });
+
+  test('selects layout width', async () => {
+    const { getByText } = render(<SettingsPage onBack={() => {}} />);
+    await waitFor(() => {
+      expect(getByText('Narrow')).toBeInTheDocument();
+    });
+    await user.click(getByText('Narrow'));
+    expect(useSettingsStore.getState().contentWidth).toBe('narrow');
+    await user.click(getByText('Wide'));
+    expect(useSettingsStore.getState().contentWidth).toBe('wide');
+  });
+
+  test('selects transition style', async () => {
+    const { getByText } = render(<SettingsPage onBack={() => {}} />);
+    await waitFor(() => {
+      expect(getByText('Slide')).toBeInTheDocument();
+    });
+    await user.click(getByText('Slide'));
+    expect(useSettingsStore.getState().transitionStyle).toBe('slide');
+  });
+
+  test('shows sync error when present', async () => {
+    useSyncStore.setState({ error: 'Repository not found' });
+    const { container } = render(<SettingsPage onBack={() => {}} />);
+    await waitFor(() => {
+      expect(container.textContent).toContain('Repository not found');
+    });
+  });
+
+  test('pre-fills repo URL from sync store', async () => {
+    useSyncStore.setState({ remoteRepoURL: 'https://github.com/user/repo' });
+    const { container } = render(<SettingsPage onBack={() => {}} />);
+    await waitFor(() => {
+      const inputs = container.querySelectorAll('input[type="text"]');
+      const urlInput = Array.from(inputs).find((i) =>
+        i.getAttribute('placeholder')?.includes('github'),
+      );
+      expect(urlInput).toHaveValue('https://github.com/user/repo');
+    });
   });
 });
