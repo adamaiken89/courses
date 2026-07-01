@@ -5,7 +5,7 @@ import type { ReactElement } from 'react';
 import type { Course, ModuleMeta } from '../../bun/types';
 import i18n from '../i18n';
 import { useCompletionStore } from '../stores/completionStore';
-import { clearMocks, mockResponse, setupRPC } from '../test-utils';
+import { clearMocks, mockResponse, setupRPC } from '../testUtils';
 
 setupRPC();
 
@@ -25,13 +25,11 @@ void mock.module('../components/CourseSwitcher', () => ({
     </div>
   ),
 }));
-
 void mock.module('../layouts/PageLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="page-layout">{children}</div>
   ),
 }));
-
 void mock.module('../layouts/PageHeader', () => ({
   default: ({ actions, center }: { actions?: React.ReactNode; center?: React.ReactNode }) => (
     <header data-testid="page-header">
@@ -40,7 +38,6 @@ void mock.module('../layouts/PageHeader', () => ({
     </header>
   ),
 }));
-
 void mock.module('../layouts/PageContent', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <main data-testid="page-content">{children}</main>

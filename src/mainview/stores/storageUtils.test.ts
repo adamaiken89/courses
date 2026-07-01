@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test } from 'bun:test';
 
-import { getStored, store } from './storage-utils';
+import { getStored, store } from './storageUtils';
 
 beforeEach(() => {
   localStorage.clear();

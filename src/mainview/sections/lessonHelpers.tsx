@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { headingId } from '../../bun/lesson-markdown';
+import { headingId } from '../../bun/lessonMarkdown';
 import MermaidDiagram from '../components/MermaidDiagram';
 
 function CodeBlockWithCopy({ children }: { children?: React.ReactNode }) {

@@ -1,5 +1,5 @@
 import type { RPCSchema } from 'electrobun/bun';
-import type { MetaField } from './lesson-markdown';
+import type { MetaField } from './lessonMarkdown';
 import type { CourseStats, GlobalStats } from './stats';
 import type { SearchResult } from './search';
 import type {

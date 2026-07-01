@@ -1,6 +1,6 @@
 import { describe, expect, test, beforeEach } from 'bun:test';
 
-import { fsMockImpl } from '../test-fs-shared';
+import { fsMockImpl } from '../testFsShared';
 
 const mockState = {
   exists: true,
@@ -44,7 +44,7 @@ beforeEach(() => {
   });
 });
 
-type Loader = typeof import('./course-loader');
+type Loader = typeof import('./courseLoader');
 let loader: Loader;
 
 beforeEach(() => {
@@ -59,7 +59,7 @@ beforeEach(() => {
 
 describe('findModuleDir', () => {
   test('returns directory matching padded module id', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     mockState.modulesDirEntries = [
       { name: '01-intro', isDirectory: () => true },
       { name: '02-advanced', isDirectory: () => true },
@@ -69,14 +69,14 @@ describe('findModuleDir', () => {
   });
 
   test('returns null when modules dir does not exist', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     mockState.exists = false;
     const result = loader.findModuleDir('/courses', 'test', '01');
     expect(result).toBeNull();
   });
 
   test('returns null when no matching module found', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     mockState.modulesDirEntries = [{ name: '01-intro', isDirectory: () => true }];
     const result = loader.findModuleDir('/courses', 'test', '99');
     expect(result).toBeNull();
@@ -85,7 +85,7 @@ describe('findModuleDir', () => {
 
 describe('loadCourses', () => {
   test('returns courses sorted alphabetically', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     mockState.courseSyllabi = {
       math: 'subject: Mathematics\nmodules: []\n',
       alpha: 'subject: Alpha\nmodules: []\n',
@@ -105,7 +105,7 @@ describe('loadCourses', () => {
   });
 
   test('skips non-directory entries and srs dir', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     mockState.courseSyllabi = { math: 'subject: Mathematics\nmodules: []\n' };
     mockState.modulesDirEntries = [
       { name: 'math', isDirectory: () => true },
@@ -118,7 +118,7 @@ describe('loadCourses', () => {
   });
 
   test('returns empty when courses dir not found', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     mockState.exists = false;
     expect(loader.loadCourses()).toEqual([]);
   });
@@ -126,7 +126,7 @@ describe('loadCourses', () => {
 
 describe('loadLesson', () => {
   test('returns lesson content', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     mockState.modulesDirEntries = [{ name: '01-intro', isDirectory: () => true }];
     mockState.moduleLesson['01-intro'] = '# Intro\n\nContent';
     const content = loader.loadLesson('test', '01');
@@ -134,13 +134,13 @@ describe('loadLesson', () => {
   });
 
   test('throws when module not found', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     mockState.modulesDirEntries = [];
     expect(() => loader.loadLesson('test', '99')).toThrow('Module 99 not found for course test');
   });
 
   test('throws when courses dir not found', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     mockState.exists = false;
     expect(() => loader.loadLesson('test', '01')).toThrow('Module 01 not found for course test');
   });
@@ -148,7 +148,7 @@ describe('loadLesson', () => {
 
 describe('loadQuiz', () => {
   test('returns quiz questions', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     mockState.modulesDirEntries = [{ name: '01-intro', isDirectory: () => true }];
     mockState.moduleQuiz['01-intro'] =
       '- id: q1\n  question: "?"\n  options:\n    A: a\n    B: b\n  answer: A\n  explanation: e\n';
@@ -158,7 +158,7 @@ describe('loadQuiz', () => {
   });
 
   test('returns empty array when no quiz.yaml', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     mockState.modulesDirEntries = [{ name: '01-intro', isDirectory: () => true }];
     // No quiz content set → readFileSync returns '' → existsSync returns true but
     // loadQuiz checks existsSync(quizPath) first. Since our mock doesn't distinguish
@@ -171,12 +171,12 @@ describe('loadQuiz', () => {
   });
 
   test('throws when module not found', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     expect(() => loader.loadQuiz('test', '99')).toThrow('Module 99 not found for course test');
   });
 
   test('throws when courses dir not found', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     mockState.exists = false;
     expect(() => loader.loadQuiz('test', '01')).toThrow('Module 01 not found for course test');
   });
@@ -184,13 +184,13 @@ describe('loadQuiz', () => {
 
 describe('loadSRSDeck', () => {
   test('returns empty deck when no file', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     const deck = loader.loadSRSDeck('test');
     expect(deck).toEqual({ cards: {} });
   });
 
   test('returns parsed deck', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     mockState.srsDeckContent['test'] = JSON.stringify({
       cards: { 'test-1-q1': { id: 'test-1-q1', question: 'Q?' } },
     });
@@ -199,7 +199,7 @@ describe('loadSRSDeck', () => {
   });
 
   test('returns empty deck on parse error', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     mockState.srsDeckContent['test'] = 'not valid json{{{';
     const deck = loader.loadSRSDeck('test');
     expect(deck).toEqual({ cards: {} });
@@ -208,7 +208,7 @@ describe('loadSRSDeck', () => {
 
 describe('saveSRSDeck', () => {
   test('writes deck to disk', async () => {
-    loader = await import('./course-loader');
+    loader = await import('./courseLoader');
     const deck = {
       cards: {
         'test-1-q1': {

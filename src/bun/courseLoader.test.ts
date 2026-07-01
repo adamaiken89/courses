@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { parseCourse, parseQuiz, parseSections } from './course-loader';
+import { parseCourse, parseQuiz, parseSections } from './courseLoader';
 import { createSRSCard, performReview } from './srs';
 import type { QuizQuestion, SRSCard } from './types';
 

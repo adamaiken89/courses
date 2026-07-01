@@ -28,9 +28,8 @@ export function useBookmarks(
     void load(courseId, moduleId);
   }, [courseId, moduleId, load]);
 
-  const byModule = useBookmarksStore((s) => s.byModule);
   const k = `${courseId}:${moduleId}`;
-  const bookmarks = byModule[k] ?? [];
+  const bookmarks = useBookmarksStore((s) => s.byModule[k]) ?? [];
 
   const sectionBookmark = visibleSection
     ? bookmarks.find((b) => b.sectionID === visibleSection)

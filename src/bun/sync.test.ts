@@ -1,6 +1,6 @@
 import { describe, expect, mock, test, beforeEach } from 'bun:test';
 
-import { fsMockImpl } from '../test-fs-shared';
+import { fsMockImpl } from '../testFsShared';
 
 const mockExecSync = mock<(cmd: string) => void>();
 const mockExistsSync = mock<(p: string) => boolean>();

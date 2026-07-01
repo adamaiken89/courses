@@ -1,5 +1,5 @@
 [test]
-preload = "./src/setup.ts"
+preload = "./src/setup.tsx"
 coverage = true
 coverageThreshold = 80
 coverageSkipTestFiles = true

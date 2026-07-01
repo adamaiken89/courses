@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 
 import * as yaml from './yaml';
 import { join } from 'path';
 
-import { processLessonMarkdown } from './lesson-markdown';
+import { processLessonMarkdown } from './lessonMarkdown';
 import { logger } from './logger';
 import { findSubjectsDir, normalizeModuleId } from './utils';
 

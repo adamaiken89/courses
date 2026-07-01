@@ -1,6 +1,6 @@
 import { startTransition, useCallback, useEffect, useOptimistic, useRef, useState } from 'react';
 
-import type { MetaField } from '../../bun/lesson-markdown';
+import type { MetaField } from '../../bun/lessonMarkdown';
 import type { Section } from '../../bun/types';
 import { api } from '../api';
 import { logger } from '../logger';

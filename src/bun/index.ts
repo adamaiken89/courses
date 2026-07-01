@@ -1,9 +1,9 @@
 import { BrowserView, BrowserWindow, Updater } from 'electrobun/bun';
-import type { AppSchema } from './rpc-schema';
-import * as CourseLoader from './course-loader';
+import type { AppSchema } from './rpcSchema';
+import * as CourseLoader from './courseLoader';
 import * as Storage from './storage';
 import * as Gemini from './gemini';
-import { processLessonMarkdown } from './lesson-markdown';
+import { processLessonMarkdown } from './lessonMarkdown';
 import {
   getDueCardsForCourse,
   getStarredCardsForCourse,

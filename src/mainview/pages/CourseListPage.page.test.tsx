@@ -11,13 +11,11 @@ void mock.module('../layouts/PageLayout', () => ({
     <div data-testid="page-layout">{children}</div>
   ),
 }));
-
 void mock.module('../layouts/PageHeader', () => ({
   default: ({ actions }: { actions?: React.ReactNode }) => (
     <header data-testid="page-header">{actions}</header>
   ),
 }));
-
 void mock.module('../layouts/PageContent', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <main data-testid="page-content">{children}</main>

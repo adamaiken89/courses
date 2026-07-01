@@ -5,14 +5,13 @@ import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import i18n from '../i18n';
 import { useSettingsStore } from '../stores/settingsStore';
 import { useSyncStore } from '../stores/syncStore';
-import { clearMocks, mockResponse, setupRPC } from '../test-utils';
+import { clearMocks, mockResponse, setupRPC } from '../testUtils';
 
 void mock.module('../layouts/PageLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="page-layout">{children}</div>
   ),
 }));
-
 void mock.module('../layouts/PageHeader', () => ({
   default: ({ onBack, title }: { onBack?: () => void; title?: string }) => (
     <header data-testid="page-header">
@@ -21,12 +20,9 @@ void mock.module('../layouts/PageHeader', () => ({
     </header>
   ),
 }));
-
 void mock.module('../layouts/PageContent', () => ({
   default: ({ children, className }: { children: React.ReactNode; className?: string }) => (
-    <main data-testid="page-content" className={className}>
-      {children}
-    </main>
+    <main data-testid="page-content" className={className}>{children}</main>
   ),
 }));
 

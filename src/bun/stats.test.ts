@@ -1,7 +1,7 @@
 import { describe, expect, test, mock, beforeEach } from 'bun:test';
 
 import type { Course, SRSDeck } from './types';
-import { fsMockImpl } from '../test-fs-shared';
+import { fsMockImpl } from '../testFsShared';
 
 const mockCourses: Course[] = [];
 const mockDeck: SRSDeck = { cards: {} };
@@ -15,7 +15,7 @@ let storageData: Record<string, unknown> = {
   userCards: [],
 };
 
-mock.module('./course-loader', () => ({
+mock.module('./courseLoader', () => ({
   loadCourses: () => mockCourses,
   loadSRSDeck: () => mockDeck,
 }));

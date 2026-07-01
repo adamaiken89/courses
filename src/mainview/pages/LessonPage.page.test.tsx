@@ -52,19 +52,17 @@ void mock.module('../components/lesson/LessonToolbar', () => ({
 }));
 
 void mock.module('../components/SearchOverlay', () => ({
-  default: ({ onClose }: { onClose: () => void }) => (
+  default: ({ onClose }: { onClose: () => void}) => (
     <div data-testid="search-overlay">
       <button onClick={onClose}>Close Search</button>
     </div>
   ),
 }));
-
 void mock.module('../layouts/PageLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="page-layout">{children}</div>
   ),
 }));
-
 void mock.module('../layouts/PageHeader', () => ({
   default: ({
     onBack,
@@ -84,7 +82,6 @@ void mock.module('../layouts/PageHeader', () => ({
     </header>
   ),
 }));
-
 void mock.module('../layouts/PageContent', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <main data-testid="page-content">{children}</main>

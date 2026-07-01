@@ -26,7 +26,7 @@ const mockResults = [
 ];
 
 import { useCourseStore } from '../stores/courseStore';
-import { clearMocks, mockResponse, setupRPC } from '../test-utils';
+import { clearMocks, mockResponse, setupRPC } from '../testUtils';
 import SearchOverlay from './SearchOverlay';
 
 setupRPC();

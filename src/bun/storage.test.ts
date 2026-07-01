@@ -1,8 +1,6 @@
 import { describe, expect, test, beforeEach, mock } from 'bun:test';
 
-import { fsMockImpl, fsMockState } from '../test-fs-shared';
-
-mock.module('fs', () => fsMockState);
+import { fsMockImpl } from '../testFsShared';
 
 let state = {
   exists: true,

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { processLessonMarkdown, headingId } from './lesson-markdown';
+import { processLessonMarkdown, headingId } from './lessonMarkdown';
 
 describe('headingId', () => {
   test('lowercases and hyphenates', () => {

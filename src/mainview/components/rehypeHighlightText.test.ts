@@ -1,8 +1,8 @@
 import { describe, expect, test } from 'bun:test';
 
 import type { Highlight } from '../../bun/types';
-import type { HastElement, HastNode, HastRoot } from './rehype-highlight-text';
-import { rehypeHighlightText } from './rehype-highlight-text';
+import type { HastElement, HastNode, HastRoot } from './rehypeHighlightText';
+import { rehypeHighlightText } from './rehypeHighlightText';
 function mkHighlight(id: string, text: string, color: string): Highlight {
   return {
     id,

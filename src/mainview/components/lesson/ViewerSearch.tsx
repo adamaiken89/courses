@@ -50,7 +50,7 @@ export default function ViewerSearch({
   );
 
   return (
-    <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-750 border-b border-gray-700 text-xs shrink-0">
+    <div data-testid="viewer-search" className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-750 border-b border-gray-700 text-xs shrink-0">
       <span className="text-gray-400 text-sm">{t('icons.search')}</span>
       <input
         ref={inputRef}

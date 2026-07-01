@@ -16,6 +16,7 @@ export default function CardEditor({ selectedText, x, y, onSave, onCancel }: Car
 
   return (
     <div
+      data-testid="card-editor"
       className="fixed z-50 bg-gray-800 border border-gray-600 rounded-lg p-3 shadow-xl"
       style={{
         left: x,

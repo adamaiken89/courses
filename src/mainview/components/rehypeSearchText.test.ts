@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 
-import { rehypeSearchText } from './rehype-search-text';
+import { rehypeSearchText } from './rehypeSearchText';
 
 type HastNode = {
   type: string;

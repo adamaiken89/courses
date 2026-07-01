@@ -11,7 +11,6 @@ interface UseNotesReturn {
 
 export function useNotes(courseId: string, moduleId: string): UseNotesReturn {
   const load = useNotesStore((s) => s.load);
-  const byModule = useNotesStore((s) => s.byModule);
   const loading = useNotesStore((s) => s.loading[`${courseId}:${moduleId}`] ?? false);
 
   useEffect(() => {
@@ -19,7 +18,7 @@ export function useNotes(courseId: string, moduleId: string): UseNotesReturn {
   }, [courseId, moduleId, load]);
 
   const k = `${courseId}:${moduleId}`;
-  const notes = byModule[k] ?? [];
+  const notes = useNotesStore((s) => s.byModule[k]) ?? [];
 
   return { notes, loading, refresh: () => load(courseId, moduleId) };
 }

@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, test } from 'bun:test';
 
-import { clearMocks, mockResponse, setupRPC } from '../test-utils';
+import { clearMocks, mockResponse, setupRPC } from '../testUtils';
 import { useLesson } from './useLesson';
 
 setupRPC();

@@ -5,28 +5,25 @@ import { beforeEach, describe, expect, mock, test } from 'bun:test';
 import type { Bookmark } from '../../bun/types';
 import i18n from '../i18n';
 import { useCourseStore } from '../stores/courseStore';
-import { clearMocks, hasMock, mockResponse, setupRPC } from '../test-utils';
+import { clearMocks, hasMock, mockResponse, setupRPC } from '../testUtils';
 
 void mock.module('../components/CourseSwitcher', () => ({
-  default: ({ onSelect }: { onSelect: () => void }) => (
-    <div data-testid="course-switcher">
+  default: ({ currentCourseId, onSelect }: { currentCourseId?: string; onSelect: () => void }) => (
+    <div data-testid="course-switcher" data-current={currentCourseId}>
       <button onClick={onSelect}>Switch</button>
     </div>
   ),
 }));
-
 void mock.module('../layouts/PageLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="page-layout">{children}</div>
   ),
 }));
-
 void mock.module('../layouts/PageHeader', () => ({
   default: ({ onBack }: { onBack?: () => void }) => (
     <header data-testid="page-header">{onBack && <button onClick={onBack}>← Back</button>}</header>
   ),
 }));
-
 void mock.module('../layouts/PageContent', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <main data-testid="page-content">{children}</main>

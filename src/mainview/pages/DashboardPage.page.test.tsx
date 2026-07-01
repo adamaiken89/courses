@@ -2,7 +2,7 @@ import { act, render, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
 
 import i18n from '../i18n';
-import { clearMocks, mockResponse, setupRPC } from '../test-utils';
+import { clearMocks, mockResponse, setupRPC } from '../testUtils';
 
 setupRPC();
 
@@ -11,7 +11,6 @@ void mock.module('../layouts/PageLayout', () => ({
     <div data-testid="page-layout">{children}</div>
   ),
 }));
-
 void mock.module('../layouts/PageHeader', () => ({
   default: ({ onBack, title }: { onBack?: () => void; title?: string }) => (
     <header data-testid="page-header">
@@ -20,13 +19,11 @@ void mock.module('../layouts/PageHeader', () => ({
     </header>
   ),
 }));
-
 void mock.module('../layouts/PageContent', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <main data-testid="page-content">{children}</main>
   ),
 }));
-
 void mock.module('../components/ui/StatCard', () => ({
   StatCard: ({
     label,

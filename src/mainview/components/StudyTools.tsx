@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import { useLessonContext } from '../sections/LessonContext';
 import { useCourseStore } from '../stores/courseStore';
-import AITab from './study-tools/AITab';
-import BookmarksTab from './study-tools/BookmarksTab';
-import CardsTab from './study-tools/CardsTab';
-import NotesHighlightsTab from './study-tools/NotesHighlightsTab';
+import AITab from './studyTools/AITab';
+import BookmarksTab from './studyTools/BookmarksTab';
+import CardsTab from './studyTools/CardsTab';
+import NotesHighlightsTab from './studyTools/NotesHighlightsTab';
 import { Button } from './ui';
 
 type Tab = 'notes-highlights' | 'bookmarks' | 'cards' | 'ask-ai';

@@ -2,15 +2,11 @@ import { act, render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 
-void mock.module('../components/MermaidDiagram', () => ({
-  default: () => <div data-testid="mermaid-diagram" />,
-}));
-
-void mock.module('../../bun/lesson-markdown', () => ({
+void mock.module('../../bun/lessonMarkdown', () => ({
   headingId: (text: string) => text.toLowerCase().replace(/\s+/g, '-'),
 }));
 
-import { components } from './lesson-helpers';
+import { components } from './lessonHelpers';
 
 let clipboardText = '';
 const originalWriteText = navigator.clipboard.writeText;

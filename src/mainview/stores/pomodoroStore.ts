@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { getStored, store } from './storage-utils';
+import { getStored, store } from './storageUtils';
 
 export type PomodoroMode = 'focus' | 'shortBreak' | 'longBreak';
 type PomodoroStatus = 'idle' | 'running' | 'paused' | 'finished';

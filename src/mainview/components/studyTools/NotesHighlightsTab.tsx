@@ -6,7 +6,7 @@ import { useLessonContext } from '../../sections/LessonContext';
 import { useHighlightsStore } from '../../stores/highlightsStore';
 import { useNotesStore } from '../../stores/notesStore';
 import { showToast } from '../../toast';
-import { findSectionIdForHighlight, scrollToHighlightEl } from './notes-helpers';
+import { findSectionIdForHighlight, scrollToHighlightEl } from './notesHelpers';
 
 type MergedItem =
   | { kind: 'highlight'; highlight: Highlight }

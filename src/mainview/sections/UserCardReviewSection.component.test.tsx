@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test } from 'bun:test';
 
 import type { UserCard } from '../../bun/types';
-import { clearMocks, hasMock, mockResponse, setupRPC } from '../test-utils';
+import { clearMocks, hasMock, mockResponse, setupRPC } from '../testUtils';
 
 function makeCard(overrides?: Partial<UserCard>): UserCard {
   return {

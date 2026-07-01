@@ -2,36 +2,37 @@ import { beforeEach, describe, expect, mock, test } from 'bun:test';
 
 let lastToast: unknown = null;
 
+void mock.module('sonner', () => ({
+  toast: {
+    success: (...args: unknown[]) => {
+      lastToast = ['success', ...args];
+      return 'toast-id';
+    },
+    error: (...args: unknown[]) => {
+      lastToast = ['error', ...args];
+      return 'toast-id';
+    },
+    info: (...args: unknown[]) => {
+      lastToast = ['info', ...args];
+      return 'toast-id';
+    },
+    warning: (...args: unknown[]) => {
+      lastToast = ['warning', ...args];
+      return 'toast-id';
+    },
+    promise: <T>(
+      _promise: Promise<T>,
+      msgs: { loading: string; success: string; error: string | (() => string) },
+    ) => {
+      lastToast = ['promise', msgs];
+      return 'toast-id';
+    },
+  },
+  Toaster: () => null,
+}));
+
 beforeEach(() => {
   lastToast = null;
-  void mock.module('sonner', () => ({
-    toast: {
-      success: (...args: unknown[]) => {
-        lastToast = ['success', ...args];
-        return 'toast-id';
-      },
-      error: (...args: unknown[]) => {
-        lastToast = ['error', ...args];
-        return 'toast-id';
-      },
-      info: (...args: unknown[]) => {
-        lastToast = ['info', ...args];
-        return 'toast-id';
-      },
-      warning: (...args: unknown[]) => {
-        lastToast = ['warning', ...args];
-        return 'toast-id';
-      },
-      promise: <T>(
-        _promise: Promise<T>,
-        msgs: { loading: string; success: string; error: string | (() => string) },
-      ) => {
-        lastToast = ['promise', msgs];
-        return 'toast-id';
-      },
-    },
-    Toaster: () => null,
-  }));
 });
 
 describe('showToast', () => {

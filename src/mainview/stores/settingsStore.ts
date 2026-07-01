@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import i18n from '../i18n';
 import type { Theme } from '../themes';
 import { THEMES } from '../themes';
-import { getStored, store } from './storage-utils';
+import { getStored, store } from './storageUtils';
 
 export type ContentWidth = 'narrow' | 'standard' | 'wide';
 export type TransitionStyle = 'none' | 'flip' | 'slide' | 'fade';

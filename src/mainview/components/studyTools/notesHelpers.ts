@@ -1,4 +1,4 @@
-import { headingId } from '../../../bun/lesson-markdown';
+import { headingId } from '../../../bun/lessonMarkdown';
 import type { Section } from '../../../bun/types';
 
 export function scrollToHighlightEl(

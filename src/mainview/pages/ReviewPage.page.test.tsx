@@ -1,5 +1,8 @@
-import { render } from '@testing-library/react';
 import { describe, expect, mock, test } from 'bun:test';
+
+import { render } from '@testing-library/react';
+
+import ReviewPage from './ReviewPage';
 
 void mock.module('../sections/ReviewSection', () => ({
   default: ({ courseId }: { courseId: string }) => (
@@ -16,13 +19,11 @@ void mock.module('../components/CourseSwitcher', () => ({
     </div>
   ),
 }));
-
 void mock.module('../layouts/PageLayout', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="page-layout">{children}</div>
   ),
 }));
-
 void mock.module('../layouts/PageHeader', () => ({
   default: ({
     onBack,
@@ -42,14 +43,11 @@ void mock.module('../layouts/PageHeader', () => ({
     </header>
   ),
 }));
-
 void mock.module('../layouts/PageContent', () => ({
   default: ({ children }: { children: React.ReactNode }) => (
     <main data-testid="page-content">{children}</main>
   ),
 }));
-
-import ReviewPage from './ReviewPage';
 
 describe('ReviewPage', () => {
   const defaultProps = {

@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, mock, test } from 'bun:test';
 
-import { fsMockImpl } from '../test-fs-shared';
+import { fsMockImpl } from '../testFsShared';
 import type { Course } from './types';
 
 const mockCourses: Course[] = [];
 const mockLessonContent: Map<string, string | null> = new Map();
 
-mock.module('./course-loader', () => ({
+mock.module('./courseLoader', () => ({
   loadCourses: () => mockCourses,
   loadLesson: (courseID: string, modID: string) =>
     mockLessonContent.get(`${courseID}:${modID}`) ?? null,

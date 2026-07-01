@@ -1,4 +1,4 @@
-import { HIGHLIGHT_COLORS } from '../rehype-highlight-text';
+import { HIGHLIGHT_COLORS } from '../rehypeHighlightText';
 
 interface ColorPickerRowProps {
   activeHighlightColor?: string;

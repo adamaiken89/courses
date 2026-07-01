@@ -2,7 +2,7 @@ import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, test } from 'bun:test';
 
 import { useBookmarksStore } from '../stores/bookmarksStore';
-import { clearMocks, mockResponse, setupRPC } from '../test-utils';
+import { clearMocks, mockResponse, setupRPC } from '../testUtils';
 import { useBookmarks } from './useBookmarks';
 
 setupRPC();

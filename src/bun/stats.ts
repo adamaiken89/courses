@@ -1,4 +1,4 @@
-import * as CourseLoader from './course-loader';
+import * as CourseLoader from './courseLoader';
 import * as Storage from './storage';
 import * as SRS from './srs';
 

@@ -8,7 +8,7 @@ import { useHighlightsStore } from '../stores/highlightsStore';
 import { useLessonUIStore } from '../stores/lessonUIStore';
 import { useNotesStore } from '../stores/notesStore';
 import { useSettingsStore } from '../stores/settingsStore';
-import { clearMocks, deleteMock, mockResponse, mockRPC, setupRPC } from '../test-utils';
+import { clearMocks, deleteMock, mockResponse, mockRPC, setupRPC } from '../testUtils';
 
 const rpcCalls: string[] = [];
 const trackedMockRPC = {
@@ -33,30 +33,6 @@ void mock.module('react-markdown', () => ({
   default: ({ children }: { children?: string }) => (
     <div data-testid="markdown">{String(children)}</div>
   ),
-}));
-
-void mock.module('../components/lesson/NoteEditor', () => ({
-  default: () => <div data-testid="note-editor" />,
-}));
-
-void mock.module('../components/lesson/CardEditor', () => ({
-  default: () => <div data-testid="card-editor" />,
-}));
-
-void mock.module('../components/lesson/NotePopover', () => ({
-  default: () => <div data-testid="note-popover" />,
-}));
-
-void mock.module('../components/lesson/ViewerSearch', () => ({
-  default: () => <div data-testid="viewer-search" />,
-}));
-
-void mock.module('../components/StudyTools', () => ({
-  default: () => <div data-testid="study-tools" />,
-}));
-
-void mock.module('../components/MermaidDiagram', () => ({
-  default: () => <div data-testid="mermaid-diagram" />,
 }));
 
 import LessonSection from './LessonSection';
@@ -207,7 +183,7 @@ describe('LessonSection', () => {
   test('renders study tools when showTools is true and not focusing', async () => {
     useLessonUIStore.setState({ showTools: true });
     const { container } = await renderAndSettle(<LessonSection {...props} />);
-    expect(container.querySelector('[data-testid="study-tools"]')).toBeTruthy();
+    expect(container.textContent).toContain('Study Tools');
   });
 
   test('hides study tools when focus mode is on', async () => {
@@ -215,7 +191,7 @@ describe('LessonSection', () => {
     useSettingsStore.setState({ focusMode: true });
     const { container } = await renderAndSettle(<LessonSection {...props} />);
     expect(container.textContent).toContain('Test Heading');
-    expect(container.querySelector('[data-testid="study-tools"]')).toBeNull();
+    expect(container.textContent).not.toContain('Study Tools');
   });
 
   test('renders sections panel when showSections is true', async () => {

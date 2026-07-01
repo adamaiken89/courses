@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
-import * as CourseLoader from './course-loader';
-import { processLessonMarkdown } from './lesson-markdown';
+import * as CourseLoader from './courseLoader';
+import { processLessonMarkdown } from './lessonMarkdown';
 import type { Course } from './types';
 
 export interface SearchResult {

@@ -19,7 +19,6 @@ export function useHighlights(courseId: string, moduleId: string): UseHighlights
   const load = useHighlightsStore((s) => s.load);
   const add = useHighlightsStore((s) => s.add);
   const remove = useHighlightsStore((s) => s.remove);
-  const byModule = useHighlightsStore((s) => s.byModule);
   const loading = useHighlightsStore((s) => s.loading[`${courseId}:${moduleId}`] ?? false);
 
   useEffect(() => {
@@ -27,7 +26,7 @@ export function useHighlights(courseId: string, moduleId: string): UseHighlights
   }, [courseId, moduleId, load]);
 
   const k = `${courseId}:${moduleId}`;
-  const highlights = byModule[k] ?? [];
+  const highlights = useHighlightsStore((s) => s.byModule[k]) ?? [];
 
   const addHighlight = useCallback(
     async (text: string, color: string, startOffset?: number, endOffset?: number) => {
