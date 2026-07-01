@@ -2,6 +2,7 @@ import { render, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, test } from 'bun:test';
 
+import { useViewStore } from '../../stores/viewStore';
 import { clearMocks, mockResponse, setupRPC } from '../../testUtils';
 
 setupRPC();
@@ -36,21 +37,39 @@ function makeUserCard(
 
 describe('CardsTab', () => {
   const user = userEvent.setup();
-  const props = { courseId: 'test', moduleId: '01' };
 
   beforeEach(() => {
     clearMocks();
+    useViewStore.setState({
+      views: [
+        {
+          type: 'lesson',
+          course: {
+            id: 'test',
+            course: 'test',
+            displayName: 'Test',
+            timeBudgetHours: 0,
+            targetLevel: '',
+            domain: '',
+            prerequisites: [],
+            learningObjectives: [],
+            modules: [],
+          },
+          module: { id: '01', name: '', timeHours: 0, prerequisites: [], topics: [] },
+        },
+      ],
+    });
   });
 
   test('renders loading state', () => {
     mockResponse('getUserCards', new Promise(() => {}));
-    const { getByText } = render(<CardsTab {...props} />);
+    const { getByText } = render(<CardsTab />);
     expect(getByText('Loading...')).toBeInTheDocument();
   });
 
   test('renders empty state', async () => {
     mockResponse('getUserCards', []);
-    const { findByText } = render(<CardsTab {...props} />);
+    const { findByText } = render(<CardsTab />);
     expect(
       await findByText('No cards yet. Select text in the lesson to create cards.'),
     ).toBeInTheDocument();
@@ -61,7 +80,7 @@ describe('CardsTab', () => {
       makeUserCard({ id: 'c1', front: 'What is A?', back: 'A is B', interval: 1, repetitions: 2 }),
       makeUserCard({ id: 'c2', front: 'What is C?', back: 'C is D' }),
     ]);
-    const { findByText, getByText } = render(<CardsTab {...props} />);
+    const { findByText, getByText } = render(<CardsTab />);
     expect(await findByText('What is A?')).toBeInTheDocument();
     expect(getByText('What is C?')).toBeInTheDocument();
     expect(getByText(/^Due/)).toBeInTheDocument();
@@ -74,7 +93,7 @@ describe('CardsTab', () => {
       makeUserCard({ id: 'c2', front: 'What is C?', back: 'C is D' }),
     ]);
     mockResponse('deleteUserCard', null);
-    const { findByText, getAllByText, queryByText } = render(<CardsTab {...props} />);
+    const { findByText, getAllByText, queryByText } = render(<CardsTab />);
     expect(await findByText('What is A?')).toBeInTheDocument();
     const closeButtons = getAllByText('✕');
     await user.click(closeButtons[0]);

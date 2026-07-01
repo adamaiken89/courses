@@ -17,10 +17,6 @@ const mockCourse = {
   learningObjectives: [],
 };
 
-const defaultSections: { id: string; heading: string; level: number; parentID: string }[] = [];
-
-const defaultContent = '# lesson';
-
 function renderWithStore(component: React.ReactElement) {
   return render(component);
 }
@@ -33,41 +29,31 @@ describe('StudyTools', () => {
   const user = userEvent.setup();
 
   test('renders without crashing', () => {
-    const { container } = renderWithStore(
-      <StudyTools courseId="math" moduleId="01" content={defaultContent} sections={defaultSections} onClose={() => {}} />,
-    );
+    const { container } = renderWithStore(<StudyTools onClose={() => {}} />);
     expect(container.firstChild).toBeTruthy();
   });
 
   test('renders sidebar title', () => {
-    const { getByText } = renderWithStore(
-      <StudyTools courseId="math" moduleId="01" content={defaultContent} sections={defaultSections} onClose={() => {}} />,
-    );
+    const { getByText } = renderWithStore(<StudyTools onClose={() => {}} />);
     expect(getByText('Study Tools')).toBeInTheDocument();
   });
 
   test('renders tab buttons', () => {
-    const { getByText } = renderWithStore(
-      <StudyTools courseId="math" moduleId="01" content={defaultContent} sections={defaultSections} onClose={() => {}} />,
-    );
+    const { getByText } = renderWithStore(<StudyTools onClose={() => {}} />);
     expect(getByText('Bookmarks')).toBeInTheDocument();
     expect(getByText('Cards')).toBeInTheDocument();
     expect(getByText('Ask AI')).toBeInTheDocument();
   });
 
   test('switches tab on click', async () => {
-    const { getByText } = renderWithStore(
-      <StudyTools courseId="math" moduleId="01" content={defaultContent} sections={defaultSections} onClose={() => {}} />,
-    );
+    const { getByText } = renderWithStore(<StudyTools onClose={() => {}} />);
     await user.click(getByText('Bookmarks'));
     expect(getByText('Bookmarks').className).toContain('text-indigo-400');
   });
 
   test('close button calls onClose', async () => {
     const onClose = mock(() => {});
-    const { getByText } = renderWithStore(
-      <StudyTools courseId="math" moduleId="01" content={defaultContent} sections={defaultSections} onClose={onClose} />,
-    );
+    const { getByText } = renderWithStore(<StudyTools onClose={onClose} />);
     await user.click(getByText('✕'));
     expect(onClose).toHaveBeenCalledTimes(1);
   });

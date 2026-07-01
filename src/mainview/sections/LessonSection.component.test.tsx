@@ -5,9 +5,8 @@ import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import type { Course, ModuleMeta } from '../../bun/types';
 import { useCompletionStore } from '../stores/completionStore';
 import { useHighlightsStore } from '../stores/highlightsStore';
-import { useLessonStore } from '../stores/lessonStore';
+import { useLessonStore, useLessonStore as useSelectionStore } from '../stores/lessonStore';
 import { useNotesStore } from '../stores/notesStore';
-import { useSelectionStore } from '../stores/selectionStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { clearMocks, deleteMock, mockResponse, mockRPC, setupRPC } from '../testUtils';
 

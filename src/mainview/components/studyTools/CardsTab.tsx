@@ -3,17 +3,18 @@ import { useTranslation } from 'react-i18next';
 
 import type { UserCard } from '../../../bun/types';
 import { api } from '../../api';
+import { useViewStore } from '../../stores/viewStore';
 
-interface CardsTabProps {
-  courseId: string;
-  moduleId: string;
-}
-
-export default function CardsTab({ courseId, moduleId }: CardsTabProps) {
+export default function CardsTab() {
   const { t } = useTranslation();
   const [cards, setCards] = useState<UserCard[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const views = useViewStore((s) => s.views);
+  const lastView = views[views.length - 1];
+  const courseId = lastView?.type === 'lesson' ? lastView.course.id : '';
+  const moduleId = lastView?.type === 'lesson' ? lastView.module.id : '';
 
   const loadCards = useCallback(() => {
     setLoading(true);
@@ -24,8 +25,8 @@ export default function CardsTab({ courseId, moduleId }: CardsTabProps) {
   }, [courseId, moduleId]);
 
   useEffect(() => {
-    loadCards();
-  }, [loadCards]);
+    if (courseId && moduleId) loadCards();
+  }, [loadCards, courseId, moduleId]);
 
   const handleDelete = async (id: string) => {
     setDeletingId(id);

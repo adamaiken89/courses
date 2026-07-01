@@ -2,7 +2,7 @@ import type { RefObject } from 'react';
 import { useEffect, useRef } from 'react';
 
 import type { Note } from '../../bun/types';
-import { useSelectionStore } from '../stores/selectionStore';
+import { useLessonStore as useSelectionStore } from '../stores/lessonStore';
 
 export function useNotePopoverOnClick(
   contentRef: RefObject<HTMLElement | null>,
@@ -24,7 +24,9 @@ export function useNotePopoverOnClick(
           const found = notesRef.current.find((n) => n.highlightID === highlightId);
           if (found) {
             const rect = target.getBoundingClientRect();
-            useSelectionStore.getState().setPopoverNote({ note: found, x: rect.left + rect.width / 2, y: rect.top });
+            useSelectionStore
+              .getState()
+              .setPopoverNote({ note: found, x: rect.left + rect.width / 2, y: rect.top });
           }
           return;
         }

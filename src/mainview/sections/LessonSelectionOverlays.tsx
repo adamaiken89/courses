@@ -4,7 +4,7 @@ import { api } from '../api';
 import SelectionOverlays from '../components/lesson/SelectionOverlays';
 import { useDelayedUnmount } from '../hooks/useDelayedUnmount';
 import { useHighlights } from '../hooks/useHighlights';
-import { useSelectionStore } from '../stores/selectionStore';
+import { useLessonStore as useSelectionStore } from '../stores/lessonStore';
 import { getTextOffset } from './lessonHelpers';
 
 interface LessonSelectionOverlaysProps {
@@ -44,25 +44,28 @@ export default function LessonSelectionOverlays({
   );
   const showNotePopover = useDelayedUnmount(!!popoverNote, 150);
 
-  const handleAddHighlight = useCallback(async (color: string) => {
-    const sel = useSelectionStore.getState().selection;
-    if (!sel) return;
-    const el = contentRef.current;
-    const offsets = el ? getTextOffset(el, sel.range) : null;
-    if (!offsets) return;
-    await addHighlight(sel.text, color, offsets.start, offsets.end);
-    closeToolbar();
-    requestAnimationFrame(() => {
-      const marks = el?.querySelectorAll('mark');
-      marks?.forEach((mark) => {
-        if (mark.textContent?.trim() === sel.text.trim() && !mark.dataset.flashApplied) {
-          mark.dataset.flashApplied = 'true';
-          mark.classList.add('anim-highlight-flash');
-          setTimeout(() => mark.classList.remove('anim-highlight-flash'), 600);
-        }
+  const handleAddHighlight = useCallback(
+    async (color: string) => {
+      const sel = useSelectionStore.getState().selection;
+      if (!sel) return;
+      const el = contentRef.current;
+      const offsets = el ? getTextOffset(el, sel.range) : null;
+      if (!offsets) return;
+      await addHighlight(sel.text, color, offsets.start, offsets.end);
+      closeToolbar();
+      requestAnimationFrame(() => {
+        const marks = el?.querySelectorAll('mark');
+        marks?.forEach((mark) => {
+          if (mark.textContent?.trim() === sel.text.trim() && !mark.dataset.flashApplied) {
+            mark.dataset.flashApplied = 'true';
+            mark.classList.add('anim-highlight-flash');
+            setTimeout(() => mark.classList.remove('anim-highlight-flash'), 600);
+          }
+        });
       });
-    });
-  }, [contentRef, addHighlight, closeToolbar]);
+    },
+    [contentRef, addHighlight, closeToolbar],
+  );
 
   const handleDelete = useCallback(() => {
     const { selectedHighlightId } = useSelectionStore.getState();
@@ -93,13 +96,16 @@ export default function LessonSelectionOverlays({
     onRefreshHighlights();
   }, [contentRef, courseId, moduleId, closeToolbar, closeNoteEditor, onRefreshHighlights]);
 
-  const handleCreateCard = useCallback(async (front: string, back: string) => {
-    const sel = useSelectionStore.getState().selection;
-    if (!sel) return;
-    await api.usercards.create(courseId, moduleId, front, back);
-    closeToolbar();
-    closeCardEditor();
-  }, [courseId, moduleId, closeToolbar, closeCardEditor]);
+  const handleCreateCard = useCallback(
+    async (front: string, back: string) => {
+      const sel = useSelectionStore.getState().selection;
+      if (!sel) return;
+      await api.usercards.create(courseId, moduleId, front, back);
+      closeToolbar();
+      closeCardEditor();
+    },
+    [courseId, moduleId, closeToolbar, closeCardEditor],
+  );
 
   return (
     <SelectionOverlays

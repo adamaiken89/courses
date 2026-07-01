@@ -11,7 +11,11 @@ export function useLessonSection(course: Course, module: ModuleMeta) {
   const isCompleted = useCompletionStore((s) => s.completed[storeKey] ?? false);
   const completedCount = useCompletionStore((s) => countCompleted(s.completed, course.id));
   const totalModules = useCompletionStore((s) => s.totalModules[course.id] ?? 0);
-  const { toggle, load: loadCompletion, loadCourse: loadCourseCompletion } = useCompletionStore(
+  const {
+    toggle,
+    load: loadCompletion,
+    loadCourse: loadCourseCompletion,
+  } = useCompletionStore(
     useShallow((s) => ({ toggle: s.toggle, load: s.load, loadCourse: s.loadCourse })),
   );
 
@@ -24,14 +28,13 @@ export function useLessonSection(course: Course, module: ModuleMeta) {
     })),
   );
 
-  const { focusMode, showSections, toggleSections } =
-    useSettingsStore(
-      useShallow((s) => ({
-        focusMode: s.focusMode,
-        showSections: s.showSections,
-        toggleSections: s.toggleSections,
-      })),
-    );
+  const { focusMode, showSections, toggleSections } = useSettingsStore(
+    useShallow((s) => ({
+      focusMode: s.focusMode,
+      showSections: s.showSections,
+      toggleSections: s.toggleSections,
+    })),
+  );
 
   useEffect(() => {
     void loadCompletion(course.id, module.id);

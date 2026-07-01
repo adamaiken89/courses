@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import rehypeHighlight from 'rehype-highlight';
 import type { PluggableList } from 'unified';
@@ -18,7 +18,8 @@ import { useLessonNav } from '../hooks/useLessonNav';
 import { useLessonSearch } from '../hooks/useLessonSearch';
 import { useLessonSection } from '../hooks/useLessonSection';
 import { useShortcuts } from '../hooks/useShortcuts';
-import { useSelectionStore } from '../stores/selectionStore';
+import { useLessonStore as useSelectionStore } from '../stores/lessonStore';
+import { useLessonViewStore } from '../stores/lessonViewStore';
 
 interface Props {
   course: Course;
@@ -49,6 +50,13 @@ export default function LessonSection({
     toggleSections,
   } = useLessonSection(course, module);
 
+  const lessonData = useLesson(
+    course.id,
+    module.id,
+    { isCompleted, completedCount, totalModules, toggle },
+    initialSectionID,
+  );
+
   const {
     content,
     h1,
@@ -61,12 +69,18 @@ export default function LessonSection({
     scrollToSection,
     handleScroll,
     handleToggleCompleted,
-  } = useLesson(
-    course.id,
-    module.id,
-    { isCompleted, completedCount, totalModules, toggle },
-    initialSectionID,
-  );
+  } = lessonData;
+
+  const synced = useRef(false);
+  if (!synced.current || content !== useLessonViewStore.getState().content) {
+    useLessonViewStore.getState().set({
+      content,
+      sections,
+      contentRef,
+      scrollToSection,
+    });
+    synced.current = true;
+  }
 
   useBookmarks(course.id, module.id, null);
   const { highlights } = useHighlights(course.id, module.id);
@@ -152,15 +166,7 @@ export default function LessonSection({
             showTools && !focusMode ? 'anim-panel-slide-left' : 'anim-panel-slide-left-exit'
           }
         >
-          <StudyTools
-            courseId={course.id}
-            moduleId={module.id}
-            content={content}
-            sections={sections}
-            contentRef={contentRef}
-            scrollToSection={scrollToSection}
-            onClose={() => toggleTools()}
-          />
+          <StudyTools onClose={() => toggleTools()} />
         </div>
       )}
 
@@ -186,7 +192,9 @@ export default function LessonSection({
           <div className="fixed right-4 top-1/2 -translate-y-1/2 z-50 overflow-visible">
             <div
               className={
-                showSections && !focusMode ? 'anim-panel-slide-right' : 'anim-panel-slide-right-exit'
+                showSections && !focusMode
+                  ? 'anim-panel-slide-right'
+                  : 'anim-panel-slide-right-exit'
               }
             >
               <SectionsPanel
@@ -215,16 +223,11 @@ export default function LessonSection({
           bodyContent={bodyContent}
           handleScroll={handleScroll}
           isCompleted={optimisticIsCompleted}
-          toggleCompleted={() => { void handleToggleCompleted(); }}
+          toggleCompleted={() => {
+            void handleToggleCompleted();
+          }}
           rehypePlugins={rehypePlugins}
-          searchActive={search.searchActive}
-          searchQuery={search.searchQuery}
-          searchTotalMatches={search.totalMatches}
-          searchCurrentMatch={search.currentMatchIndex}
-          onSearchQueryChange={search.handleSearchQueryChange}
-          onSearchPrev={search.handleSearchPrev}
-          onSearchNext={search.handleSearchNext}
-          onSearchClose={search.handleSearchClose}
+          search={search}
         />
       </div>
     </div>

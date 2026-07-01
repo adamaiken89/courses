@@ -1,8 +1,9 @@
 import type { RefObject } from 'react';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
-import type { TextSelection } from '../stores/selectionStore';
-import { useSelectionStore } from '../stores/selectionStore';
+import type { TextSelection } from '../stores/lessonStore';
+import { useLessonStore as useSelectionStore } from '../stores/lessonStore';
 
 export type { TextSelection };
 
@@ -10,23 +11,26 @@ export function useSelection(scrollContainerRef?: RefObject<HTMLElement | null>)
   const rafRef = useRef<number>(0);
   const hideRafRef = useRef<number>(0);
 
-  const showToolbar = useSelectionStore((s) => s.showToolbar);
-  const showNoteEditor = useSelectionStore((s) => s.showNoteEditor);
-  const showCardEditor = useSelectionStore((s) => s.showCardEditor);
-  const noteText = useSelectionStore((s) => s.noteText);
-  const selection = useSelectionStore((s) => s.selection);
-  const pickerPos = useSelectionStore((s) => s.pickerPos);
-  const selectedHighlightId = useSelectionStore((s) => s.selectedHighlightId);
-
-  const handleTextSelection = useSelectionStore((s) => s.handleTextSelection);
-  const setSelectedHighlight = useSelectionStore((s) => s.setSelectedHighlight);
-  const openNoteEditor = useSelectionStore((s) => s.openNoteEditor);
-  const openCardEditor = useSelectionStore((s) => s.openCardEditor);
-  const setNoteText = useSelectionStore((s) => s.setNoteText);
-  const closeToolbar = useSelectionStore((s) => s.closeToolbar);
-  const closeNoteEditor = useSelectionStore((s) => s.closeNoteEditor);
-  const closeCardEditor = useSelectionStore((s) => s.closeCardEditor);
-  const updatePickerPos = useSelectionStore((s) => s.updatePickerPos);
+  const actions = useSelectionStore(
+    useShallow((s) => ({
+      showToolbar: s.showToolbar,
+      showNoteEditor: s.showNoteEditor,
+      showCardEditor: s.showCardEditor,
+      noteText: s.noteText,
+      selection: s.selection,
+      pickerPos: s.pickerPos,
+      selectedHighlightId: s.selectedHighlightId,
+      handleTextSelection: s.handleTextSelection,
+      setSelectedHighlight: s.setSelectedHighlight,
+      openNoteEditor: s.openNoteEditor,
+      openCardEditor: s.openCardEditor,
+      setNoteText: s.setNoteText,
+      closeToolbar: s.closeToolbar,
+      closeNoteEditor: s.closeNoteEditor,
+      closeCardEditor: s.closeCardEditor,
+      updatePickerPos: s.updatePickerPos,
+    })),
+  );
 
   useEffect(() => {
     const onSelectionChange = () => {
@@ -57,7 +61,7 @@ export function useSelection(scrollContainerRef?: RefObject<HTMLElement | null>)
 
   useEffect(() => {
     const el = scrollContainerRef?.current;
-    if (!el || !selection) return;
+    if (!el || !actions.selection) return;
     const onScroll = () => {
       cancelAnimationFrame(rafRef.current);
       rafRef.current = requestAnimationFrame(() => {
@@ -69,44 +73,7 @@ export function useSelection(scrollContainerRef?: RefObject<HTMLElement | null>)
       cancelAnimationFrame(rafRef.current);
       el.removeEventListener('scroll', onScroll);
     };
-  }, [selection, scrollContainerRef]);
+  }, [actions.selection, scrollContainerRef]);
 
-  return useMemo(
-    () => ({
-      showToolbar,
-      showNoteEditor,
-      showCardEditor,
-      noteText,
-      selection,
-      pickerPos,
-      selectedHighlightId,
-      handleTextSelection,
-      setSelectedHighlight,
-      openNoteEditor,
-      openCardEditor,
-      setNoteText,
-      closeToolbar,
-      closeNoteEditor,
-      closeCardEditor,
-      updatePickerPos,
-    }),
-    [
-      showToolbar,
-      showNoteEditor,
-      showCardEditor,
-      noteText,
-      selection,
-      pickerPos,
-      selectedHighlightId,
-      handleTextSelection,
-      setSelectedHighlight,
-      openNoteEditor,
-      openCardEditor,
-      setNoteText,
-      closeToolbar,
-      closeNoteEditor,
-      closeCardEditor,
-      updatePickerPos,
-    ],
-  );
+  return actions;
 }

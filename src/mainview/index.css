@@ -807,24 +807,3 @@ body {
   animation: highlight-flash 0.6s ease-out;
   display: inline;
 }
-
-/* ── Toolbar collapse (focus mode) ── */
-.anim-toolbar-section {
-  transition:
-    opacity 0.25s ease,
-    max-height 0.3s ease,
-    margin 0.25s ease,
-    padding 0.25s ease;
-  overflow: hidden;
-}
-.anim-toolbar-section-hidden {
-  opacity: 0;
-  max-height: 0;
-  margin: 0;
-  padding: 0;
-  pointer-events: none;
-}
-.anim-toolbar-section-visible {
-  opacity: 1;
-  max-height: 60px;
-}

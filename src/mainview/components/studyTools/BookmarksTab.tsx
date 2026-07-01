@@ -1,26 +1,26 @@
 import { useTranslation } from 'react-i18next';
 
-import type { Section } from '../../../bun/types';
 import { useBookmarks } from '../../hooks/useBookmarks';
+import { useCourseStore } from '../../stores/courseStore';
 import { useLessonStore } from '../../stores/lessonStore';
+import { useLessonViewStore } from '../../stores/lessonViewStore';
+import { useViewStore } from '../../stores/viewStore';
 
-interface BookmarksTabProps {
-  courseId: string;
-  moduleId: string;
-  moduleName: string;
-  courseName: string;
-  sections: Section[];
-}
-
-export default function BookmarksTab({
-  courseId,
-  moduleId,
-  moduleName,
-  courseName,
-  sections,
-}: BookmarksTabProps) {
+export default function BookmarksTab() {
   const { t } = useTranslation();
   const visibleSection = useLessonStore((s) => s.visibleSection);
+
+  const views = useViewStore((s) => s.views);
+  const lastView = views[views.length - 1];
+  const courseId = lastView?.type === 'lesson' ? lastView.course.id : '';
+  const moduleId = lastView?.type === 'lesson' ? lastView.module.id : '';
+
+  const { sections } = useLessonViewStore();
+
+  const course = useCourseStore((s) => s.courses.find((c) => c.id === courseId));
+  const moduleName = course?.modules.find((m) => m.id === moduleId)?.name ?? '';
+  const courseName = course?.displayName ?? '';
+
   const { bookmarks, loading, handleToggleBookmark, handleDeleteBookmark } = useBookmarks(
     courseId,
     moduleId,

@@ -31,7 +31,7 @@ function mockSelection(text: string, collapsed: boolean, rangeRect?: Partial<DOM
   return sel;
 }
 
-import { useSelectionStore } from '../stores/selectionStore';
+import { useLessonStore as useSelectionStore } from '../stores/lessonStore';
 
 beforeEach(() => {
   useSelectionStore.setState({

@@ -27,21 +27,60 @@ describe('SectionsPanel', () => {
   const user = userEvent.setup();
 
   test('renders section headings', () => {
-    const { getByText } = render(<SectionsPanel sections={defaultSections} courseId={defaultCourseId} moduleId={defaultModuleId} moduleName="Test Module" hasPrev={false} hasNext={false} onGoPrev={() => {}} onGoNext={() => {}} onScrollToSection={() => {}} onClose={() => {}} />);
+    const { getByText } = render(
+      <SectionsPanel
+        sections={defaultSections}
+        courseId={defaultCourseId}
+        moduleId={defaultModuleId}
+        moduleName="Test Module"
+        hasPrev={false}
+        hasNext={false}
+        onGoPrev={() => {}}
+        onGoNext={() => {}}
+        onScrollToSection={() => {}}
+        onClose={() => {}}
+      />,
+    );
     expect(getByText('Introduction')).toBeInTheDocument();
     expect(getByText('Body Content')).toBeInTheDocument();
     expect(getByText('Conclusion')).toBeInTheDocument();
   });
 
   test('highlights active section', () => {
-    const { getByText } = render(<SectionsPanel sections={defaultSections} courseId={defaultCourseId} moduleId={defaultModuleId} moduleName="Test Module" hasPrev={false} hasNext={false} onGoPrev={() => {}} onGoNext={() => {}} onScrollToSection={() => {}} onClose={() => {}} />);
+    const { getByText } = render(
+      <SectionsPanel
+        sections={defaultSections}
+        courseId={defaultCourseId}
+        moduleId={defaultModuleId}
+        moduleName="Test Module"
+        hasPrev={false}
+        hasNext={false}
+        onGoPrev={() => {}}
+        onGoNext={() => {}}
+        onScrollToSection={() => {}}
+        onClose={() => {}}
+      />,
+    );
     const bodyBtn = getByText('Body Content').closest('button');
     expect(bodyBtn).toBeTruthy();
   });
 
   test('clicking section calls scrollToSection', async () => {
     const scrollToSection = mock(() => {});
-    const { getByText } = render(<SectionsPanel sections={defaultSections} courseId={defaultCourseId} moduleId={defaultModuleId} moduleName="Test Module" hasPrev={false} hasNext={false} onGoPrev={() => {}} onGoNext={() => {}} onScrollToSection={scrollToSection} onClose={() => {}} />);
+    const { getByText } = render(
+      <SectionsPanel
+        sections={defaultSections}
+        courseId={defaultCourseId}
+        moduleId={defaultModuleId}
+        moduleName="Test Module"
+        hasPrev={false}
+        hasNext={false}
+        onGoPrev={() => {}}
+        onGoNext={() => {}}
+        onScrollToSection={scrollToSection}
+        onClose={() => {}}
+      />,
+    );
     await user.click(getByText('Introduction'));
     expect(scrollToSection).toHaveBeenCalledTimes(1);
     expect(scrollToSection).toHaveBeenCalledWith('intro');
@@ -49,23 +88,73 @@ describe('SectionsPanel', () => {
 
   test('clicking bookmark toggles bookmark', async () => {
     const toggle = mock(() => Promise.resolve());
-    useBookmarksStore.setState({ toggle } as Partial<typeof useBookmarksStore extends { getState: infer S } ? S extends () => infer T ? T : never : never>);
-    const { getAllByText } = render(<SectionsPanel sections={defaultSections} courseId={defaultCourseId} moduleId={defaultModuleId} moduleName="Test Module" hasPrev={false} hasNext={false} onGoPrev={() => {}} onGoNext={() => {}} onScrollToSection={() => {}} onClose={() => {}} />);
+    useBookmarksStore.setState({ toggle } as Partial<
+      typeof useBookmarksStore extends { getState: infer S }
+        ? S extends () => infer T
+          ? T
+          : never
+        : never
+    >);
+    const { getAllByText } = render(
+      <SectionsPanel
+        sections={defaultSections}
+        courseId={defaultCourseId}
+        moduleId={defaultModuleId}
+        moduleName="Test Module"
+        hasPrev={false}
+        hasNext={false}
+        onGoPrev={() => {}}
+        onGoNext={() => {}}
+        onScrollToSection={() => {}}
+        onClose={() => {}}
+      />,
+    );
     const stars = getAllByText('☆');
     await user.click(stars[1]);
     expect(toggle).toHaveBeenCalledTimes(1);
-    expect(toggle).toHaveBeenCalledWith(defaultCourseId, defaultModuleId, 'Test Module – Body Content', 'body');
+    expect(toggle).toHaveBeenCalledWith(
+      defaultCourseId,
+      defaultModuleId,
+      'Test Module – Body Content',
+      'body',
+    );
   });
 
   test('clicking close calls onClose', async () => {
     const onClose = mock(() => {});
-    const { getByText } = render(<SectionsPanel sections={defaultSections} courseId={defaultCourseId} moduleId={defaultModuleId} moduleName="Test Module" hasPrev={false} hasNext={false} onGoPrev={() => {}} onGoNext={() => {}} onScrollToSection={() => {}} onClose={onClose} />);
+    const { getByText } = render(
+      <SectionsPanel
+        sections={defaultSections}
+        courseId={defaultCourseId}
+        moduleId={defaultModuleId}
+        moduleName="Test Module"
+        hasPrev={false}
+        hasNext={false}
+        onGoPrev={() => {}}
+        onGoNext={() => {}}
+        onScrollToSection={() => {}}
+        onClose={onClose}
+      />,
+    );
     await user.click(getByText('→'));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
   test('shows empty state when no sections', () => {
-    const { container } = render(<SectionsPanel sections={[]} courseId={defaultCourseId} moduleId={defaultModuleId} moduleName="Test Module" hasPrev={false} hasNext={false} onGoPrev={() => {}} onGoNext={() => {}} onScrollToSection={() => {}} onClose={() => {}} />);
+    const { container } = render(
+      <SectionsPanel
+        sections={[]}
+        courseId={defaultCourseId}
+        moduleId={defaultModuleId}
+        moduleName="Test Module"
+        hasPrev={false}
+        hasNext={false}
+        onGoPrev={() => {}}
+        onGoNext={() => {}}
+        onScrollToSection={() => {}}
+        onClose={() => {}}
+      />,
+    );
     expect(container.querySelector('[data-section-id]')).toBeNull();
   });
 });

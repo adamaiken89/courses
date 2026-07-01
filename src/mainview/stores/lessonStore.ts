@@ -61,10 +61,7 @@ interface SelectionSlice {
   setPopoverNote: (note: { note: Note; x: number; y: number } | null) => void;
 }
 
-function createSelectionSlice(
-  set: SetFn<LessonState>,
-  get: GetFn<LessonState>,
-): SelectionSlice {
+function createSelectionSlice(set: SetFn<LessonState>, get: GetFn<LessonState>): SelectionSlice {
   return {
     showToolbar: false,
     showNoteEditor: false,
@@ -97,7 +94,9 @@ function createSelectionSlice(
       if (!selection) return;
       try {
         const rect = selection.range.getBoundingClientRect();
-        set({ pickerPos: { x: rect.left + rect.width / 2, y: rect.bottom, selectionTop: rect.top } });
+        set({
+          pickerPos: { x: rect.left + rect.width / 2, y: rect.bottom, selectionTop: rect.top },
+        });
       } catch {
         /* range invalid */
       }

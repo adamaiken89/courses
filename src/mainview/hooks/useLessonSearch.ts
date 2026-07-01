@@ -1,7 +1,7 @@
 import type { RefObject } from 'react';
 import { useCallback, useEffect, useState } from 'react';
 
-interface UseLessonSearchReturn {
+export interface UseLessonSearchReturn {
   searchActive: boolean;
   searchQuery: string;
   currentMatchIndex: number;

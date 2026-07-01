@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useOptimistic, useRef, useState } from 'react';
 
 import type { MetaField } from '../../bun/lessonMarkdown';
 import type { Section } from '../../bun/types';
@@ -73,6 +73,11 @@ export function useLesson(
 
   sectionsRef.current = sections;
 
+  const [optimisticCompleted, toggleOptimistic] = useOptimistic(
+    initialCompleted,
+    (_, next: boolean) => next,
+  );
+
   const scrollToSection = useCallback((sectionId: string) => {
     const container = contentRef.current;
     if (!container) {
@@ -103,20 +108,14 @@ export function useLesson(
     logger.debug({ id, sectionsCount: sectionsRef.current.length }, 'handleScroll');
   }, []);
 
-  const [optimistic, setOptimistic] = useState(initialCompleted);
-
-  useEffect(() => {
-    setOptimistic(initialCompleted);
-  }, [initialCompleted]);
-
   const handleToggleCompleted = useCallback(async () => {
-    setOptimistic((p) => !p);
+    toggleOptimistic(!initialCompleted);
     try {
       await toggle(courseId, moduleId);
     } catch {
-      setOptimistic((p) => !p);
+      /* useOptimistic auto-reverts on next render when initialCompleted unchanged */
     }
-  }, [toggle, courseId, moduleId]);
+  }, [toggle, courseId, moduleId, initialCompleted, toggleOptimistic]);
 
   useEffect(() => {
     setLoading(true);
@@ -157,7 +156,7 @@ export function useLesson(
     bodyContent,
     loading,
     sections,
-    isCompleted: optimistic,
+    isCompleted: optimisticCompleted,
     totalModules,
     completedCount,
     contentRef,

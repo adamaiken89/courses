@@ -52,7 +52,11 @@ export default function SectionsPanel({
     if (el) el.scrollIntoView({ block: 'nearest' });
   }, [visibleSection]);
 
-  const handleToggleSectionBookmark = (sectionId: string, _hasBookmark: boolean, heading: string) => {
+  const handleToggleSectionBookmark = (
+    sectionId: string,
+    _hasBookmark: boolean,
+    heading: string,
+  ) => {
     const { toggle } = useBookmarksStore.getState();
     void toggle(courseId, moduleId, `${moduleName} – ${heading}`, sectionId);
   };
@@ -76,30 +80,30 @@ export default function SectionsPanel({
             </div>
           </div>
           <div className="shrink-0 flex border-b border-gray-700">
-              <button
-                onClick={onGoPrev}
-                disabled={!hasPrev}
-                className={`flex-1 text-xs py-0.5 transition-colors ${
-                  hasPrev
-                    ? 'text-gray-400 hover:text-white hover:bg-gray-700'
-                    : 'text-gray-600 cursor-not-allowed'
-                }`}
-                title={t('lesson.prevModule')}
-              >
-                ◀
-              </button>
-              <button
-                onClick={onGoNext}
-                disabled={!hasNext}
-                className={`flex-1 text-xs py-0.5 transition-colors ${
-                  hasNext
-                    ? 'text-gray-400 hover:text-white hover:bg-gray-700'
-                    : 'text-gray-600 cursor-not-allowed'
-                }`}
-                title={t('lesson.nextModule')}
-              >
-                ▶
-              </button>
+            <button
+              onClick={onGoPrev}
+              disabled={!hasPrev}
+              className={`flex-1 text-xs py-0.5 transition-colors ${
+                hasPrev
+                  ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  : 'text-gray-600 cursor-not-allowed'
+              }`}
+              title={t('lesson.prevModule')}
+            >
+              ◀
+            </button>
+            <button
+              onClick={onGoNext}
+              disabled={!hasNext}
+              className={`flex-1 text-xs py-0.5 transition-colors ${
+                hasNext
+                  ? 'text-gray-400 hover:text-white hover:bg-gray-700'
+                  : 'text-gray-600 cursor-not-allowed'
+              }`}
+              title={t('lesson.nextModule')}
+            >
+              ▶
+            </button>
           </div>
           <div className="overflow-y-auto" ref={sectionsRef}>
             {sections.map((s) => {
