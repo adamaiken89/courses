@@ -2,14 +2,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { api } from '../../api';
+import { useLessonViewStore } from '../../stores/lessonViewStore';
 import { showToast } from '../../toast';
 
-interface AITabProps {
-  content: string;
-}
-
-export default function AITab({ content }: AITabProps) {
+export default function AITab() {
   const { t } = useTranslation();
+  const content = useLessonViewStore((s) => s.content);
   const [question, setQuestion] = useState('');
   const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);

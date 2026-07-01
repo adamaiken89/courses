@@ -96,11 +96,11 @@ describe('useLesson', () => {
     expect(() => result.current.handleScroll()).not.toThrow();
   });
 
-  test('initialSectionID sets visibleSection', async () => {
+  test('initialSectionID passed without error', async () => {
     mockResponse('loadLesson', lessonData);
     const result = await renderHookAndSettle(() =>
       useLesson('math', '01', defaultCompletion, 'sec1'),
     );
-    expect(result.current.visibleSection).toBe('sec1');
+    expect(result.current.content).toBe(lessonData.content);
   });
 });

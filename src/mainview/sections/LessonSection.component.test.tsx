@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, mock, test } from 'bun:test';
 import type { Course, ModuleMeta } from '../../bun/types';
 import { useCompletionStore } from '../stores/completionStore';
 import { useHighlightsStore } from '../stores/highlightsStore';
-import { useLessonUIStore } from '../stores/lessonUIStore';
+import { useLessonStore, useLessonStore as useSelectionStore } from '../stores/lessonStore';
 import { useNotesStore } from '../stores/notesStore';
 import { useSettingsStore } from '../stores/settingsStore';
 import { clearMocks, deleteMock, mockResponse, mockRPC, setupRPC } from '../testUtils';
@@ -57,7 +57,7 @@ const mockModuleMeta: ModuleMeta = {
   topics: ['basics'],
 };
 
-const defaultLessonUI = { showTools: false, showPomodoro: false };
+const defaultLessonUI = { showTools: false, showPomodoro: false, searchCourseOpen: false };
 const defaultSettings = {
   focusMode: false,
   fontSize: 16,
@@ -85,11 +85,20 @@ beforeEach(() => {
   clearMocks();
   rpcCalls.length = 0;
   setupDefaultMocks();
-  useLessonUIStore.setState(defaultLessonUI);
+  useLessonStore.setState(defaultLessonUI);
   useSettingsStore.setState(defaultSettings);
   useHighlightsStore.setState({ byModule: {}, loading: {} });
   useCompletionStore.setState({ completed: {}, totalModules: {}, loading: {}, loaded: false });
   useNotesStore.setState({ byModule: {}, loading: {} });
+  useSelectionStore.setState({
+    showToolbar: false,
+    showNoteEditor: false,
+    showCardEditor: false,
+    noteText: '',
+    selection: null,
+    pickerPos: { x: 0, y: 0, selectionTop: 0 },
+    selectedHighlightId: null,
+  });
 });
 
 function makeMockSelection(text: string, container: Node) {
@@ -175,19 +184,19 @@ describe('LessonSection', () => {
   });
 
   test('renders pomodoro timer when enabled', async () => {
-    useLessonUIStore.setState({ showPomodoro: true });
+    useLessonStore.setState({ showPomodoro: true });
     const { container } = await renderAndSettle(<LessonSection {...props} />);
     expect(container.textContent).toContain('Focus');
   });
 
   test('renders study tools when showTools is true and not focusing', async () => {
-    useLessonUIStore.setState({ showTools: true });
+    useLessonStore.setState({ showTools: true });
     const { container } = await renderAndSettle(<LessonSection {...props} />);
     expect(container.textContent).toContain('Study Tools');
   });
 
   test('hides study tools when focus mode is on', async () => {
-    useLessonUIStore.setState({ showTools: true });
+    useLessonStore.setState({ showTools: true });
     useSettingsStore.setState({ focusMode: true });
     const { container } = await renderAndSettle(<LessonSection {...props} />);
     expect(container.textContent).toContain('Test Heading');

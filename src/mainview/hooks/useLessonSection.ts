@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
 import type { Course, ModuleMeta } from '../../bun/types';
 import { countCompleted, useCompletionStore } from '../stores/completionStore';
-import { useLessonUIStore } from '../stores/lessonUIStore';
+import { useLessonStore } from '../stores/lessonStore';
 import { useSettingsStore } from '../stores/settingsStore';
 
 export function useLessonSection(course: Course, module: ModuleMeta) {
@@ -10,21 +11,30 @@ export function useLessonSection(course: Course, module: ModuleMeta) {
   const isCompleted = useCompletionStore((s) => s.completed[storeKey] ?? false);
   const completedCount = useCompletionStore((s) => countCompleted(s.completed, course.id));
   const totalModules = useCompletionStore((s) => s.totalModules[course.id] ?? 0);
-  const toggle = useCompletionStore((s) => s.toggle);
-  const loadCompletion = useCompletionStore((s) => s.load);
-  const loadCourseCompletion = useCompletionStore((s) => s.loadCourse);
+  const {
+    toggle,
+    load: loadCompletion,
+    loadCourse: loadCourseCompletion,
+  } = useCompletionStore(
+    useShallow((s) => ({ toggle: s.toggle, load: s.load, loadCourse: s.loadCourse })),
+  );
 
-  const showTools = useLessonUIStore((s) => s.showTools);
-  const showPomodoro = useLessonUIStore((s) => s.showPomodoro);
-  const toggleTools = useLessonUIStore((s) => s.toggleTools);
-  const setSearchCourseOpen = useLessonUIStore((s) => s.setSearchCourseOpen);
+  const { showTools, showPomodoro, toggleTools, setSearchCourseOpen } = useLessonStore(
+    useShallow((s) => ({
+      showTools: s.showTools,
+      showPomodoro: s.showPomodoro,
+      toggleTools: s.toggleTools,
+      setSearchCourseOpen: s.setSearchCourseOpen,
+    })),
+  );
 
-  const focusMode = useSettingsStore((s) => s.focusMode);
-  const theme = useSettingsStore((s) => s.theme);
-  const fontSize = useSettingsStore((s) => s.fontSize);
-  const contentWidth = useSettingsStore((s) => s.contentWidth);
-  const showSections = useSettingsStore((s) => s.showSections);
-  const toggleSections = useSettingsStore((s) => s.toggleSections);
+  const { focusMode, showSections, toggleSections } = useSettingsStore(
+    useShallow((s) => ({
+      focusMode: s.focusMode,
+      showSections: s.showSections,
+      toggleSections: s.toggleSections,
+    })),
+  );
 
   useEffect(() => {
     void loadCompletion(course.id, module.id);
@@ -41,9 +51,6 @@ export function useLessonSection(course: Course, module: ModuleMeta) {
     toggleTools,
     setSearchCourseOpen,
     focusMode,
-    theme,
-    fontSize,
-    contentWidth,
     showSections,
     toggleSections,
   };

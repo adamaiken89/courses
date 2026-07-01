@@ -1,137 +1,79 @@
 import type { RefObject } from 'react';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 
-interface TextSelection {
-  text: string;
-  range: Range;
-}
+import type { TextSelection } from '../stores/lessonStore';
+import { useLessonStore as useSelectionStore } from '../stores/lessonStore';
 
-interface UseSelectionReturn {
-  showToolbar: boolean;
-  showNoteEditor: boolean;
-  showCardEditor: boolean;
-  noteText: string;
-  selection: TextSelection | null;
-  pickerPos: { x: number; y: number; selectionTop: number };
-  selectedHighlightId: string | null;
-  handleTextSelection: () => void;
-  setSelectedHighlight: (id: string | null) => void;
-  openNoteEditor: () => void;
-  openCardEditor: () => void;
-  setNoteText: (text: string) => void;
-  closeToolbar: () => void;
-  closeNoteEditor: () => void;
-  closeCardEditor: () => void;
-}
+export type { TextSelection };
 
-export function useSelection(
-  scrollContainerRef?: RefObject<HTMLElement | null>,
-): UseSelectionReturn {
-  const [showToolbar, setShowToolbar] = useState(false);
-  const [showNoteEditor, setShowNoteEditor] = useState(false);
-  const [showCardEditor, setShowCardEditor] = useState(false);
-  const [noteText, setNoteText] = useState('');
-  const [selection, setSelection] = useState<TextSelection | null>(null);
-  const [pickerPos, setPickerPos] = useState({ x: 0, y: 0, selectionTop: 0 });
-  const [selectedHighlightId, setSelectedHighlight] = useState<string | null>(null);
+export function useSelection(scrollContainerRef?: RefObject<HTMLElement | null>) {
   const rafRef = useRef<number>(0);
+  const hideRafRef = useRef<number>(0);
 
-  const handleTextSelection = useCallback(() => {
-    const sel = window.getSelection();
-    if (!sel || sel.isCollapsed || !sel.rangeCount) {
-      setShowToolbar(false);
-      setSelection(null);
-      return;
-    }
-    const text = sel.toString().trim();
-    if (!text || text.length > 500) return;
-    const range = sel.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
-    setSelection({ text, range });
-    setPickerPos({ x: rect.left + rect.width / 2, y: rect.bottom, selectionTop: rect.top });
-    setShowToolbar(true);
-  }, []);
+  const actions = useSelectionStore(
+    useShallow((s) => ({
+      showToolbar: s.showToolbar,
+      showNoteEditor: s.showNoteEditor,
+      showCardEditor: s.showCardEditor,
+      noteText: s.noteText,
+      selection: s.selection,
+      pickerPos: s.pickerPos,
+      selectedHighlightId: s.selectedHighlightId,
+      handleTextSelection: s.handleTextSelection,
+      setSelectedHighlight: s.setSelectedHighlight,
+      openNoteEditor: s.openNoteEditor,
+      openCardEditor: s.openCardEditor,
+      setNoteText: s.setNoteText,
+      closeToolbar: s.closeToolbar,
+      closeNoteEditor: s.closeNoteEditor,
+      closeCardEditor: s.closeCardEditor,
+      updatePickerPos: s.updatePickerPos,
+    })),
+  );
 
   useEffect(() => {
     const onSelectionChange = () => {
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed || !sel.rangeCount) {
-        setShowToolbar(false);
-        setSelection(null);
+        cancelAnimationFrame(hideRafRef.current);
+        hideRafRef.current = requestAnimationFrame(() => {
+          const sel2 = window.getSelection();
+          if (!sel2 || sel2.isCollapsed || !sel2.rangeCount) {
+            useSelectionStore.getState().resetSelection();
+          }
+        });
         return;
       }
+      cancelAnimationFrame(hideRafRef.current);
       const range = sel.getRangeAt(0);
       const container = scrollContainerRef?.current;
       if (!container) return;
       if (!container.contains(range.commonAncestorContainer)) return;
-      handleTextSelection();
+      useSelectionStore.getState().handleTextSelection();
     };
     document.addEventListener('selectionchange', onSelectionChange);
-    return () => document.removeEventListener('selectionchange', onSelectionChange);
-  }, [scrollContainerRef, handleTextSelection]);
+    return () => {
+      cancelAnimationFrame(hideRafRef.current);
+      document.removeEventListener('selectionchange', onSelectionChange);
+    };
+  }, [scrollContainerRef]);
 
   useEffect(() => {
     const el = scrollContainerRef?.current;
-    if (!el || !selection) return;
-    const updatePos = () => {
-      try {
-        const rect = selection.range.getBoundingClientRect();
-        setPickerPos({ x: rect.left + rect.width / 2, y: rect.bottom, selectionTop: rect.top });
-      } catch {
-        /* range invalid */
-      }
-    };
+    if (!el || !actions.selection) return;
     const onScroll = () => {
       cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(updatePos);
+      rafRef.current = requestAnimationFrame(() => {
+        useSelectionStore.getState().updatePickerPos();
+      });
     };
     el.addEventListener('scroll', onScroll, { passive: true });
     return () => {
       cancelAnimationFrame(rafRef.current);
       el.removeEventListener('scroll', onScroll);
     };
-  }, [selection, scrollContainerRef]);
+  }, [actions.selection, scrollContainerRef]);
 
-  const openNoteEditor = useCallback(() => {
-    setShowNoteEditor(true);
-    setNoteText('');
-  }, []);
-
-  const openCardEditor = useCallback(() => {
-    setShowCardEditor(true);
-  }, []);
-
-  const closeToolbar = useCallback(() => {
-    setShowToolbar(false);
-    setSelection(null);
-    setSelectedHighlight(null);
-    window.getSelection()?.removeAllRanges();
-  }, []);
-
-  const closeNoteEditor = useCallback(() => {
-    setShowNoteEditor(false);
-    setNoteText('');
-  }, []);
-
-  const closeCardEditor = useCallback(() => {
-    setShowCardEditor(false);
-  }, []);
-
-  return {
-    showToolbar,
-    showNoteEditor,
-    showCardEditor,
-    noteText,
-    selection,
-    pickerPos,
-    selectedHighlightId,
-    handleTextSelection,
-    setSelectedHighlight,
-    openNoteEditor,
-    openCardEditor,
-    setNoteText,
-    closeToolbar,
-    closeNoteEditor,
-    closeCardEditor,
-  };
+  return actions;
 }

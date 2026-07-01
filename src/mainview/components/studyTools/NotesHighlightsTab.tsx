@@ -2,9 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { Highlight } from '../../../bun/types';
-import { useLessonContext } from '../../sections/LessonContext';
 import { useHighlightsStore } from '../../stores/highlightsStore';
+import { useLessonStore } from '../../stores/lessonStore';
+import { useLessonViewStore } from '../../stores/lessonViewStore';
 import { useNotesStore } from '../../stores/notesStore';
+import { useViewStore } from '../../stores/viewStore';
 import { showToast } from '../../toast';
 import { findSectionIdForHighlight, scrollToHighlightEl } from './notesHelpers';
 
@@ -22,14 +24,16 @@ type MergedItem =
       linkedHighlight?: Highlight;
     };
 
-interface NotesHighlightsTabProps {
-  courseId: string;
-  moduleId: string;
-}
-
-export default function NotesHighlightsTab({ courseId, moduleId }: NotesHighlightsTabProps) {
+export default function NotesHighlightsTab() {
   const { t } = useTranslation();
-  const { contentRef, scrollToSection, sections, visibleSection } = useLessonContext();
+  const visibleSection = useLessonStore((s) => s.visibleSection);
+
+  const views = useViewStore((s) => s.views);
+  const lastView = views[views.length - 1];
+  const courseId = lastView?.type === 'lesson' ? lastView.course.id : '';
+  const moduleId = lastView?.type === 'lesson' ? lastView.module.id : '';
+
+  const { contentRef, scrollToSection, sections } = useLessonViewStore();
 
   const loadNotes = useNotesStore((s) => s.load);
   const addNote = useNotesStore((s) => s.add);
@@ -44,7 +48,7 @@ export default function NotesHighlightsTab({ courseId, moduleId }: NotesHighligh
   const k = `${courseId}:${moduleId}`;
 
   useEffect(() => {
-    void loadNotes(courseId, moduleId);
+    if (courseId && moduleId) void loadNotes(courseId, moduleId);
   }, [courseId, moduleId, loadNotes]);
 
   const [newNoteContent, setNewNoteContent] = useState('');

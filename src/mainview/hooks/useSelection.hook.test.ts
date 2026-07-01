@@ -1,5 +1,5 @@
 import { act, renderHook } from '@testing-library/react';
-import { afterEach, describe, expect, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 
 import { useSelection } from './useSelection';
 
@@ -30,6 +30,20 @@ function mockSelection(text: string, collapsed: boolean, rangeRect?: Partial<DOM
 
   return sel;
 }
+
+import { useLessonStore as useSelectionStore } from '../stores/lessonStore';
+
+beforeEach(() => {
+  useSelectionStore.setState({
+    showToolbar: false,
+    showNoteEditor: false,
+    showCardEditor: false,
+    noteText: '',
+    selection: null,
+    pickerPos: { x: 0, y: 0, selectionTop: 0 },
+    selectedHighlightId: null,
+  });
+});
 
 afterEach(() => {
   // @ts-expect-error getSelection is read-only on Window type; deleting to reset mock

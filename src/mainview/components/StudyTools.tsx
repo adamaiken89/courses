@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useLessonContext } from '../sections/LessonContext';
-import { useCourseStore } from '../stores/courseStore';
 import AITab from './studyTools/AITab';
 import BookmarksTab from './studyTools/BookmarksTab';
 import CardsTab from './studyTools/CardsTab';
@@ -12,19 +10,12 @@ import { Button } from './ui';
 type Tab = 'notes-highlights' | 'bookmarks' | 'cards' | 'ask-ai';
 
 interface StudyToolsProps {
-  courseId: string;
-  moduleId: string;
   onClose: () => void;
 }
 
-export default function StudyTools({ courseId, moduleId, onClose }: StudyToolsProps) {
+export default function StudyTools({ onClose }: StudyToolsProps) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<Tab>('notes-highlights');
-
-  const course = useCourseStore((s) => s.courses.find((c) => c.id === courseId));
-  const moduleName = course?.modules.find((m) => m.id === moduleId)?.name ?? '';
-  const courseName = course?.displayName ?? '';
-  const { content } = useLessonContext();
 
   const tabs: { id: Tab; label: string }[] = [
     { id: 'notes-highlights', label: t('studyTools.notesHighlights') },
@@ -57,19 +48,10 @@ export default function StudyTools({ courseId, moduleId, onClose }: StudyToolsPr
         ))}
       </div>
       <div className="flex-1 overflow-y-auto p-3 space-y-3">
-        {activeTab === 'notes-highlights' && (
-          <NotesHighlightsTab courseId={courseId} moduleId={moduleId} />
-        )}
-        {activeTab === 'bookmarks' && (
-          <BookmarksTab
-            courseId={courseId}
-            moduleId={moduleId}
-            moduleName={moduleName}
-            courseName={courseName}
-          />
-        )}
-        {activeTab === 'cards' && <CardsTab courseId={courseId} moduleId={moduleId} />}
-        {activeTab === 'ask-ai' && <AITab content={content} />}
+        {activeTab === 'notes-highlights' && <NotesHighlightsTab />}
+        {activeTab === 'bookmarks' && <BookmarksTab />}
+        {activeTab === 'cards' && <CardsTab />}
+        {activeTab === 'ask-ai' && <AITab />}
       </div>
     </aside>
   );

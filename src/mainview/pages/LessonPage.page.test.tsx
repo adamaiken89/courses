@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, mock, test } from 'bun:test';
 
 import type { Course, ModuleMeta } from '../../bun/types';
 import { useCourseStore } from '../stores/courseStore';
-import { useLessonUIStore } from '../stores/lessonUIStore';
+import { useLessonStore } from '../stores/lessonStore';
 
 void mock.module('../sections/LessonSection', () => ({
   default: ({
@@ -118,7 +118,7 @@ describe('LessonPage', () => {
       error: null,
       loaded: true,
     });
-    useLessonUIStore.setState({
+    useLessonStore.setState({
       showTools: false,
       showPomodoro: false,
       searchCourseOpen: false,
@@ -211,7 +211,7 @@ describe('LessonPage', () => {
   });
 
   test('renders SearchOverlay when searchCourseOpen is true', () => {
-    useLessonUIStore.setState({ searchCourseOpen: true });
+    useLessonStore.setState({ searchCourseOpen: true });
     const { container } = render(
       <LessonPage
         course={mockCourse}

@@ -90,3 +90,4 @@ The real scrollbar lives on `contentRef` only when `PageContent` is a flex conta
 - `vite.config.ts` root=`src/mainview`, output=`dist/`
 - `index.css`: Tailwind directives + `.book-content` + highlight.js styles
 - **Desktop-only app** (Electrobun). All I/O local. Skip lazy loading, code splitting, chunking, network optimizations. Import eagerly. Bundle once.
+- **Selection overlays**: `LessonSelectionOverlays` (selection toolbar, note/card editors) appear when text selected in content viewer. Driven by `selectionchange` listener in `useSelection` + `onMouseUp` on `LessonContentViewer`.
